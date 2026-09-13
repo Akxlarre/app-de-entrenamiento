@@ -32,7 +32,7 @@ import { AppUpdate } from '../../../core/models/app-update.model';
         }
 
         @if (error()) {
-          <div class="p-3 bg-red-500/10 text-red-500 rounded-lg text-sm">
+          <div class="p-3 bg-surface rounded-lg text-sm text-primary border border-surface-border font-bold">
             {{ error() }}
           </div>
         }
