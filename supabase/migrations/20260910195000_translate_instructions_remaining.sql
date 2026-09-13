@@ -1,0 +1,1 @@
+-- Remaining translated instructions from Gemini
