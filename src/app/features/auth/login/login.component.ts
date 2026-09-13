@@ -1,0 +1,360 @@
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
+import { AuthFacade } from "@core/facades/auth.facade";
+import { validateEmail } from "@core/utils";
+import { IconComponent } from '@shared/components/icon/icon.component';
+
+// SEC-T01: Client-side constraints — validated BEFORE calling the auth API
+// to prevent unnecessary network calls and provide instant feedback.
+const PASSWORD_MIN_LENGTH = 8;
+const DISPLAY_NAME_MAX_LENGTH = 100;
+
+// SEC-T05: Map raw Supabase/network error messages to user-safe strings.
+// Prevents leaking internal API details (table names, query hints, stack traces).
+function sanitizeAuthError(rawMessage: string): string {
+  const msg = (rawMessage ?? "").toLowerCase();
+  if (msg.includes("invalid login credentials") || msg.includes("invalid credentials"))
+    return "Correo o contraseña incorrectos.";
+  if (msg.includes("email not confirmed"))
+    return "Confirma tu correo antes de iniciar sesión.";
+  if (msg.includes("user already registered") || msg.includes("already been registered"))
+    return "Ya existe una cuenta con ese correo.";
+  if (msg.includes("password should be") || msg.includes("password is too short"))
+    return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+  if (msg.includes("rate limit") || msg.includes("too many requests"))
+    return "Demasiados intentos. Espera unos minutos antes de intentar de nuevo.";
+  if (msg.includes("network") || msg.includes("fetch"))
+    return "Error de conexión. Verifica tu internet e intenta de nuevo.";
+  // Generic fallback — never show raw server messages
+  return "Ocurrió un error. Intenta de nuevo o contacta a soporte.";
+}
+
+/**
+ * LoginComponent — Página pública de inicio de sesión.
+ *
+ * Genérico y reutilizable. Usa design tokens del sistema
+ * y AuthFacade para autenticación con Supabase.
+ *
+ * Modos disponibles: login | register | reset
+ */
+@Component({
+  selector: "app-login",
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, IconComponent],
+  template: `
+    <div
+      class="flex min-h-[100dvh] flex-col items-center justify-center bg-[#09090b] px-4 py-8 relative overflow-hidden"
+    >
+      <!-- Ambient background glow -->
+      <div class="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-[#2563eb]/15 blur-[120px] rounded-full"></div>
+
+      <!-- Main Brand Header -->
+      <div class="mb-8 text-center relative z-10 animate-fade-in-up">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[#3b82f6]/20 to-[#2563eb]/5 border border-[#3b82f6]/30 mb-3 shadow-lg shadow-[#3b82f6]/10">
+          <span class="text-2xl">🏋️</span>
+        </div>
+        <h1 class="m-0 text-3xl font-black italic tracking-tighter text-white sm:text-4xl">
+          <span class="text-[#3b82f6]">FIT</span>TRACK
+        </h1>
+        <p class="m-0 mt-1 text-xs font-medium uppercase tracking-widest text-zinc-400">
+          Tu diario de entrenamiento y fuerza
+        </p>
+      </div>
+
+      <!-- Auth Glass Card -->
+      <div
+        class="w-full max-w-[390px] rounded-2xl border border-white/[0.08] bg-[#121217]/95 p-7 shadow-2xl backdrop-blur-xl relative z-10"
+      >
+        <div class="mb-6 text-center">
+          <h2
+            class="m-0 text-xl font-bold tracking-tight text-white"
+          >
+            @switch (mode()) {
+              @case ("register") {
+                Crear Cuenta
+              }
+              @case ("reset") {
+                Recuperar Contraseña
+              }
+              @default {
+                Iniciar Sesión
+              }
+            }
+          </h2>
+          <p class="m-0 mt-1.5 text-xs text-zinc-400">
+            @switch (mode()) {
+              @case ("register") {
+                Únete para registrar y monitorear tus progresos
+              }
+              @case ("reset") {
+                Ingresa tu correo para restablecer tu clave
+              }
+              @default {
+                Ingresa tus credenciales para continuar
+              }
+            }
+          </p>
+        </div>
+
+        <!-- Error message -->
+        @if (errorMsg()) {
+          <div
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[#ef4444]/20 bg-[#ef4444]/10 px-3.5 py-2.5 text-xs font-medium text-[#f87171]"
+            role="alert"
+          >
+            <span class="text-sm">⚠</span>
+            <span>{{ errorMsg() }}</span>
+          </div>
+        }
+
+        <!-- Success message -->
+        @if (successMsg()) {
+          <div
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[#10b981]/20 bg-[#10b981]/10 px-3.5 py-2.5 text-xs font-medium text-[#34d399]"
+            role="status"
+          >
+            <span class="text-sm">✓</span>
+            <span>{{ successMsg() }}</span>
+          </div>
+        }
+
+        <!-- Form -->
+        <form
+          class="flex flex-col gap-4"
+          (ngSubmit)="onSubmit()"
+        >
+          <!-- Email -->
+          <div class="flex flex-col gap-1.5">
+            <label for="email" class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+              >Correo electrónico</label
+            >
+            <input
+              id="email"
+              type="email"
+              class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[#3b82f6] focus:bg-[#3b82f6]/[0.02] focus:ring-2 focus:ring-[#3b82f6]/20"
+              placeholder="tu@correo.com"
+              [(ngModel)]="email"
+              name="email"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <!-- Password (not in reset mode) -->
+          @if (mode() !== "reset") {
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="password"
+                class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+                >Contraseña</label
+              >
+              <input
+                id="password"
+                type="password"
+                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[#3b82f6] focus:bg-[#3b82f6]/[0.02] focus:ring-2 focus:ring-[#3b82f6]/20"
+                placeholder="••••••••"
+                [(ngModel)]="password"
+                name="password"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+          }
+
+          <!-- Display name (register only) -->
+          @if (mode() === "register") {
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="displayName"
+                class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
+                >Nombre</label
+              >
+              <input
+                id="displayName"
+                type="text"
+                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[#3b82f6] focus:bg-[#3b82f6]/[0.02] focus:ring-2 focus:ring-[#3b82f6]/20"
+                placeholder="Tu nombre"
+                [(ngModel)]="displayName"
+                name="displayName"
+                autocomplete="name"
+              />
+            </div>
+          }
+
+          <!-- Submit button (Clean 48px height with gradient and tactile feedback) -->
+          <button
+            type="submit"
+            class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[#2563eb] to-[#3b82f6] font-bold text-sm tracking-wide text-white shadow-lg shadow-[#3b82f6]/25 transition-all duration-150 hover:from-[#3b82f6] hover:to-[#60a5fa] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
+            [disabled]="loading()"
+          >
+            @if (loading()) {
+              <span
+                class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+              ></span>
+            }
+            <span>
+              @switch (mode()) {
+                @case ("register") {
+                  Crear Cuenta
+                }
+                @case ("reset") {
+                  Enviar Enlace
+                }
+                @default {
+                  Iniciar Sesión
+                }
+              }
+            </span>
+          </button>
+        </form>
+
+        <!-- Footer links -->
+        <div class="mt-6 flex items-center justify-center gap-2.5 text-xs text-zinc-400 border-t border-white/[0.06] pt-5">
+          @switch (mode()) {
+            @case ("login") {
+              <button
+                class="cursor-pointer border-none bg-transparent p-0 text-zinc-400 transition-colors hover:text-[#60a5fa]"
+                (click)="switchMode('reset')"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+              <span class="text-zinc-600">·</span>
+              <button
+                class="cursor-pointer border-none bg-transparent p-0 font-semibold text-[#60a5fa] transition-colors hover:text-[#93c5fd]"
+                (click)="switchMode('register')"
+              >
+                Crear cuenta
+              </button>
+            }
+            @case ("register") {
+              <span class="text-zinc-400">¿Ya tienes cuenta?</span>
+              <button
+                class="cursor-pointer border-none bg-transparent p-0 font-semibold text-[#60a5fa] transition-colors hover:text-[#93c5fd]"
+                (click)="switchMode('login')"
+              >
+                Inicia sesión
+              </button>
+            }
+            @case ("reset") {
+              <button
+                class="cursor-pointer border-none bg-transparent p-0 font-semibold text-[#60a5fa] transition-colors hover:text-[#93c5fd]"
+                (click)="switchMode('login')"
+              >
+                Volver a iniciar sesión
+              </button>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  `,
+  host: { style: "display: contents;" },
+})
+export class LoginComponent {
+  private readonly auth = inject(AuthFacade);
+  private readonly router = inject(Router);
+
+  readonly mode = signal<"login" | "register" | "reset">("login");
+  readonly loading = signal(false);
+  readonly errorMsg = signal("");
+  readonly successMsg = signal("");
+
+  email = "";
+  password = "";
+  displayName = "";
+
+  switchMode(newMode: "login" | "register" | "reset"): void {
+    this.mode.set(newMode);
+    this.errorMsg.set("");
+    this.successMsg.set("");
+  }
+
+  async onSubmit(): Promise<void> {
+    this.errorMsg.set("");
+    this.successMsg.set("");
+
+    // SEC-T01: Client-side validation — fail fast before hitting the network.
+    const validationError = this.validate();
+    if (validationError) {
+      this.errorMsg.set(validationError);
+      return;
+    }
+
+    this.loading.set(true);
+
+    try {
+      switch (this.mode()) {
+        case "login": {
+          const { error } = await this.auth.login(this.email.trim(), this.password);
+          if (error) {
+            this.errorMsg.set(sanitizeAuthError(error.message)); // SEC-T05
+          } else {
+            this.router.navigate(["/app"]);
+          }
+          break;
+        }
+
+        case "register": {
+          const { error } = await this.auth.signUp(
+            this.email.trim(),
+            this.password,
+            { data: { display_name: this.displayName.trim() || undefined } },
+          );
+          if (error) {
+            this.errorMsg.set(sanitizeAuthError(error.message)); // SEC-T05
+          } else {
+            this.successMsg.set(
+              "Cuenta creada. Revisa tu correo para confirmar tu registro.",
+            );
+            this.switchMode("login");
+          }
+          break;
+        }
+
+        case "reset": {
+          const { error } = await this.auth.resetPasswordForEmail(this.email.trim());
+          if (error) {
+            this.errorMsg.set(sanitizeAuthError(error.message)); // SEC-T05
+          } else {
+            this.successMsg.set(
+              "Se envió un enlace de recuperación a tu correo.",
+            );
+          }
+          break;
+        }
+      }
+    } catch {
+      this.errorMsg.set("Ocurrió un error inesperado. Intenta de nuevo.");
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /** SEC-T01: Validates form fields before any network call. Returns error string or null. */
+  private validate(): string | null {
+    const email = this.email.trim();
+    if (!email) return "El correo es obligatorio.";
+    if (!validateEmail(email)) return "El correo no tiene un formato válido.";
+
+    if (this.mode() !== "reset") {
+      if (!this.password) return "La contraseña es obligatoria.";
+      if (this.password.length < PASSWORD_MIN_LENGTH)
+        return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
+    }
+
+    if (this.mode() === "register") {
+      const name = this.displayName.trim();
+      if (name.length > DISPLAY_NAME_MAX_LENGTH)
+        return `El nombre no puede superar los ${DISPLAY_NAME_MAX_LENGTH} caracteres.`;
+    }
+
+    return null;
+  }
+}

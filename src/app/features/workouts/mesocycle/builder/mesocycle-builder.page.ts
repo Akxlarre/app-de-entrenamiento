@@ -1,0 +1,303 @@
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonHeader, IonToolbar, IonButtons, IonButton, IonTitle, IonContent, IonInput, IonSelect, IonSelectOption, NavController, IonModal, IonToggle } from '@ionic/angular';
+import { MesocycleFacade } from '@core/facades/mesocycle.facade';
+import { RoutineFacade } from '@core/facades/routine.facade';
+import { IconComponent } from '@shared/components/icon/icon.component';
+import { RoutineEditorPage } from '../../routines/routine-editor.page';
+
+@Component({
+  selector: 'app-mesocycle-builder',
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonButtons, IonButton, IonTitle, IonContent, IonInput, IonSelect, IonSelectOption, IonModal, IonToggle, IconComponent, RoutineEditorPage],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button (click)="goBack()">
+            <app-icon name="arrow-left"></app-icon>
+          </ion-button>
+        </ion-buttons>
+        <ion-title>Creador de Plan</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="bento-grid">
+        
+        <!-- Progreso del Wizard -->
+        <div class="bento-wide step-indicator">
+          <div class="step" [class.active]="step() === 1" [class.completed]="step() > 1">
+            <div class="step-num">1</div>
+            <span>Configuración</span>
+          </div>
+          <div class="step-line" [class.completed]="step() > 1"></div>
+          <div class="step" [class.active]="step() === 2" [class.completed]="step() > 2">
+            <div class="step-num">2</div>
+            <span>Rutinas</span>
+          </div>
+          <div class="step-line" [class.completed]="step() > 2"></div>
+          <div class="step" [class.active]="step() === 3">
+            <div class="step-num">3</div>
+            <span>Progresión</span>
+          </div>
+        </div>
+
+        @if (step() === 1) {
+          <!-- Paso 1: Configuración -->
+          <div class="bento-wide card-accent">
+            <h2>Datos Generales</h2>
+            <p class="text-muted">Dale un nombre a tu bloque y define cuánto durará.</p>
+            
+            <div class="form-group">
+              <label>Nombre del Plan</label>
+              <ion-input [(ngModel)]="planName" placeholder="Ej: Hipertrofia Verano" class="custom-input"></ion-input>
+            </div>
+
+            <div class="form-group">
+              <label>Duración (Semanas)</label>
+              <ion-input type="number" [(ngModel)]="durationWeeks" min="1" max="16" class="custom-input"></ion-input>
+            </div>
+
+            <div class="form-group flex-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+              <label style="margin: 0;">Incluir Semana de Descarga (Deload) al final</label>
+              <ion-toggle [(ngModel)]="includeDeload"></ion-toggle>
+            </div>
+
+            <button class="btn-primary" (click)="nextStep()" [disabled]="!planName()">Siguiente</button>
+          </div>
+        }
+
+        @if (step() === 2) {
+          <!-- Paso 2: Rutinas -->
+          <div class="bento-wide card-accent">
+            <h2>Tus Sesiones</h2>
+            <p class="text-muted">Agrega las rutinas que vas a realizar cada semana.</p>
+            
+            @if (routineFacade.routines().length === 0) {
+              <div class="alert-box">
+                <app-icon name="alert-circle" [size]="20"></app-icon>
+                <span>No tienes rutinas creadas. Ve a la pestaña de Rutinas primero.</span>
+              </div>
+            } @else {
+              <div class="sessions-list">
+                @for (s of selectedSessions(); track $index) {
+                  <div class="session-item">
+                    <div class="session-header">
+                      <span class="day-badge">Día {{ s.day_number }}</span>
+                      <button class="icon-btn text-danger" (click)="removeSession($index)">
+                        <app-icon name="trash-2" [size]="14"></app-icon>
+                      </button>
+                    </div>
+                    <ion-select [(ngModel)]="s.routine_id" interface="action-sheet" placeholder="Selecciona una Rutina" class="custom-select">
+                      @for (r of routineFacade.routines(); track r.id) {
+                        <ion-select-option [value]="r.id">{{ r.name }}</ion-select-option>
+                      }
+                    </ion-select>
+                  </div>
+                }
+              </div>
+
+              <div class="nav-buttons" style="flex-direction: column; gap: 0.75rem;">
+                <button class="btn-secondary w-full" (click)="addSession()">+ Añadir Día de Entrenamiento</button>
+                <button class="btn-outline w-full" (click)="isRoutineModalOpen.set(true)">+ Crear Nueva Rutina</button>
+              </div>
+              
+              <div class="nav-buttons" style="margin-top: 1.5rem;">
+                <button class="btn-outline" (click)="prevStep()">Atrás</button>
+                <button class="btn-primary" (click)="nextStep()" [disabled]="selectedSessions().length === 0 || hasEmptySessions()">Siguiente</button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (step() === 3) {
+          <!-- Paso 3: Progresión -->
+          <div class="bento-wide card-accent">
+            <h2>Estrategia de Periodización</h2>
+            <p class="text-muted">Elige cómo el sistema calculará tus cargas y repeticiones a lo largo de las semanas.</p>
+            
+            <div class="progression-options">
+              
+              <div class="progression-card" 
+                   [class.active]="progressionStrategy() === 'autoregulated'" 
+                   (click)="progressionStrategy.set('autoregulated')">
+                <app-icon name="brain" [size]="24" [color]="progressionStrategy() === 'autoregulated' ? '#10b981' : 'currentColor'"></app-icon>
+                <h4>Auto-Regulada (RIR / RPE)</h4>
+                <p>Sin pesos estrictos pre-calculados. Ajustas tu carga sesión a sesión basándote en tu fatiga diaria.</p>
+              </div>
+
+              <div class="progression-card" 
+                   [class.active]="progressionStrategy() === 'linear'" 
+                   (click)="progressionStrategy.set('linear')">
+                <app-icon name="trending-up" [size]="24" [color]="progressionStrategy() === 'linear' ? '#10b981' : 'currentColor'"></app-icon>
+                <h4>Progresión Lineal</h4>
+                <p>El sistema te pedirá añadir una carga fija pequeña (ej. +1.25kg o +1 rep) cada semana en ejercicios principales.</p>
+              </div>
+
+              <div class="progression-card" 
+                   [class.active]="progressionStrategy() === 'undulating'" 
+                   (click)="progressionStrategy.set('undulating')">
+                <app-icon name="activity" [size]="24" [color]="progressionStrategy() === 'undulating' ? '#10b981' : 'currentColor'"></app-icon>
+                <h4>Periodización Ondulante</h4>
+                <p>Variación de la intensidad y volumen. Días "Pesados" y días "Ligeros" alternados. (Próximamente)</p>
+              </div>
+
+            </div>
+
+            <div class="nav-buttons" style="margin-top: 1.5rem;">
+              <button class="btn-outline" (click)="prevStep()" [disabled]="isSubmitting()">Atrás</button>
+              <button class="btn-primary" (click)="finish()" [disabled]="isSubmitting()">
+                @if (isSubmitting()) {
+                  <app-icon name="loader-2" class="animate-spin"></app-icon> Guardando...
+                } @else {
+                  Crear Plan
+                }
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- Modal de Creación de Rutina Inline -->
+      <ion-modal [isOpen]="isRoutineModalOpen()" (didDismiss)="isRoutineModalOpen.set(false)">
+        <ng-template>
+          <app-routine-editor 
+            [isInline]="true" 
+            (routineCreated)="onRoutineCreated($event)"
+            (cancelInline)="isRoutineModalOpen.set(false)">
+          </app-routine-editor>
+        </ng-template>
+      </ion-modal>
+
+    </ion-content>
+  `,
+  styles: [`
+    h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 0.25rem 0; color: #fff; }
+    .text-muted { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    
+    .step-indicator { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: transparent; border: none; }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; opacity: 0.4; transition: all 0.3s; }
+    .step.active { opacity: 1; }
+    .step.completed { opacity: 1; }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step.active .step-num { background: rgba(59,130,246,0.2); border: 2px solid #3b82f6; color: #60a5fa; }
+    .step.completed .step-num { background: #10b981; color: #fff; }
+    .step span { font-size: 0.7rem; font-weight: 600; }
+    .step-line { flex: 1; height: 2px; background: rgba(255,255,255,0.1); margin: 0 1rem; margin-bottom: 20px; }
+    .step-line.completed { background: #10b981; }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; }
+    .custom-input, .custom-select { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.5rem 1rem; color: #fff; border: 1px solid rgba(255,255,255,0.05); }
+
+    .sessions-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+    .session-item { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; }
+    .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .day-badge { background: rgba(59,130,246,0.15); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    
+    .progression-options { display: flex; flex-direction: column; gap: 1rem; }
+    .progression-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.25rem; transition: all 0.2s; cursor: pointer; }
+    .progression-card.active { border-color: #10b981; background: rgba(16,185,129,0.05); }
+    .progression-card.disabled { opacity: 0.5; cursor: not-allowed; }
+    .progression-card h4 { margin: 0.5rem 0 0.25rem 0; font-size: 1rem; color: #fff; }
+    .progression-card p { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.4; }
+
+    .btn-primary { background: var(--color-primary, #3b82f6); color: #fff; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; width: 100%; transition: opacity 0.2s; }
+    .btn-primary:disabled { opacity: 0.5; }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px dashed rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 8px; font-weight: 600; width: 100%; }
+    .btn-outline { background: transparent; color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; width: 100%; }
+    
+    .nav-buttons { display: flex; gap: 1rem; margin-top: 1rem; }
+    .w-full { width: 100%; }
+    .icon-btn { background: transparent; border: none; display: flex; padding: 0.25rem; cursor: pointer; }
+    .text-danger { color: #ef4444; }
+  `]
+})
+export class MesocycleBuilderPage {
+  private navCtrl = inject(NavController);
+  public routineFacade = inject(RoutineFacade);
+  private mesocycleFacade = inject(MesocycleFacade);
+
+  step = signal<number>(1);
+  planName = signal<string>('');
+  durationWeeks = signal<number>(6);
+  includeDeload = signal<boolean>(false);
+  progressionStrategy = signal<string>('autoregulated');
+  isSubmitting = signal<boolean>(false);
+
+  isRoutineModalOpen = signal<boolean>(false);
+
+  selectedSessions = signal<{day_number: number, routine_id: string}[]>([
+    { day_number: 1, routine_id: '' }
+  ]);
+
+  constructor() {
+    this.routineFacade.loadRoutines();
+  }
+
+  onRoutineCreated(newRoutineId: string) {
+    this.isRoutineModalOpen.set(false);
+    // Find the first empty session and assign the new routine
+    const sessions = [...this.selectedSessions()];
+    const emptyIndex = sessions.findIndex(s => !s.routine_id);
+    if (emptyIndex !== -1) {
+      sessions[emptyIndex].routine_id = newRoutineId;
+      this.selectedSessions.set(sessions);
+    }
+  }
+
+  nextStep() {
+    if (this.step() < 3) this.step.update(s => s + 1);
+  }
+
+  prevStep() {
+    if (this.step() > 1) this.step.update(s => s - 1);
+  }
+
+  addSession() {
+    const sessions = this.selectedSessions();
+    const nextDay = sessions.length > 0 ? sessions[sessions.length - 1].day_number + 1 : 1;
+    this.selectedSessions.set([...sessions, { day_number: nextDay, routine_id: '' }]);
+  }
+
+  removeSession(index: number) {
+    const sessions = [...this.selectedSessions()];
+    sessions.splice(index, 1);
+    // Re-index days
+    sessions.forEach((s, i) => s.day_number = i + 1);
+    this.selectedSessions.set(sessions);
+  }
+
+  hasEmptySessions(): boolean {
+    return this.selectedSessions().some(s => !s.routine_id);
+  }
+
+  goBack() {
+    this.navCtrl.back();
+  }
+
+  async finish() {
+    this.isSubmitting.set(true);
+    const config = {
+      name: this.planName(),
+      duration_weeks: this.durationWeeks(),
+      include_deload: this.includeDeload(),
+      progression: this.progressionStrategy(),
+      routines: this.selectedSessions()
+    };
+
+    const result = await this.mesocycleFacade.createManualMesocycle(config);
+    this.isSubmitting.set(false);
+
+    if (result.success) {
+      this.navCtrl.navigateRoot('/app/workouts/plan');
+    } else {
+      // Manejo simple de error en UI
+      alert('Error al crear el plan: ' + result.error);
+    }
+  }
+}

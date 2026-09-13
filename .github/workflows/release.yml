@@ -1,0 +1,65 @@
+name: CD - Despliegue de APK a Supabase
+
+on:
+  release:
+    types: [published]
+  # O alternativamente, al pushear un tag:
+  # push:
+  #   tags:
+  #     - 'v*'
+
+jobs:
+  build_and_deploy_apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java JDK (Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Instalar Dependencias
+        run: npm ci --legacy-peer-deps
+
+      - name: Build Web (Angular)
+        run: npm run build:raw
+
+      - name: Sincronizar Capacitor
+        run: npx cap sync android
+
+      - name: Build Android APK
+        working-directory: ./android
+        run: ./gradlew assembleRelease
+
+      - name: Firmar APK
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        name: Firmar release APK
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Instalar cliente Supabase JS (para script)
+        run: npm install @supabase/supabase-js --no-save
+
+      - name: Publicar Actualización en Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          APK_PATH: ${{steps.sign_app.outputs.signedReleaseFile}}
+          VERSION_TAG: ${{ github.ref_name }}
+          RELEASE_NOTES: ${{ github.event.release.body }}
+        run: node scripts/publish-update.js
