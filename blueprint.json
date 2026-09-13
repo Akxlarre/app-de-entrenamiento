@@ -15,6 +15,7 @@
   "deployment": null,
   "managedPaths": [
     ".claude/**",
+    ".agents/**",
     "docs/**",
     "indices/**",
     "scripts/architect.js",

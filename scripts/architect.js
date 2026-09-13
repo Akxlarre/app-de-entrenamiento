@@ -210,7 +210,7 @@ function analyzeTypeScript(filePath) {
     // ── Regla 2: Sin inject(*Service) en componentes vista ──────────────────
     // Servicios de infraestructura permitidos en componentes (no son Facades pero
     // son parte del design system y no acceden a datos externos directamente).
-    const ALLOWED_SERVICES_IN_COMPONENTS = ['GsapAnimationsService'];
+    const ALLOWED_SERVICES_IN_COMPONENTS = ['GsapAnimationsService', 'ConfirmModalService'];
 
     if (isViewComponent) {
         walkAst(sourceFile, node => {

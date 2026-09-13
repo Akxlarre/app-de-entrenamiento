@@ -36,6 +36,8 @@ process.stdin.on('end', () => {
     // SEC-07: Use both original and normalized command. Patterns now also catch
     // heredoc redirections (<<EOF) and process substitution variants.
     const fileCreationPatterns = [
+      /\btouch\b\s+.*src\/app\/.*\.(?:ts|html|scss)/,
+      /\btouch\b\s+.*supabase\/migrations\/.*\.sql/,
       /(?:cat|echo|printf|tee)\b[^|]*>\s*.*src\/app\/.*\.(?:ts|html|scss)/,
       />\s*.*src\/app\/.*\.(?:ts|html|scss)/,
       /(?:cat|echo|printf|tee)\b[^|]*>\s*.*supabase\/migrations\/.*\.sql/,
@@ -60,15 +62,15 @@ process.stdin.on('end', () => {
     // separator (rm -rf -- src/app) to prevent flag-reordering bypasses.
     const destructivePatterns = [
       {
-        re: /\brm\b.*-[a-zA-Z]*r[a-zA-Z]*\b.*(?:src\/app|\.claude|indices|supabase)/,
+        re: /\brm\b.*-[a-zA-Z]*r[a-zA-Z]*\b.*(?:src\/app|\.claude|\.agents|indices|supabase)/,
         msg: 'Eliminacion recursiva de directorio critico',
       },
       {
-        re: /\brm\b.*(?:\.claude\/hooks|\.claude\/settings|architect\.js)/,
+        re: /\brm\b.*(?:\.claude\/hooks|\.claude\/settings|\.agents|architect\.js)/,
         msg: 'Eliminacion de archivos del sistema de guardrails',
       },
       {
-        re: />\s*(?:\.claude\/settings(?:\.local)?\.json|\.claude\/hooks\/)/,
+        re: />\s*(?:\.claude\/settings(?:\.local)?\.json|\.claude\/hooks\/|\.agents\/)/,
         msg: 'Sobreescritura de configuracion de guardrails',
       },
     ];

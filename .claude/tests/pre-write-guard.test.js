@@ -119,7 +119,7 @@ describe('ARCHITECT GUARD — A11Y', () => {
   });
 
   test('permite <app-icon> con aria-label', () => {
-    const r = runHook(makeInput(htmlPath, '<app-icon name="trash" [attr.aria-label]="'Eliminar'" />'));
+    const r = runHook(makeInput(htmlPath, '<app-icon name="trash" [attr.aria-label]="\'Eliminar\'" />'));
     // No debe bloquear por A11Y-01
     assert.ok(r.exitCode !== 2 || !r.stderr.includes('A11Y-01'));
   });

@@ -61,6 +61,7 @@ process.stdin.on('end', () => {
       '.claude/hooks/',
       '.claude/settings.json',
       '.claude/settings.local.json',
+      '.agents/',
       'scripts/architect.js',
     ];
 
