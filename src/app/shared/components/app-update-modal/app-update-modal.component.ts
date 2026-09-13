@@ -13,7 +13,7 @@ import { AppUpdate } from '../../../core/models/app-update.model';
     <p-dialog 
       [visible]="visible()" 
       [modal]="true" 
-      [closable]="!isForceUpdate()"
+      [closable]="!isForceUpdate"
       (onHide)="onClose()"
       [draggable]="false"
       [resizable]="false"
@@ -51,7 +51,7 @@ import { AppUpdate } from '../../../core/models/app-update.model';
 
       <ng-template pTemplate="footer">
         <div class="flex justify-end gap-3 w-full">
-          @if (!isForceUpdate() && !isDownloading()) {
+          @if (!isForceUpdate && !isDownloading()) {
             <p-button 
               label="Más tarde" 
               (onClick)="onClose()" 

@@ -1,4 +1,9 @@
-import { ApplicationConfig, importProvidersFrom } from "@angular/core";
+import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
+import localeEsCl from "@angular/common/locales/es-CL";
+
+registerLocaleData(localeEsCl, "es-CL");
+
 import {
   provideRouter,
   withComponentInputBinding,
@@ -17,6 +22,11 @@ import {
   ArrowRight,
   BarChart2,
   CheckCircle,
+  Dumbbell,
+  Zap,
+  Target,
+  Bot,
+  Sparkles,
   ChevronRight,
   Download,
   LayoutDashboard,
@@ -35,6 +45,7 @@ import {
   // ── Acciones comunes ──
   Check,
   Edit,
+  Pencil,
   Info,
   Trash2,
   // ── Navegación ──
@@ -77,10 +88,13 @@ import {
   // ── Tema ──
   Moon,
   Sun,
+  List,
+  ListChecks,
 } from "lucide-angular";
 
 import { routes } from "./app.routes";
 import { provideCoreAuth } from "@core/auth/provide-core-auth";
+import { provideIonicAngular } from '@ionic/angular';
 
 /**
  * Configuración principal de la aplicación.
@@ -90,6 +104,7 @@ import { provideCoreAuth } from "@core/auth/provide-core-auth";
  */
 export const appConfig: ApplicationConfig = {
   providers: [
+    { provide: LOCALE_ID, useValue: "es-CL" },
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideAnimationsAsync(),
     providePrimeNG({
@@ -124,6 +139,11 @@ export const appConfig: ApplicationConfig = {
         ArrowRight,
         BarChart2,
         CheckCircle,
+        Dumbbell,
+        Zap,
+        Target,
+        Bot,
+        Sparkles,
         ChevronRight,
         Download,
         LayoutDashboard,
@@ -142,6 +162,7 @@ export const appConfig: ApplicationConfig = {
         // Acciones comunes
         Check,
         Edit,
+        Pencil,
         Info,
         Trash2,
         // Navegación
@@ -184,7 +205,9 @@ export const appConfig: ApplicationConfig = {
         // Tema
         Moon,
         Sun,
+        List,
+        ListChecks,
       }),
-    ),
+    ), provideIonicAngular({}),
   ],
 };

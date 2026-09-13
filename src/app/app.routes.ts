@@ -7,11 +7,10 @@ import { guestGuard } from '@core/guards/guest.guard';
  * Rutas de la aplicación.
  */
 export const routes: Routes = [
-  // Ruta principal — Bienvenida
   {
     path: '',
-    loadComponent: () =>
-      import('./features/home/home.component').then((m) => m.HomeComponent),
+    redirectTo: 'app',
+    pathMatch: 'full'
   },
 
   // Rutas públicas — autenticación
@@ -22,27 +21,93 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
   },
 
-  // Rutas protegidas — envueltas en el layout AppShell
+  // Restablecimiento de contraseña — pública (el token llega en el URL fragment)
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.page').then(
+        (m) => m.ResetPasswordPage,
+      ),
+  },
+
+  // Entrenamiento en curso (Sin tabs)
+  {
+    path: 'app/workouts/active',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/active-workout/active-workout.page').then((m) => m.ActiveWorkoutPage),
+  },
+
+  // Historial de entrenamientos (Forzar actualización del watcher)
+  {
+    path: 'app/workouts/history',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/history/history.page').then((m) => m.HistoryPage),
+  },
+
+  // Creador y Editor de rutinas (Sin tabs)
+  {
+    path: 'app/workouts/routines/create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/routines/routine-editor.page').then((m) => m.RoutineEditorPage),
+  },
+  {
+    path: 'app/workouts/routines/edit/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/routines/routine-editor.page').then((m) => m.RoutineEditorPage),
+  },
+
+  // Administrador del Plan / Mesociclo
+  {
+    path: 'app/workouts/plan/create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/mesocycle/builder/mesocycle-builder.page').then((m) => m.MesocycleBuilderPage),
+  },
+  {
+    path: 'app/workouts/plan',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workouts/mesocycle/mesocycle.page').then((m) => m.MesocyclePage),
+  },
+
+  // Rutas protegidas — envueltas en TabsLayout
   {
     path: 'app',
     canActivate: [authGuard],
+    canActivateChild: [authGuard],
     loadComponent: () =>
-      import('./layout/app-shell.component').then((m) => m.AppShellComponent),
+      import('./layout/tabs-layout/tabs-layout.component').then((m) => m.TabsLayoutComponent),
     children: [
-      // Ruta por defecto → dashboard
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'workouts', pathMatch: 'full' },
       {
-        path: 'dashboard',
+        path: 'workouts',
         loadComponent: () =>
-          import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+          import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage),
       },
-      // TODO: Añade tus feature routes aquí
+      {
+        path: 'explorer',
+        loadComponent: () =>
+          import('./features/explorer/explorer.page').then((m) => m.ExplorerPage),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/profile/profile.page').then((m) => m.ProfilePage),
+      },
+      {
+        path: 'coach',
+        loadComponent: () =>
+          import('./features/coach/coach.page').then((m) => m.CoachPage),
+      }
     ],
   },
 
   {
     path: '**',
-    loadComponent: () =>
-      import('./features/not-found/not-found.component').then((m) => m.NotFoundComponent),
+    redirectTo: 'app',
   },
 ];

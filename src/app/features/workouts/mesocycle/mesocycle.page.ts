@@ -250,7 +250,7 @@ export class MesocyclePage implements OnInit {
   }
 
   goBack() {
-    this.navCtrl.back();
+    this.navCtrl.navigateBack('/app/workouts');
   }
 
   goToCreatePlan() {

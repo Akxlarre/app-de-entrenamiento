@@ -294,7 +294,7 @@ export class MesocycleBuilderPage {
     this.isSubmitting.set(false);
 
     if (result.success) {
-      this.navCtrl.navigateRoot('/app/workouts/plan');
+      this.navCtrl.navigateRoot('/app/workouts/plan', { replaceUrl: true });
     } else {
       // Manejo simple de error en UI
       alert('Error al crear el plan: ' + result.error);
