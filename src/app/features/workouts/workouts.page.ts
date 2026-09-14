@@ -243,7 +243,10 @@ import { RoutineWithExercises } from '@core/models/routine.model';
                   </div>
                   <div class="routine-card-bottom">
                     <span class="routine-summary"
-                      >{{ routine.routine_exercises.length }} ejercicios</span
+                      >{{ routine.routine_exercises.length }}
+                      {{
+                        routine.routine_exercises.length === 1 ? 'ejercicio' : 'ejercicios'
+                      }}</span
                     >
                     <span class="start-badge">Iniciar →</span>
                   </div>

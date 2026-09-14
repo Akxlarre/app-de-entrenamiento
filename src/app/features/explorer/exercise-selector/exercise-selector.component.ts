@@ -91,7 +91,10 @@ const MUSCLE_GROUPS = [
           @if (facade.loading()) {
             Buscando ejercicios...
           } @else {
-            {{ facade.exercises().length }} ejercicios disponibles
+            {{ facade.exercises().length }}
+            {{
+              facade.exercises().length === 1 ? 'ejercicio disponible' : 'ejercicios disponibles'
+            }}
           }
         </span>
       </div>
