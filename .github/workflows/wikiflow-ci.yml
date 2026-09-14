@@ -49,8 +49,7 @@ jobs:
 
       # Opcional: tests cuando existan.
       - name: Test
-        run: npm test --if-present -- --watch=false --browsers=ChromeHeadless
-        continue-on-error: false
+        run: npm run test:ci
 
   # Placeholder para Sprint 7 — completar cuando se implemente GitHub Layer 2.
   # deploy:
