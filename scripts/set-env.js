@@ -50,4 +50,4 @@ fs.writeFileSync(envProdPath, content, 'utf8');
 console.log('✅  environment.prod.ts configurado correctamente.');
 console.log('   SUPABASE_URL:', url);
 console.log('   SUPABASE_ANON_KEY:', anonKey.slice(0, 12) + '...');
-console.log('   GEMINI_API_KEY:', geminiApiKey ? geminiApiKey.slice(0, 8) + '...' : '(no configurada)');
+console.log('   GEMINI_API_KEY:', geminiApiKey ? '✓ configurada' : '(no configurada)');
