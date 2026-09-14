@@ -1,18 +1,19 @@
-import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
-import localeEsCl from "@angular/common/locales/es-CL";
+import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEsCl from '@angular/common/locales/es-CL';
 
-registerLocaleData(localeEsCl, "es-CL");
+registerLocaleData(localeEsCl, 'es-CL');
 
 import {
   provideRouter,
   withComponentInputBinding,
   withViewTransitions,
-} from "@angular/router";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import { providePrimeNG } from "primeng/config";
-import Aura from "@primeng/themes/aura";
-import { MessageService, ConfirmationService } from "primeng/api";
+  RouteReuseStrategy,
+} from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeng/themes/aura';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import {
   LucideAngularModule,
   // ── Boilerplate (dashboard, kpi-card, sidebar, alert-card) ──
@@ -90,11 +91,14 @@ import {
   Sun,
   List,
   ListChecks,
-} from "lucide-angular";
+  // ── Entrenamiento ──
+  ClipboardList,
+  Play,
+} from 'lucide-angular';
 
-import { routes } from "./app.routes";
-import { provideCoreAuth } from "@core/auth/provide-core-auth";
-import { provideIonicAngular } from '@ionic/angular';
+import { routes } from './app.routes';
+import { provideCoreAuth } from '@core/auth/provide-core-auth';
+import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
 
 /**
  * Configuración principal de la aplicación.
@@ -104,17 +108,18 @@ import { provideIonicAngular } from '@ionic/angular';
  */
 export const appConfig: ApplicationConfig = {
   providers: [
-    { provide: LOCALE_ID, useValue: "es-CL" },
+    { provide: LOCALE_ID, useValue: 'es-CL' },
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
         preset: Aura,
         options: {
-          darkModeSelector: ".fake-dark-mode",
+          darkModeSelector: '.fake-dark-mode',
           cssLayer: {
-            name: "primeng",
-            order: "tailwind-base, primeng, tailwind-utilities",
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities',
           },
         },
       },
@@ -207,7 +212,11 @@ export const appConfig: ApplicationConfig = {
         Sun,
         List,
         ListChecks,
+        // Entrenamiento
+        ClipboardList,
+        Play,
       }),
-    ), provideIonicAngular({}),
+    ),
+    provideIonicAngular({}),
   ],
 };
