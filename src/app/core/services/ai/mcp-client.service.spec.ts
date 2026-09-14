@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { McpClientService } from './mcp-client.service';
 import { SupabaseService } from '@core/services/infrastructure/supabase.service';
 
@@ -16,6 +17,7 @@ describe('McpClientService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         McpClientService,
         { provide: SupabaseService, useValue: mockSupabase },

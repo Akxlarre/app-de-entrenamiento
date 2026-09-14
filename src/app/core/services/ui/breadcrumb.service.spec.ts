@@ -4,7 +4,9 @@ import { BreadcrumbService } from './breadcrumb.service';
 import { MenuConfigService } from '../auth/menu-config.service';
 import { signal } from '@angular/core';
 
-const mockRouter = { events: { pipe: vi.fn().mockReturnValue({ subscribe: vi.fn() }) } };
+import { Subject } from 'rxjs';
+
+const mockRouter = { events: new Subject() };
 const mockMenuConfigService = { getItems: vi.fn().mockReturnValue(signal([])) };
 
 describe('BreadcrumbService', () => {

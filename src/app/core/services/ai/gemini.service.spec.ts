@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { GeminiService } from './gemini.service';
 
 describe('GeminiService', () => {
@@ -6,6 +7,7 @@ describe('GeminiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [GeminiService],
     });
 

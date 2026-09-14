@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExerciseSelectorComponent } from './exercise-selector.component';
+import { LucideAngularModule, Zap, Search, ShieldCheck, Layers } from 'lucide-angular';
 import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facade';
 import { signal } from '@angular/core';
 
@@ -21,7 +22,7 @@ describe('ExerciseSelectorComponent', () => {
     } as unknown as jasmine.SpyObj<ExerciseFacade>;
 
     await TestBed.configureTestingModule({
-      imports: [ExerciseSelectorComponent],
+      imports: [ExerciseSelectorComponent, LucideAngularModule.pick({ Zap, Search, ShieldCheck, Layers })],
       providers: [
         { provide: ExerciseFacade, useValue: mockFacade }
       ]

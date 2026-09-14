@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { WorkoutTimerComponent } from './workout-timer.component';
 
 describe('WorkoutTimerComponent', () => {
@@ -18,7 +19,8 @@ describe('WorkoutTimerComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('debería formatear correctamente el tiempo transcurrido (00:00)', fakeAsync(() => {
+  it('debería formatear correctamente el tiempo transcurrido (00:00)', () => {
+    vi.useFakeTimers();
     const pastTime = new Date();
     // Forzamos el input
     fixture.componentRef.setInput('startTime', pastTime);
@@ -26,20 +28,23 @@ describe('WorkoutTimerComponent', () => {
     
     // Al instante 0
     expect(component.formattedTime()).toBe('00:00');
-  }));
+    vi.useRealTimers();
+  });
 
-  it('debería actualizar el tiempo después de 65 segundos (01:05)', fakeAsync(() => {
+  it('debería actualizar el tiempo después de 65 segundos (01:05)', () => {
+    vi.useFakeTimers();
     const pastTime = new Date();
     fixture.componentRef.setInput('startTime', pastTime);
     fixture.detectChanges();
 
     // Avanzamos 65 segundos en el tiempo virtual
-    tick(65000);
+    vi.advanceTimersByTime(65000);
     fixture.detectChanges();
 
     expect(component.formattedTime()).toBe('01:05');
     
     // Importante: destruir el componente para limpiar el interval() de RxJS
     fixture.destroy();
-  }));
+    vi.useRealTimers();
+  });
 });

@@ -2,7 +2,7 @@
 -- Descripción: Feedback general y métricas al finalizar una sesión de entrenamiento.
 
 CREATE TABLE workout_reports (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workout_id UUID NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     energy_level INT CHECK (energy_level >= 1 AND energy_level <= 5),
@@ -17,7 +17,7 @@ CREATE TABLE workout_reports (
 -- Descripción: Feedback específico para un ejercicio dentro de una sesión (técnica, dolor, etc).
 
 CREATE TABLE workout_exercise_feedback (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workout_id UUID NOT NULL REFERENCES workouts(id) ON DELETE CASCADE,
     exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,

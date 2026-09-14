@@ -3,49 +3,37 @@ import { ActiveWorkoutPage } from './active-workout.page';
 import { WorkoutFacade, ActiveWorkoutState } from '@core/facades/workout.facade';
 import { signal } from '@angular/core';
 
-// Mock del Facade
-class MockWorkoutFacade {
-  activeSession = signal<ActiveWorkoutState | null>({
-    start_time: new Date(),
-    exercises: [
-      {
-        exercise_id: 'test-1',
-        exercise_name: 'Sentadilla',
-        sets: [
-          {
-            id: 'set-1',
-            set_number: 1,
-            set_type: 'normal',
-            weight: 60,
-            reps: 10,
-            completed: false
-          }
-        ]
-      }
-    ]
-  });
-  
-  addSet = vi.fn();
-  updateSet = vi.fn();
-  finishWorkout = vi.fn();
-}
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('ActiveWorkoutPage', () => {
   let component: ActiveWorkoutPage;
   let fixture: ComponentFixture<ActiveWorkoutPage>;
-  let facade: MockWorkoutFacade;
+  let mockFacade: any;
+  let facade: any;
 
   beforeEach(async () => {
+    mockFacade = {
+      activeSession: signal({
+        id: 'session-1',
+        startTime: new Date(),
+        exercises: []
+      }),
+      addSet: vi.fn(),
+      updateSet: vi.fn(),
+      finishWorkout: vi.fn(),
+      cancelWorkout: vi.fn()
+    };
+    facade = mockFacade;
+
     await TestBed.configureTestingModule({
-      imports: [ActiveWorkoutPage],
+      imports: [ActiveWorkoutPage, HttpClientTestingModule],
       providers: [
-        { provide: WorkoutFacade, useClass: MockWorkoutFacade }
+        { provide: WorkoutFacade, useValue: mockFacade }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ActiveWorkoutPage);
     component = fixture.componentInstance;
-    facade = TestBed.inject(WorkoutFacade) as unknown as MockWorkoutFacade;
   });
 
   it('debería crearse correctamente', () => {

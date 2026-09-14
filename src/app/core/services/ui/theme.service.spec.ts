@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
 import { ThemeService } from './theme.service';
 import { GsapAnimationsService } from './gsap-animations.service';
 import { ToastService } from './toast.service';
@@ -15,6 +16,7 @@ describe('ThemeService', () => {
         ThemeService,
         { provide: GsapAnimationsService, useValue: mockGsap },
         { provide: ToastService, useValue: mockToast },
+        { provide: MessageService, useValue: { add: vi.fn() } },
       ],
     });
 

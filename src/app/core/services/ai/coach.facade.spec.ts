@@ -32,7 +32,7 @@ describe('CoachFacade', () => {
     expect(facade).toBeTruthy();
   });
 
-  it('should initialize with empty messages list', () => {
-    expect(facade.messages()).toEqual([]);
+  it('should initialize with welcome message', () => {
+    expect(facade.messages().length).toBeGreaterThan(0);
   });
 });

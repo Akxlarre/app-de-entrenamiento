@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { LucideAngularModule, CircleAlert } from 'lucide-angular';
 import { Component } from '@angular/core';
 import { vi } from 'vitest';
 import { ErrorStateComponent } from './error-state.component';
@@ -25,7 +26,7 @@ class HostComponent {
 
 describe('ErrorStateComponent', () => {
   it('should be created', () => {
-    TestBed.configureTestingModule({ imports: [ErrorStateComponent] });
+    TestBed.configureTestingModule({ imports: [ErrorStateComponent, LucideAngularModule.pick({ CircleAlert })] });
     const fixture = TestBed.createComponent(ErrorStateComponent);
     fixture.componentRef.setInput('message', 'Error de prueba');
     fixture.detectChanges();
@@ -33,7 +34,7 @@ describe('ErrorStateComponent', () => {
   });
 
   it('should render the message', () => {
-    TestBed.configureTestingModule({ imports: [ErrorStateComponent] });
+    TestBed.configureTestingModule({ imports: [ErrorStateComponent, LucideAngularModule.pick({ CircleAlert })] });
     const fixture = TestBed.createComponent(ErrorStateComponent);
     fixture.componentRef.setInput('message', 'Fallo de red');
     fixture.detectChanges();
@@ -41,7 +42,7 @@ describe('ErrorStateComponent', () => {
   });
 
   it('should use default title when not provided', () => {
-    TestBed.configureTestingModule({ imports: [ErrorStateComponent] });
+    TestBed.configureTestingModule({ imports: [ErrorStateComponent, LucideAngularModule.pick({ CircleAlert })] });
     const fixture = TestBed.createComponent(ErrorStateComponent);
     fixture.componentRef.setInput('message', 'Error');
     fixture.detectChanges();
@@ -49,7 +50,7 @@ describe('ErrorStateComponent', () => {
   });
 
   it('should emit retry when action is triggered', () => {
-    TestBed.configureTestingModule({ imports: [HostComponent] });
+    TestBed.configureTestingModule({ imports: [HostComponent, LucideAngularModule.pick({ CircleAlert })] });
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
 
