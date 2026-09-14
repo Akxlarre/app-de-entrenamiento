@@ -31,6 +31,12 @@ jobs:
       - name: Instalar Dependencias
         run: npm install --legacy-peer-deps
 
+      - name: Configurar credenciales de Supabase (producción)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/set-env.js
+
       - name: Build Web (Angular)
         run: npm run build:raw
 

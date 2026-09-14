@@ -33,6 +33,7 @@ if (!url || !anonKey) {
 
 const content = `export const environment = {
   production: true,
+  geminiApiKey: '',
   supabase: {
     url: '${url}',
     anonKey: '${anonKey}',
