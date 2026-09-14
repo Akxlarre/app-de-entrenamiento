@@ -44,7 +44,6 @@ jobs:
       - name: Firmar APK
         id: sign_app
         uses: r0adkll/sign-android-release@v1
-        name: Firmar release APK
         with:
           releaseDirectory: android/app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
