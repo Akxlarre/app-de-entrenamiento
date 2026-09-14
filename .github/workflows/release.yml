@@ -51,7 +51,9 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 -d > release.keystore
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 -d > release.keystore
+          echo "Tamaño del archivo keystore decodificado: $(wc -c < release.keystore) bytes"
+          
           BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
           echo "Usando Android Build Tools desde: $BUILD_TOOLS_DIR"
           
@@ -60,12 +62,34 @@ jobs:
           
           $BUILD_TOOLS_DIR/zipalign -v -p 4 "$APK_RAW" android/app/build/outputs/apk/release/app-aligned.apk || cp "$APK_RAW" android/app/build/outputs/apk/release/app-aligned.apk
           
-          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore \
+          echo "Intentando firmar APK con apksigner (detección automática)..."
+          if $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore \
             --ks-key-alias "$KEY_ALIAS" \
             --ks-pass "pass:$KEYSTORE_PASSWORD" \
             --key-pass "pass:$KEY_PASSWORD" \
             --out android/app/build/outputs/apk/release/app-signed.apk \
-            android/app/build/outputs/apk/release/app-aligned.apk
+            android/app/build/outputs/apk/release/app-aligned.apk; then
+            echo "✅ Firmado exitoso."
+          else
+            echo "Intentando firmar especificando --ks-type JKS..."
+            if $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-type JKS \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass "pass:$KEYSTORE_PASSWORD" \
+              --key-pass "pass:$KEY_PASSWORD" \
+              --out android/app/build/outputs/apk/release/app-signed.apk \
+              android/app/build/outputs/apk/release/app-aligned.apk; then
+              echo "✅ Firmado exitoso con JKS."
+            else
+              echo "Intentando firmar especificando --ks-type PKCS12..."
+              $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-type PKCS12 \
+                --ks-key-alias "$KEY_ALIAS" \
+                --ks-pass "pass:$KEYSTORE_PASSWORD" \
+                --key-pass "pass:$KEY_PASSWORD" \
+                --out android/app/build/outputs/apk/release/app-signed.apk \
+                android/app/build/outputs/apk/release/app-aligned.apk
+              echo "✅ Firmado exitoso con PKCS12."
+            fi
+          fi
             
           echo "signedReleaseFile=android/app/build/outputs/apk/release/app-signed.apk" >> $GITHUB_OUTPUT
 
