@@ -29,20 +29,23 @@ export class AppUpdateFacade {
 
     try {
       const currentBuild = await this.updateService.getCurrentBuild();
+      console.log('[AppUpdateFacade] Current build:', currentBuild);
       if (currentBuild === null) {
-        // Not a native platform or error
         this._isChecking.set(false);
         return;
       }
 
       const latestUpdate = await this.updateService.getLatestUpdate();
+      console.log('[AppUpdateFacade] Latest update in Supabase:', latestUpdate);
       if (latestUpdate && latestUpdate.build_number > currentBuild) {
+        console.log('[AppUpdateFacade] Update available! Build:', latestUpdate.build_number, 'Current:', currentBuild);
         this._updateAvailable.set(latestUpdate);
       } else {
+        console.log('[AppUpdateFacade] App is up to date.');
         this._updateAvailable.set(null);
       }
     } catch (err) {
-      console.error('Check update failed:', err);
+      console.error('[AppUpdateFacade] Check update failed:', err);
       this._error.set('No se pudo comprobar si hay actualizaciones.');
     } finally {
       this._isChecking.set(false);

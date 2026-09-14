@@ -1,16 +1,17 @@
 import { Component, ChangeDetectionStrategy, inject, AfterViewInit } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonItem, IonLabel, IonAvatar, IonList, IonListHeader, IonIcon } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonItem, IonLabel, IonAvatar, IonList, IonListHeader, IonIcon, IonSpinner } from '@ionic/angular';
 import { AuthFacade } from '@core/facades/auth.facade';
+import { AppUpdateFacade } from '@core/facades/app-update.facade';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
 import { addIcons } from 'ionicons';
-import { logOutOutline, settingsOutline, chevronForwardOutline } from 'ionicons/icons';
+import { logOutOutline, settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IonContent, IonButton, IonItem, IonLabel, IonAvatar, IonList, IonListHeader, IonIcon, AppHeaderComponent],
+  imports: [IonContent, IonButton, IonItem, IonLabel, IonAvatar, IonList, IonListHeader, IonIcon, IonSpinner, AppHeaderComponent],
   template: `
     <ion-content class="profile-content" [fullscreen]="true">
       <app-header title="Perfil"></app-header>
@@ -26,6 +27,15 @@ import { logOutOutline, settingsOutline, chevronForwardOutline } from 'ionicons/
         <div class="options-section">
           <p class="section-label">OPCIONES</p>
           <ion-list class="options-list">
+            <ion-item button detail="false" lines="none" class="option-item" (click)="checkForUpdates()">
+              <ion-icon name="cloud-download-outline" slot="start" class="option-icon"></ion-icon>
+              <ion-label>Buscar Actualizaciones</ion-label>
+              @if (updateFacade.isChecking()) {
+                <ion-spinner slot="end" name="crescent" style="width: 18px; height: 18px; color: #3b82f6;"></ion-spinner>
+              } @else {
+                <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
+              }
+            </ion-item>
             <ion-item button detail="false" lines="none" class="option-item">
               <ion-icon name="settings-outline" slot="start" class="option-icon"></ion-icon>
               <ion-label>Preferencias</ion-label>
@@ -181,10 +191,11 @@ import { logOutOutline, settingsOutline, chevronForwardOutline } from 'ionicons/
 })
 export class ProfilePage implements AfterViewInit {
   auth = inject(AuthFacade);
+  updateFacade = inject(AppUpdateFacade);
   gsap = inject(GsapAnimationsService);
 
   constructor() {
-    addIcons({ logOutOutline, settingsOutline, chevronForwardOutline });
+    addIcons({ logOutOutline, settingsOutline, chevronForwardOutline, cloudDownloadOutline });
   }
 
   ngAfterViewInit() {
@@ -192,6 +203,10 @@ export class ProfilePage implements AfterViewInit {
       const options = document.querySelectorAll('.option-item, .logout-section');
       this.gsap.staggerListItems(options as any);
     }, 50);
+  }
+
+  async checkForUpdates() {
+    await this.updateFacade.checkForUpdates();
   }
 
   async logout() {

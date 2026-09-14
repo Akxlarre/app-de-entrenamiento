@@ -19,15 +19,16 @@ export class AppUpdateService {
    * Obtiene la versión actual nativa (solo válido en dispositivos)
    */
   async getCurrentBuild(): Promise<number | null> {
-    if (!Capacitor.isNativePlatform()) {
-      return null;
-    }
     try {
+      if (!Capacitor.isNativePlatform()) {
+        return 1;
+      }
       const info = await App.getInfo();
-      return parseInt(info.build, 10);
+      const num = parseInt(info.build, 10);
+      return !isNaN(num) && num > 0 ? num : 1;
     } catch (error) {
-      console.error('Error getting app info:', error);
-      return null;
+      console.warn('Error getting app info, fallback to build 1:', error);
+      return 1;
     }
   }
 

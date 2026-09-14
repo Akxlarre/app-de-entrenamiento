@@ -99,6 +99,27 @@ async function publishUpdate() {
     }
 
     console.log(`¡Publicación completada exitosamente! La actualización ${versionTag} (build ${nextBuildNumber}) ya está disponible para los usuarios.`);
+
+    // 4. Limpieza automática de versiones antiguas (retener solo las últimas 3)
+    console.log('Verificando versiones antiguas para limpieza de storage...');
+    const MAX_RETAINED_VERSIONS = 3;
+    const { data: allUpdates, error: listError } = await supabase
+      .from('app_updates')
+      .select('id, apk_path, build_number')
+      .order('build_number', { ascending: false });
+
+    if (!listError && allUpdates && allUpdates.length > MAX_RETAINED_VERSIONS) {
+      const oldUpdates = allUpdates.slice(MAX_RETAINED_VERSIONS);
+      const filesToDelete = oldUpdates.map(u => u.apk_path).filter(Boolean);
+      const idsToDelete = oldUpdates.map(u => u.id);
+
+      console.log(`Eliminando ${filesToDelete.length} APK(s) antiguos del storage:`, filesToDelete);
+      if (filesToDelete.length > 0) {
+        await supabase.storage.from('releases').remove(filesToDelete);
+      }
+      await supabase.from('app_updates').delete().in('id', idsToDelete);
+      console.log('✅ Limpieza de storage completada.');
+    }
     
   } catch (err) {
     console.error('Falló la publicación:', err);
