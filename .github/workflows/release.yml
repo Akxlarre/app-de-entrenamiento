@@ -3,10 +3,10 @@ name: CD - Despliegue de APK a Supabase
 on:
   release:
     types: [published]
-  # O alternativamente, al pushear un tag:
-  # push:
-  #   tags:
-  #     - 'v*'
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   build_and_deploy_apk:
