@@ -19,19 +19,23 @@ const DISPLAY_NAME_MAX_LENGTH = 100;
 // Prevents leaking internal API details (table names, query hints, stack traces).
 function sanitizeAuthError(rawMessage: string): string {
   const msg = (rawMessage ?? "").toLowerCase();
-  if (msg.includes("invalid login credentials") || msg.includes("invalid credentials"))
+  if (msg.includes("invalid login credentials") || msg.includes("invalid credentials") || msg.includes("correo o contraseña incorrectos"))
     return "Correo o contraseña incorrectos.";
-  if (msg.includes("email not confirmed"))
+  if (msg.includes("email not confirmed") || msg.includes("confirmar tu correo") || msg.includes("debes confirmar"))
     return "Confirma tu correo antes de iniciar sesión.";
-  if (msg.includes("user already registered") || msg.includes("already been registered"))
-    return "Ya existe una cuenta con ese correo.";
-  if (msg.includes("password should be") || msg.includes("password is too short"))
+  if (msg.includes("user already registered") || msg.includes("already been registered") || msg.includes("ya está registrado") || msg.includes("ya existe una cuenta"))
+    return "Ya existe una cuenta con este correo. Por favor inicia sesión.";
+  if (msg.includes("password should be") || msg.includes("password is too short") || msg.includes("al menos 6 caracteres") || msg.includes("al menos 8 caracteres"))
     return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
-  if (msg.includes("rate limit") || msg.includes("too many requests"))
+  if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("demasiados intentos"))
     return "Demasiados intentos. Espera unos minutos antes de intentar de nuevo.";
-  if (msg.includes("network") || msg.includes("fetch"))
+  if (msg.includes("network") || msg.includes("fetch") || msg.includes("conexión"))
     return "Error de conexión. Verifica tu internet e intenta de nuevo.";
-  // Generic fallback — never show raw server messages
+  
+  // Si ya es un mensaje en español entendible, no ocultarlo con el error genérico
+  if (rawMessage && !rawMessage.toLowerCase().includes("database error") && !rawMessage.toLowerCase().includes("internal")) {
+    return rawMessage;
+  }
   return "Ocurrió un error. Intenta de nuevo o contacta a soporte.";
 }
 
@@ -302,7 +306,7 @@ export class LoginComponent {
         }
 
         case "register": {
-          const { error } = await this.auth.signUp(
+          const { data, error } = await this.auth.signUp(
             this.email.trim(),
             this.password,
             { data: { display_name: this.displayName.trim() || undefined } },
@@ -310,10 +314,14 @@ export class LoginComponent {
           if (error) {
             this.errorMsg.set(sanitizeAuthError(error.message)); // SEC-T05
           } else {
-            this.successMsg.set(
-              "Cuenta creada. Revisa tu correo para confirmar tu registro.",
-            );
-            this.switchMode("login");
+            if (data?.session || this.auth.isAuthenticated()) {
+              this.router.navigate(["/app"]);
+            } else {
+              this.successMsg.set(
+                "Cuenta creada exitosamente. Ya puedes iniciar sesión.",
+              );
+              this.switchMode("login");
+            }
           }
           break;
         }
