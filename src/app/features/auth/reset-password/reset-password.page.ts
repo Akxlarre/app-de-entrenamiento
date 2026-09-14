@@ -1,14 +1,9 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  inject,
-  signal,
-  OnInit,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthFacade } from '@core/facades/auth.facade';
 import { SupabaseService } from '@core/services/infrastructure/supabase.service';
+import { IconComponent } from '@shared/components/icon/icon.component';
 
 const PASSWORD_MIN_LENGTH = 8;
 
@@ -30,26 +25,26 @@ const PASSWORD_MIN_LENGTH = 8;
 @Component({
   selector: 'app-reset-password',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule],
+  imports: [FormsModule, IconComponent],
   host: { style: 'display: contents;' },
   template: `
     <div
-      class="flex min-h-[100dvh] flex-col items-center justify-center bg-[#09090b] px-4 py-8 relative overflow-hidden"
+      class="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-8 relative overflow-hidden"
     >
       <!-- Ambient glow (mismo que login) -->
       <div
-        class="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-[#2563eb]/15 blur-[120px] rounded-full"
+        class="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-[var(--color-primary-dark)]/15 blur-[120px] rounded-full"
       ></div>
 
       <!-- Brand header -->
       <div class="mb-8 text-center relative z-10 animate-fade-in-up">
         <div
-          class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[#3b82f6]/20 to-[#2563eb]/5 border border-[#3b82f6]/30 mb-3 shadow-lg shadow-[#3b82f6]/10"
+          class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[var(--ds-brand)]/20 to-[var(--color-primary-dark)]/5 border border-[var(--ds-brand)]/30 mb-3 shadow-lg shadow-[var(--ds-brand)]/10"
         >
-          <span class="text-2xl">🏋️</span>
+          <app-icon name="dumbbell" [size]="24" [color]="'var(--ds-brand)'" />
         </div>
         <h1 class="m-0 text-3xl font-black italic tracking-tighter text-white sm:text-4xl">
-          <span class="text-[#3b82f6]">FIT</span>TRACK
+          <span class="text-[var(--ds-brand)]">FIT</span>TRACK
         </h1>
         <p class="m-0 mt-1 text-xs font-medium uppercase tracking-widest text-zinc-400">
           Tu diario de entrenamiento y fuerza
@@ -61,9 +56,7 @@ const PASSWORD_MIN_LENGTH = 8;
         class="w-full max-w-[390px] rounded-2xl border border-white/[0.08] bg-[#121217]/95 p-7 shadow-2xl backdrop-blur-xl relative z-10"
       >
         <div class="mb-6 text-center">
-          <h2 class="m-0 text-xl font-bold tracking-tight text-white">
-            Nueva contraseña
-          </h2>
+          <h2 class="m-0 text-xl font-bold tracking-tight text-white">Nueva contraseña</h2>
           <p class="m-0 mt-1.5 text-xs text-zinc-400">
             Elige una contraseña segura de al menos {{ minLength }} caracteres
           </p>
@@ -72,12 +65,12 @@ const PASSWORD_MIN_LENGTH = 8;
         <!-- Token inválido -->
         @if (tokenError()) {
           <div
-            class="mb-4 flex flex-col gap-3 rounded-xl border border-[#ef4444]/20 bg-[#ef4444]/10 px-3.5 py-3 text-xs font-medium text-[#f87171]"
+            class="mb-4 flex flex-col gap-3 rounded-xl border border-[var(--state-error)]/20 bg-[var(--state-error)]/10 px-3.5 py-3 text-xs font-medium text-[#f87171]"
             role="alert"
           >
             <span>El enlace de recuperación es inválido o ya expiró.</span>
             <button
-              class="cursor-pointer border-none bg-transparent p-0 text-left font-semibold text-[#60a5fa] transition-colors hover:text-[#93c5fd]"
+              class="cursor-pointer border-none bg-transparent p-0 text-left font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-[#93c5fd]"
               (click)="goToLogin()"
             >
               Solicitar un nuevo enlace →
@@ -88,10 +81,10 @@ const PASSWORD_MIN_LENGTH = 8;
         <!-- Error de formulario -->
         @if (errorMsg()) {
           <div
-            class="mb-4 flex items-center gap-2 rounded-xl border border-[#ef4444]/20 bg-[#ef4444]/10 px-3.5 py-2.5 text-xs font-medium text-[#f87171]"
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[var(--state-error)]/20 bg-[var(--state-error)]/10 px-3.5 py-2.5 text-xs font-medium text-[#f87171]"
             role="alert"
           >
-            <span class="text-sm">⚠</span>
+            <app-icon name="alert-circle" [size]="14" />
             <span>{{ errorMsg() }}</span>
           </div>
         }
@@ -99,10 +92,10 @@ const PASSWORD_MIN_LENGTH = 8;
         <!-- Éxito -->
         @if (successMsg()) {
           <div
-            class="mb-4 flex items-center gap-2 rounded-xl border border-[#10b981]/20 bg-[#10b981]/10 px-3.5 py-2.5 text-xs font-medium text-[#34d399]"
+            class="mb-4 flex items-center gap-2 rounded-xl border border-[var(--state-success)]/20 bg-[var(--state-success)]/10 px-3.5 py-2.5 text-xs font-medium text-[#34d399]"
             role="status"
           >
-            <span class="text-sm">✓</span>
+            <app-icon name="check" [size]="14" />
             <span>{{ successMsg() }}</span>
           </div>
         }
@@ -115,11 +108,12 @@ const PASSWORD_MIN_LENGTH = 8;
               <label
                 for="password"
                 class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-              >Nueva contraseña</label>
+                >Nueva contraseña</label
+              >
               <input
                 id="password"
                 type="password"
-                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[#3b82f6] focus:bg-[#3b82f6]/[0.02] focus:ring-2 focus:ring-[#3b82f6]/20"
+                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="password"
                 name="password"
@@ -133,11 +127,12 @@ const PASSWORD_MIN_LENGTH = 8;
               <label
                 for="confirm"
                 class="text-xs font-semibold uppercase tracking-wider text-zinc-400"
-              >Confirmar contraseña</label>
+                >Confirmar contraseña</label
+              >
               <input
                 id="confirm"
                 type="password"
-                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[#3b82f6] focus:bg-[#3b82f6]/[0.02] focus:ring-2 focus:ring-[#3b82f6]/20"
+                class="h-12 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] px-4 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="confirm"
                 name="confirm"
@@ -149,7 +144,7 @@ const PASSWORD_MIN_LENGTH = 8;
             <!-- Submit -->
             <button
               type="submit"
-              class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[#2563eb] to-[#3b82f6] font-bold text-sm tracking-wide text-white shadow-lg shadow-[#3b82f6]/25 transition-all duration-150 hover:from-[#3b82f6] hover:to-[#60a5fa] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
+              class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] font-bold text-sm tracking-wide text-white shadow-lg shadow-[var(--ds-brand)]/25 transition-all duration-150 hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
               [disabled]="loading()"
             >
               @if (loading()) {
@@ -163,11 +158,9 @@ const PASSWORD_MIN_LENGTH = 8;
         }
 
         <!-- Footer -->
-        <div
-          class="mt-6 flex items-center justify-center border-t border-white/[0.06] pt-5"
-        >
+        <div class="mt-6 flex items-center justify-center border-t border-white/[0.06] pt-5">
           <button
-            class="cursor-pointer border-none bg-transparent p-0 text-xs font-semibold text-[#60a5fa] transition-colors hover:text-[#93c5fd]"
+            class="cursor-pointer border-none bg-transparent p-0 text-xs font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-[#93c5fd]"
             (click)="goToLogin()"
           >
             Volver a iniciar sesión
@@ -242,8 +235,7 @@ export class ResetPasswordPage implements OnInit {
     if (!this.password) return 'La contraseña es obligatoria.';
     if (this.password.length < PASSWORD_MIN_LENGTH)
       return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`;
-    if (this.password !== this.confirm)
-      return 'Las contraseñas no coinciden.';
+    if (this.password !== this.confirm) return 'Las contraseñas no coinciden.';
     return null;
   }
 }

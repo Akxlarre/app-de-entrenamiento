@@ -1,36 +1,52 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppUpdate } from '../../../core/models/app-update.model';
+import { IconComponent } from '@shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-update-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   template: `
     @if (visible()) {
-      <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-        <div class="w-full max-w-sm rounded-2xl border border-white/10 bg-[#121217] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden">
-          
+      <div
+        class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      >
+        <div
+          class="w-full max-w-sm rounded-2xl border border-white/10 bg-[#121217] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden"
+        >
           <!-- Top badge / icon -->
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-2xl shadow-lg shadow-[#3b82f6]/10">
-              🚀
+            <div
+              class="w-12 h-12 rounded-xl bg-[var(--ds-brand)]/15 border border-[var(--ds-brand)]/30 flex items-center justify-center shadow-lg shadow-[var(--ds-brand)]/10"
+            >
+              <app-icon name="rocket" [size]="24" [color]="'var(--ds-brand)'" />
             </div>
             <div class="flex flex-col">
-              <h3 class="m-0 text-base font-bold text-white tracking-tight">¡Nueva versión disponible!</h3>
-              <span class="text-xs font-semibold text-[#60a5fa]">Versión {{ updateInfo()?.version || 'actualizada' }}</span>
+              <h3 class="m-0 text-base font-bold text-white tracking-tight">
+                ¡Nueva versión disponible!
+              </h3>
+              <span class="text-xs font-semibold text-[var(--color-primary-hover)]"
+                >Versión {{ updateInfo()?.version || 'actualizada' }}</span
+              >
             </div>
           </div>
 
           <!-- Notes -->
-          <div class="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 text-xs text-zinc-300 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+          <div
+            class="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 text-xs text-zinc-300 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap"
+          >
             {{ updateInfo()?.release_notes || 'Mejoras de rendimiento y corrección de errores.' }}
           </div>
 
           <!-- Error message if any -->
           @if (error()) {
-            <div class="p-3 rounded-xl text-xs font-semibold text-primary border border-surface-border" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.2);">
-              ⚠️ {{ error() }}
+            <div
+              class="p-3 rounded-xl text-xs font-semibold text-primary border border-surface-border flex items-center gap-1.5"
+              style="background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.2);"
+            >
+              <app-icon name="alert-circle" [size]="14" />
+              {{ error() }}
             </div>
           }
 
@@ -39,10 +55,13 @@ import { AppUpdate } from '../../../core/models/app-update.model';
             <div class="flex flex-col gap-2 pt-2">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-zinc-400">Descargando actualización...</span>
-                <span class="text-[#60a5fa]">{{ downloadProgress() }}%</span>
+                <span class="text-[var(--color-primary-hover)]">{{ downloadProgress() }}%</span>
               </div>
               <div class="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-[#2563eb] to-[#3b82f6] transition-all duration-200" [style.width.%]="downloadProgress()"></div>
+                <div
+                  class="h-full bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] transition-all duration-200"
+                  [style.width.%]="downloadProgress()"
+                ></div>
               </div>
             </div>
           }
@@ -63,10 +82,12 @@ import { AppUpdate } from '../../../core/models/app-update.model';
               type="button"
               (click)="onUpdateClick()"
               [disabled]="isDownloading()"
-              class="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#2563eb] to-[#3b82f6] hover:from-[#3b82f6] hover:to-[#60a5fa] border-none shadow-lg shadow-[#3b82f6]/20 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              class="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] border-none shadow-lg shadow-[var(--ds-brand)]/20 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               @if (isDownloading()) {
-                <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+                <span
+                  class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                ></span>
                 <span>Instalando...</span>
               } @else {
                 <span>Actualizar Ahora</span>
@@ -77,7 +98,7 @@ import { AppUpdate } from '../../../core/models/app-update.model';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppUpdateModalComponent {
   // Inputs

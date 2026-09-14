@@ -94,9 +94,9 @@
   /* Familias tipográficas
       Bricolage Grotesque: importada via Google Fonts en styles.scss
       Fallback: system-ui para máxima compatibilidad cross-platform */
-  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-body: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Escala de duración */
   --duration-instant: 100ms;
@@ -157,23 +157,20 @@
 
   /* Sombras */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
 
   --shadow-layout-topbar: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-layout-sidebar:
-    4px 0 24px -4px rgba(0, 0, 0, 0.03), 1px 0 0 0 var(--border-subtle);
+  --shadow-layout-sidebar: 4px 0 24px -4px rgba(0, 0, 0, 0.03), 1px 0 0 0 var(--border-subtle);
   --shadow-layout-divider: 1px 0 0 0 var(--border-subtle);
   --overlay-backdrop: rgba(9, 9, 11, 0.4);
 
   /* Estados semánticos
      state-* = resultado de acciones del sistema
      ("guardado con éxito", "error de formulario", "información") */
-  --state-success: #16a34a;
-  --state-success-bg: #f0fdf4;
-  --state-success-border: #bbf7d0;
+  --state-success: #059669;
+  --state-success-bg: #ecfdf5;
+  --state-success-border: #a7f3d0;
 
   --state-warning: #d97706;
   --state-warning-bg: #fffbeb;
@@ -193,30 +190,26 @@
      Nunca apunta a --text-primary.
    ────────────────────────────────────────── */
 
-  /* Sky — color de marca por defecto (personalizable por proyecto) */
-  --ds-brand: #0ea5e9;
-  --color-primary: #0ea5e9;
-  --color-primary-hover: #0284c7;
-  --color-primary-dark: #0369a1;
-  --color-primary-muted: rgba(14, 165, 233, 0.08);
-  --color-primary-tint: rgba(14, 165, 233, 0.04);
+  /* Blue — color de marca real del producto (antes: sky #0ea5e9 — no coincidía con
+     el azul que usan login/perfil/tabs. Ver fix-007-corregir-tokens-marca). */
+  --ds-brand: #2563eb;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-dark: #1e40af;
+  --color-primary-muted: rgba(37, 99, 235, 0.08);
+  --color-primary-tint: rgba(37, 99, 235, 0.04);
   --color-primary-text: #ffffff;
-  --accent-border: rgba(14, 165, 233, 0.2);
-  --accent-glow: rgba(14, 165, 233, 0.15);
-  --shadow-focus: 0 0 0 3px rgba(14, 165, 233, 0.08);
+  --accent-border: rgba(37, 99, 235, 0.2);
+  --accent-glow: rgba(37, 99, 235, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.08);
 
   /* Gradientes */
-  --gradient-primary: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
-  --gradient-hero: linear-gradient(
-    135deg,
-    #0ea5e9 0%,
-    #6366f1 50%,
-    #8b5cf6 100%
-  );
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
+  --gradient-hero: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #8b5cf6 100%);
   --gradient-subtle: linear-gradient(
     135deg,
-    rgba(14, 165, 233, 0.06) 0%,
-    rgba(14, 165, 233, 0.02) 100%
+    rgba(37, 99, 235, 0.06) 0%,
+    rgba(37, 99, 235, 0.02) 100%
   );
 
   /* Aliases semánticos — separación: acción ≠ texto */
@@ -347,7 +340,7 @@
      bg-elevated L:16% → delta +5% ✓
      bg-subtle   L:18.8% → delta +2.8% ✓
    ============================================================ */
-[data-mode="dark"] {
+[data-mode='dark'] {
   color-scheme: dark;
 
   /* ── Capa 2: Superficies ── */
@@ -384,46 +377,46 @@
   --overlay-backdrop: rgba(0, 0, 0, 0.7);
 
   /* ── Capa 2: Estados semánticos (glass effect) ── */
-  --state-success: #4ade80;
-  --state-success-bg: rgba(74, 222, 128, 0.1);
-  --state-success-border: rgba(74, 222, 128, 0.2);
+  --state-success: #10b981;
+  --state-success-bg: rgba(16, 185, 129, 0.1);
+  --state-success-border: rgba(16, 185, 129, 0.2);
 
   --state-warning: #fbbf24;
   --state-warning-bg: rgba(251, 191, 36, 0.1);
   --state-warning-border: rgba(251, 191, 36, 0.2);
 
-  --state-error: #f87171;
-  --state-error-bg: rgba(248, 113, 113, 0.1);
-  --state-error-border: rgba(248, 113, 113, 0.2);
+  /* red-500 (#ef4444) — el rojo real usado en toda la app (26 usos vs 5 del
+     red-400 anterior). Contraste 4.71:1 sobre #18181b (AA). */
+  --state-error: #ef4444;
+  --state-error-bg: rgba(239, 68, 68, 0.1);
+  --state-error-border: rgba(239, 68, 68, 0.2);
 
   --state-info: #38bdf8;
   --state-info-bg: rgba(56, 189, 248, 0.1);
   --state-info-border: rgba(56, 189, 248, 0.2);
 
   /* ── Capa 3: Marca (WCAG compliant en dark) ──
-     sky-400 (#38bdf8) — contraste verificado 8.22:1 sobre #18181b (AAA). */
-  --ds-brand: #38bdf8;
-  --color-primary: #38bdf8;
-  --color-primary-hover: #7dd3fc;
-  --color-primary-dark: #0ea5e9;
-  --color-primary-muted: rgba(56, 189, 248, 0.15);
-  --color-primary-tint: rgba(56, 189, 248, 0.08);
+     blue-500 (#3b82f6) — el azul real de marca del producto (login, avatar de
+     perfil, tab bar). Contraste verificado 4.82:1 sobre #18181b (AA — cumple el
+     mínimo del proyecto; el sky-400 anterior daba 8.22:1 AAA pero no coincidía con
+     ningún color usado en pantallas reales). Ver fix-007-corregir-tokens-marca. */
+  --ds-brand: #3b82f6;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-dark: #2563eb;
+  --color-primary-muted: rgba(59, 130, 246, 0.15);
+  --color-primary-tint: rgba(59, 130, 246, 0.08);
   --color-primary-text: #ffffff;
-  --accent-border: rgba(56, 189, 248, 0.25);
-  --accent-glow: rgba(56, 189, 248, 0.25);
-  --shadow-focus: 0 0 0 3px rgba(56, 189, 248, 0.3);
+  --accent-border: rgba(59, 130, 246, 0.25);
+  --accent-glow: rgba(59, 130, 246, 0.25);
+  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.3);
 
-  --gradient-primary: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-  --gradient-hero: linear-gradient(
-    135deg,
-    #38bdf8 0%,
-    #818cf8 50%,
-    #a78bfa 100%
-  );
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #818cf8 100%);
+  --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #818cf8 50%, #a78bfa 100%);
   --gradient-subtle: linear-gradient(
     135deg,
-    rgba(56, 189, 248, 0.12) 0%,
-    rgba(56, 189, 248, 0.04) 100%
+    rgba(59, 130, 246, 0.12) 0%,
+    rgba(59, 130, 246, 0.04) 100%
   );
 
   --action-primary: var(--ds-brand);
@@ -567,14 +560,10 @@ body {
 
   /* Brillo sutil en esquina superior derecha — profundidad */
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(
-      ellipse at top right,
-      rgba(255, 255, 255, 0.1) 0%,
-      transparent 60%
-    );
+    background: radial-gradient(ellipse at top right, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
     pointer-events: none;
   }
 }
@@ -640,7 +629,7 @@ body {
 
   /* Dot base (color success) */
   &::before {
-    content: "";
+    content: '';
     display: inline-block;
     width: 8px;
     height: 8px;
@@ -653,7 +642,7 @@ body {
 
   /* Onda pulsante */
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     left: 0;
     top: 50%;
