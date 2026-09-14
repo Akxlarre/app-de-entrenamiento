@@ -47,7 +47,7 @@ jobs:
         working-directory: ./android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease -PversionCode=${{ github.run_number }}
 
       - name: Firmar APK
         id: sign_app
@@ -122,4 +122,5 @@ jobs:
           APK_PATH: ${{steps.sign_app.outputs.signedReleaseFile}}
           VERSION_TAG: ${{ github.ref_name }}
           RELEASE_NOTES: ${{ github.event.release.body }}
+          VERSION_CODE: ${{ github.run_number }}
         run: node scripts/publish-update.js

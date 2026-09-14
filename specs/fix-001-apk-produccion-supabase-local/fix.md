@@ -1,7 +1,8 @@
 # Fix: APK de producción apunta a Supabase local
 > id: fix-001-apk-produccion-supabase-local
 > refs: —
-> status: in_progress
+> status: done
+> closed: 2026-09-14
 > created: 2026-09-14
 
 ## Root Cause
@@ -51,4 +52,4 @@ No aplica test automatizado (es config de build, no lógica de negocio). Verific
 - `ng build --configuration=production` con `SUPABASE_URL`/`SUPABASE_ANON_KEY` en el
   entorno y confirmar que el bundle resultante contiene `ibkyzgxqbxletnwildrm.supabase.co`
   y NO contiene `localhost:54351`.
-- Publicar un nuevo APK (tag `v1.0.16`) e iniciar sesión desde un dispositivo real ✓
+- Publicar un nuevo APK (tag `v1.0.16`) e iniciar sesión desde un dispositivo real ✓ — **verificado, login funciona en dispositivo real.**

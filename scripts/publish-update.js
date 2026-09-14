@@ -49,20 +49,16 @@ async function publishUpdate() {
     const supabase = createClient(supabaseUrl, supabaseKey);
     console.log(`Iniciando publicación de la versión ${versionTag}...`);
 
-    // 1. Obtener el último build_number
-    const { data: latestUpdate, error: fetchError } = await supabase
-      .from('app_updates')
-      .select('build_number')
-      .order('build_number', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      throw new Error(`Error al consultar último build: ${fetchError.message}`);
+    // El build_number debe coincidir exactamente con el versionCode compilado en el
+    // APK (ver android/app/build.gradle -PversionCode y el paso "Build Android APK"
+    // del workflow) para que AppUpdateService.getCurrentBuild() y este valor puedan
+    // compararse sin desincronizarse.
+    const versionCodeEnv = process.env.VERSION_CODE;
+    if (!versionCodeEnv) {
+      throw new Error('Falta VERSION_CODE — debe ser el mismo run number usado para compilar el APK.');
     }
-
-    const nextBuildNumber = (latestUpdate?.build_number || 0) + 1;
-    console.log(`Nuevo build number asignado: ${nextBuildNumber}`);
+    const nextBuildNumber = parseInt(versionCodeEnv, 10);
+    console.log(`Build number asignado (VERSION_CODE de CI): ${nextBuildNumber}`);
 
     // 2. Subir el APK al Storage
     const fileName = `update-${versionTag}-b${nextBuildNumber}.apk`;
