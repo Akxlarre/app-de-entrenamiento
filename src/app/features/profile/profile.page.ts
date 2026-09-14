@@ -13,6 +13,7 @@ import {
 import { AuthFacade } from '@core/facades/auth.facade';
 import { AppUpdateFacade } from '@core/facades/app-update.facade';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
+import { ToastService } from '@core/services/ui/toast.service';
 import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { addIcons } from 'ionicons';
@@ -66,7 +67,13 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
                 <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
               }
             </ion-item>
-            <ion-item button detail="false" lines="none" class="option-item">
+            <ion-item
+              button
+              detail="false"
+              lines="none"
+              class="option-item"
+              (click)="showPreferencesComingSoon()"
+            >
               <ion-icon name="settings-outline" slot="start" class="option-icon"></ion-icon>
               <ion-label>Preferencias</ion-label>
               <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
@@ -220,6 +227,7 @@ export class ProfilePage implements AfterViewInit {
   auth = inject(AuthFacade);
   updateFacade = inject(AppUpdateFacade);
   gsap = inject(GsapAnimationsService);
+  private toast = inject(ToastService);
 
   constructor() {
     addIcons({ settingsOutline, chevronForwardOutline, cloudDownloadOutline });
@@ -234,6 +242,10 @@ export class ProfilePage implements AfterViewInit {
 
   async checkForUpdates() {
     await this.updateFacade.checkForUpdates();
+  }
+
+  showPreferencesComingSoon(): void {
+    this.toast.info('Preferencias', 'Esta sección estará disponible próximamente.');
   }
 
   async logout() {
