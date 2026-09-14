@@ -1,7 +1,8 @@
 # Fix: versionCode del APK desincronizado del build_number publicado
 > id: fix-002-version-code-desincronizado
 > refs: —
-> status: in_progress
+> status: done
+> closed: 2026-09-14
 > created: 2026-09-14
 
 ## Root Cause
@@ -43,3 +44,5 @@ No aplica test automatizado (config de build/CI). Verificación manual:
   "Publicar Actualización en Supabase" usan el mismo número de build.
 - Instalar el APK resultante y confirmar en Perfil → Buscar Actualizaciones que
   NO reporta una actualización disponible (ya está en la última versión) ✓
+  — **verificado en dispositivo real: versionCode=30 instalado, "Buscar
+  Actualizaciones" ya no muestra aviso.**
