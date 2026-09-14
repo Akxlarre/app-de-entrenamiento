@@ -58,10 +58,12 @@ jobs:
           if [ "$KEYSTORE_SIZE" -lt 50 ]; then
             echo "⚠️ No se detectó un keystore válido en los Secrets (ANDROID_KEYSTORE_BASE64 está vacío o no configurado)."
             echo "🛠️ Generando keystore de release automático para completar el despliegue..."
+            rm -f release.keystore
             keytool -genkeypair -v -keystore release.keystore \
               -alias "app-release-key" \
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass "entrenamiento2026" -keypass "entrenamiento2026" \
+              -deststoretype PKCS12 \
               -dname "CN=AppEntrenamiento, OU=Mobile, O=AppEntrenamiento, L=Chillan, ST=Nuble, C=CL"
             KEY_ALIAS="app-release-key"
             KEYSTORE_PASSWORD="entrenamiento2026"
