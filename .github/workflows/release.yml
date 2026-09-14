@@ -109,9 +109,6 @@ jobs:
             
           echo "signedReleaseFile=android/app/build/outputs/apk/release/app-signed.apk" >> $GITHUB_OUTPUT
 
-      - name: Instalar cliente Supabase JS (para script)
-        run: npm install @supabase/supabase-js --no-save
-
       - name: Publicar Actualización en Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
