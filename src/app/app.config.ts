@@ -4,12 +4,7 @@ import localeEsCl from '@angular/common/locales/es-CL';
 
 registerLocaleData(localeEsCl, 'es-CL');
 
-import {
-  provideRouter,
-  withComponentInputBinding,
-  withViewTransitions,
-  RouteReuseStrategy,
-} from '@angular/router';
+import { provideRouter, withComponentInputBinding, RouteReuseStrategy } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
@@ -94,6 +89,8 @@ import {
   // ── Entrenamiento ──
   ClipboardList,
   Play,
+  Brain,
+  Loader2,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -109,7 +106,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
 export const appConfig: ApplicationConfig = {
   providers: [
     { provide: LOCALE_ID, useValue: 'es-CL' },
-    provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
+    provideRouter(routes, withComponentInputBinding()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideAnimationsAsync(),
     providePrimeNG({
@@ -215,6 +212,8 @@ export const appConfig: ApplicationConfig = {
         // Entrenamiento
         ClipboardList,
         Play,
+        Brain,
+        Loader2,
       }),
     ),
     provideIonicAngular({}),
