@@ -45,14 +45,29 @@ jobs:
 
       - name: Firmar APK
         id: sign_app
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: android/app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: '34.0.0'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          echo "Usando Android Build Tools desde: $BUILD_TOOLS_DIR"
+          
+          APK_RAW=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "APK encontrado: $APK_RAW"
+          
+          $BUILD_TOOLS_DIR/zipalign -v -p 4 "$APK_RAW" android/app/build/outputs/apk/release/app-aligned.apk || cp "$APK_RAW" android/app/build/outputs/apk/release/app-aligned.apk
+          
+          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --out android/app/build/outputs/apk/release/app-signed.apk \
+            android/app/build/outputs/apk/release/app-aligned.apk
+            
+          echo "signedReleaseFile=android/app/build/outputs/apk/release/app-signed.apk" >> $GITHUB_OUTPUT
 
       - name: Instalar cliente Supabase JS (para script)
         run: npm install @supabase/supabase-js --no-save
