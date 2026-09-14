@@ -340,11 +340,13 @@ import { RoutineWithExercises } from '@core/models/routine.model';
                     </div>
                     <div class="stat-pill">
                       <span class="stat-val">{{ item.total_sets }}</span>
-                      <span class="stat-lbl">Series</span>
+                      <span class="stat-lbl">{{ item.total_sets === 1 ? 'Serie' : 'Series' }}</span>
                     </div>
                     <div class="stat-pill">
                       <span class="stat-val">{{ item.exercises_summary.length }}</span>
-                      <span class="stat-lbl">Ejercicios</span>
+                      <span class="stat-lbl">{{
+                        item.exercises_summary.length === 1 ? 'Ejercicio' : 'Ejercicios'
+                      }}</span>
                     </div>
                   </div>
 
@@ -902,7 +904,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
       .card-stats {
         display: flex;
-        gap: 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
       }
       .stat-pill {
         background: rgba(255, 255, 255, 0.04);
@@ -912,12 +915,12 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: baseline;
         gap: 0.35rem;
       }
-      .stat-num {
+      .stat-val {
         font-weight: 800;
         color: var(--text-primary);
         font-size: 0.95rem;
       }
-      .stat-unit {
+      .stat-lbl {
         color: rgba(255, 255, 255, 0.4);
         font-size: 0.72rem;
         font-weight: 600;

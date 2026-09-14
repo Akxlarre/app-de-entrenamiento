@@ -99,7 +99,9 @@ import { IconComponent } from '@shared/components/icon/icon.component';
                     </div>
                     <div class="stat-pill">
                       <span class="stat-num">{{ item.total_sets }}</span>
-                      <span class="stat-unit">series</span>
+                      <span class="stat-unit">{{
+                        item.total_sets === 1 ? 'serie' : 'series'
+                      }}</span>
                     </div>
                   </div>
 

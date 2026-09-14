@@ -70,8 +70,8 @@ import {
             color="medium"
             class="back-btn"
           ></ion-back-button>
-          <h1 class="header-title">Entrenamiento</h1>
-          <div style="display: flex; gap: 6px; align-items: center;">
+          <h1 class="header-title">Sesión</h1>
+          <div style="display: flex; gap: 2px; align-items: center; flex-shrink: 0;">
             <button
               class="coach-header-btn"
               (click)="coachFacade.toggleDrawer()"
@@ -159,7 +159,7 @@ import {
 
               <!-- Set Rows -->
               <div class="sets-list">
-                @for (set of ex.sets; track set.id) {
+                @for (set of ex.sets; track set.id; let setIndex = $index) {
                   <ion-item-sliding>
                     <ion-item class="set-item" lines="none">
                       <div class="set-row" [class.is-completed]="set.completed">
@@ -184,6 +184,7 @@ import {
                             [readonly]="set.completed"
                             inputmode="decimal"
                             min="0"
+                            [attr.aria-label]="'Peso en kilogramos, serie ' + (setIndex + 1)"
                           >
                           </ion-input>
                         </div>
@@ -199,6 +200,7 @@ import {
                             [readonly]="set.completed"
                             inputmode="numeric"
                             min="0"
+                            [attr.aria-label]="'Repeticiones, serie ' + (setIndex + 1)"
                           >
                           </ion-input>
                           @if (set.target_reps && !set.completed) {
@@ -217,6 +219,9 @@ import {
                             [readonly]="set.completed"
                             inputmode="numeric"
                             min="0"
+                            [attr.aria-label]="
+                              'RIR, repeticiones en reserva, serie ' + (setIndex + 1)
+                            "
                           >
                           </ion-input>
                         </div>
@@ -671,7 +676,7 @@ import {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 6px 10px;
+        padding: 6px 8px;
         background: rgba(239, 68, 68, 0.12);
         border: 1px solid rgba(239, 68, 68, 0.25);
         border-radius: 10px;
@@ -687,7 +692,7 @@ import {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 6px 14px;
+        padding: 6px 10px;
         background: rgba(16, 185, 129, 0.15);
         border: 1px solid rgba(16, 185, 129, 0.25);
         border-radius: 10px;
@@ -1049,7 +1054,7 @@ import {
         display: flex;
         align-items: center;
         gap: 4px;
-        padding: 6px 12px;
+        padding: 6px 10px;
         background: linear-gradient(
           135deg,
           rgba(99, 102, 241, 0.2) 0%,
