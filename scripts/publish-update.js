@@ -2,26 +2,51 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Usar Service Role para bypass RLS insert
+let supabaseUrl = process.env.SUPABASE_URL || 'https://ibkyzgxqbxletnwildrm.supabase.co';
+let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 const apkPath = process.env.APK_PATH;
 const versionTag = process.env.VERSION_TAG || 'v1.0.0';
 const releaseNotes = process.env.RELEASE_NOTES || 'Nueva actualización disponible.';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Error: Faltan las credenciales de Supabase (SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY).');
-  process.exit(1);
+async function getServiceKey() {
+  if (supabaseKey) return supabaseKey;
+  
+  const token = process.env.SUPABASE_ACCESS_TOKEN;
+  const projectId = process.env.SUPABASE_PROJECT_ID || 'ibkyzgxqbxletnwildrm';
+  
+  if (token) {
+    console.log('Consultando Management API de Supabase para obtener service_role key...');
+    try {
+      const res = await fetch(`https://api.supabase.com/v1/projects/${projectId}/api-keys`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const keyObj = data.find(k => k.name === 'service_role' || k.tags === 'service_role');
+        if (keyObj && keyObj.api_key) {
+          console.log('✅ service_role key obtenida exitosamente.');
+          return keyObj.api_key;
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo obtener la llave via Management API:', err.message);
+    }
+  }
+  return null;
 }
-
-if (!apkPath || !fs.existsSync(apkPath)) {
-  console.error(`Error: No se encontró el archivo APK en la ruta: ${apkPath}`);
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function publishUpdate() {
   try {
+    if (!apkPath || !fs.existsSync(apkPath)) {
+      throw new Error(`No se encontró el archivo APK en la ruta: ${apkPath}`);
+    }
+
+    supabaseKey = await getServiceKey();
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Faltan las credenciales de Supabase (SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY).');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
     console.log(`Iniciando publicación de la versión ${versionTag}...`);
 
     // 1. Obtener el último build_number
