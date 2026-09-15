@@ -71,8 +71,11 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         display: flex;
         flex-direction: column;
       }
+      /* Medía 10.88px, por debajo del piso de 13px del sistema. Este
+         encabezado aparece en todas las vistas, así que era el texto
+         más chico de la app repetido en todas partes. */
       .brand-tag {
-        font-size: 0.68rem;
+        font-size: var(--text-xs);
         font-weight: 800;
         letter-spacing: 0.14em;
         color: var(--ds-brand);

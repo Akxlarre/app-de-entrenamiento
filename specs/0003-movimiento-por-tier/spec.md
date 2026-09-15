@@ -3,8 +3,19 @@
 > id: 0003-movimiento-por-tier
 > refs: decisión del usuario "Por tier, orquestado" tras el recorrido de
 >   flujos de 0002. Depende de specs/0001 (clases de tier).
-> status: in-progress
+> status: done
 > created: 2026-09-15
+> closed: 2026-09-15
+>
+> **Cierre.** AC-01 a AC-07 cumplidos. AC-05 se verificó por test
+> unitario, no por navegador: no hay forma de emular
+> `prefers-reduced-motion` desde las herramientas disponibles.
+>
+> Escribir esos tests destapó dos bugs encadenados que la verificación
+> en navegador no había mostrado: la red de seguridad limpiaba los
+> props pero la timeline seguía viva y volvía a ocultar el contenido en
+> su siguiente tick; y al matarla, `kill()` dispara `onInterrupt`, que
+> llamaba de vuelta a `revelar` — recursión. Ambos corregidos.
 
 ## Contexto
 

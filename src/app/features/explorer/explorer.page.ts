@@ -3,6 +3,8 @@ import {
   ChangeDetectionStrategy,
   inject,
   OnInit,
+  AfterViewInit,
+  ElementRef,
   signal,
   computed,
 } from '@angular/core';
@@ -21,6 +23,8 @@ import { AppHeaderComponent } from '@shared/components/app-header/app-header.com
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facade';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 
 const MUSCLE_GROUPS = [
   { label: 'Todos', value: '', icon: 'zap' },
@@ -51,15 +55,12 @@ const MUSCLE_GROUPS = [
     AppHeaderComponent,
     DrawerComponent,
     IconComponent,
+    EmptyStateComponent,
   ],
   template: `
-    <ion-content class="explorer-content" [fullscreen]="true">
+    <ion-content class="explorer-content tier-trabajo" [fullscreen]="true">
       <app-header title="Catálogo de Ejercicios">
-        <div
-          slot="bottom"
-          class="search-container"
-          style="padding-top: 1rem; padding-bottom: 0.2rem; padding-left: 0; padding-right: 0;"
-        >
+        <div slot="bottom" class="search-container">
           <ion-searchbar
             class="custom-searchbar"
             placeholder="Buscar ejercicio..."
@@ -95,10 +96,25 @@ const MUSCLE_GROUPS = [
             <p>Cargando ejercicios...</p>
           </div>
         } @else if (facade.exercises().length === 0) {
-          <div class="empty-state">
-            <app-icon name="search" [size]="40" />
-            <p>No se encontraron ejercicios</p>
-          </div>
+          <!-- "No encontré lo que buscás" y "no hay nada cargado" son
+               situaciones distintas: la primera se resuelve borrando el
+               filtro, la segunda no se resuelve desde acá. -->
+          @if (hayFiltroActivo()) {
+            <app-empty-state
+              message="Ningún ejercicio coincide"
+              subtitle="Probá con otro término o quitá el filtro de grupo muscular."
+              icon="search"
+              actionLabel="Limpiar filtros"
+              actionIcon="x"
+              (action)="limpiarFiltros()"
+            />
+          } @else {
+            <app-empty-state
+              message="El catálogo está vacío"
+              subtitle="Todavía no hay ejercicios cargados en la base."
+              icon="clipboard-list"
+            />
+          }
         } @else {
           @for (exercise of facade.exercises().slice(0, displayLimit()); track exercise.id) {
             <ion-item
@@ -108,25 +124,20 @@ const MUSCLE_GROUPS = [
               class="exercise-item"
               (click)="openDetail(exercise)"
             >
-              <div class="exercise-icon" [style]="getIconStyle(exercise.muscle)" slot="start">
-                <app-icon
-                  [name]="getIconName(exercise.muscle, exercise.category)"
-                  [size]="24"
-                ></app-icon>
-              </div>
               <ion-label>
                 <h2 class="exercise-name">{{ exercise.name_es || exercise.name_en }}</h2>
                 <p class="exercise-meta capitalize">
-                  <span class="text-primary font-semibold">{{ exercise.muscle }}</span> ·
-                  <span class="text-muted">{{ exercise.equipment }}</span> ·
-                  <span class="text-secondary">{{ exercise.category }}</span>
+                  <span class="exercise-muscle">{{ exercise.muscle }}</span> ·
+                  <span>{{ exercise.equipment }}</span> ·
+                  <span>{{ exercise.category }}</span>
                 </p>
               </ion-label>
               <app-icon
                 slot="end"
+                class="exercise-chevron"
                 name="chevron-right"
                 [size]="20"
-                style="color: var(--text-muted); opacity: 0.5"
+                [ariaHidden]="true"
               ></app-icon>
             </ion-item>
           }
@@ -402,10 +413,22 @@ const MUSCLE_GROUPS = [
         --background: var(--ion-background-color, #121212);
       }
 
+      /* ion-searchbar no expone variable de alto: el input interno lo
+         fija en su propio CSS y medía 42px.
+
+         Necesita ::ng-deep. Sin él, Angular le estampa su atributo de
+         encapsulación al descendiente, pero ese input lo crea Ionic
+         dentro de su propio componente y nunca lleva ese atributo, así
+         que el selector no matchea nunca. Verificado en navegador: el
+         input no tiene atributo de encapsulación. */
+      .custom-searchbar ::ng-deep .searchbar-input {
+        min-height: var(--target-min);
+      }
+
       .custom-searchbar {
-        --background: rgba(255, 255, 255, 0.08);
-        --color: var(--text-primary, #fff);
-        --placeholder-color: var(--text-muted, #a1a1aa);
+        --background: var(--bg-surface);
+        --color: var(--text-primary);
+        --placeholder-color: var(--text-muted);
         --icon-color: var(--text-muted, #a1a1aa);
         --border-radius: 12px;
         padding: 0 16px 8px 16px;
@@ -423,16 +446,19 @@ const MUSCLE_GROUPS = [
         display: none;
       }
 
+      /* Medido antes: 30px de alto. Es el control más usado de la
+         vista y era el más chico de toda la app. */
       .chip-pill {
+        min-height: var(--tier-target, var(--target-min));
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
         padding: 0.45rem 0.85rem;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        color: var(--text-muted, #a1a1aa);
-        font-size: 0.8rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-full);
+        color: var(--text-secondary);
+        font-size: var(--text-xs);
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
@@ -441,14 +467,15 @@ const MUSCLE_GROUPS = [
       .chip-pill:active {
         transform: scale(0.96);
       }
+      /* Tinta sobre ember da 7.0:1; hueso sobre ember daba 2.9:1 y
+         reprobaba. El resplandor era del azul de marca anterior. */
       .chip-pill.chip-active {
-        background: var(--color-primary, var(--ds-brand));
-        border-color: var(--color-primary, var(--ds-brand));
-        color: var(--text-primary);
-        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+        background: var(--ds-brand);
+        border-color: var(--ds-brand);
+        color: var(--color-primary-text);
       }
       .chip-icon {
-        font-size: 0.95rem;
+        font-size: var(--text-sm);
       }
 
       .exercise-list {
@@ -491,14 +518,14 @@ const MUSCLE_GROUPS = [
       .exercise-name {
         font-weight: 600 !important;
         font-size: 1rem !important;
-        color: var(--text-primary, #fff) !important;
+        color: var(--text-primary) !important;
         margin-bottom: 4px !important;
         letter-spacing: -0.01em;
         text-transform: capitalize;
       }
 
       .exercise-meta {
-        font-size: 0.75rem !important;
+        font-size: var(--text-xs) !important;
         display: flex;
         align-items: center;
         gap: 0.3rem;
@@ -519,6 +546,9 @@ const MUSCLE_GROUPS = [
 export class ExplorerPage implements OnInit {
   facade = inject(ExerciseFacade);
 
+  gsap = inject(GsapAnimationsService);
+  private host = inject(ElementRef<HTMLElement>);
+
   muscleGroups = MUSCLE_GROUPS;
   selectedGroup = signal('');
   searchQuery = signal('');
@@ -528,7 +558,21 @@ export class ExplorerPage implements OnInit {
   selectedExercise = signal<ExerciseDefinition | null>(null);
   drawerOpen = signal(false);
 
+  /** Distingue "no encontré nada" de "no hay nada cargado". */
+  hayFiltroActivo = computed(() => this.searchQuery() !== '' || this.selectedGroup() !== '');
+
   ngOnInit() {
+    this.facade.loadExercises('', '');
+  }
+
+  ngAfterViewInit() {
+    this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-trabajo'));
+  }
+
+  limpiarFiltros() {
+    this.searchQuery.set('');
+    this.selectedGroup.set('');
+    this.displayLimit.set(30);
     this.facade.loadExercises('', '');
   }
 
@@ -584,32 +628,6 @@ export class ExplorerPage implements OnInit {
     if (m.includes('glúteo') || m.includes('glute')) return 'circle';
     if (c.includes('cardio')) return 'activity';
     return 'dumbbell';
-  }
-
-  getIconStyle(muscle: string): string {
-    const m = (muscle || '').toLowerCase();
-    if (m.includes('pecho') || m.includes('chest'))
-      return 'background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--state-error);'; // Red
-    if (m.includes('espalda') || m.includes('back'))
-      return 'background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--state-success);'; // Emerald
-    if (m.includes('pierna') || m.includes('quad') || m.includes('femoral') || m.includes('isquio'))
-      return 'background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: var(--ds-brand);'; // Blue
-    if (m.includes('hombro') || m.includes('shoulder'))
-      return 'background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;'; // Orange
-    if (
-      m.includes('bíceps') ||
-      m.includes('tríceps') ||
-      m.includes('bicep') ||
-      m.includes('tricep')
-    )
-      return 'background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); color: #8b5cf6;'; // Violet
-    if (m.includes('abdom') || m.includes('core'))
-      return 'background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); color: #eab308;'; // Yellow
-    if (m.includes('glúteo') || m.includes('glute'))
-      return 'background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); color: #ec4899;'; // Pink
-
-    // Default (e.g. Cardio or others)
-    return 'background: rgba(161, 161, 170, 0.1); border: 1px solid rgba(161, 161, 170, 0.2); color: #a1a1aa;'; // Zinc/Gray
   }
 
   getInstructions(text: string | undefined): string[] {
