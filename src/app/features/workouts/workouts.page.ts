@@ -528,18 +528,25 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         (closed)="routineToDelete.set(null)"
       >
         @if (routineToDelete(); as r) {
-          <p
-            style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;"
-          >
+          <p class="confirm-text">
             ¿Estás seguro de que deseas eliminar la rutina
-            <strong style="color: var(--text-primary)">{{ r.name }}</strong
+            <strong>{{ r.name }}</strong
             >? Esta acción no se puede deshacer.
           </p>
         }
         <ng-container appModalFooter>
-          <div style="display: flex; gap: 1rem; width: 100%;">
-            <button class="modal-btn-cancel" (click)="routineToDelete.set(null)">Cancelar</button>
-            <button class="modal-btn-danger" (click)="deleteRoutineConfirmed()">Eliminar</button>
+          <div class="confirm-actions">
+            <button type="button" class="modal-btn-cancel" (click)="routineToDelete.set(null)">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="modal-btn-danger"
+              (click)="deleteRoutineConfirmed()"
+              data-llm-action="delete-rutina"
+            >
+              Eliminar
+            </button>
           </div>
         </ng-container>
       </app-modal>
@@ -968,6 +975,25 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         font-size: var(--text-sm);
         color: var(--text-secondary);
         margin: 0;
+      }
+
+      /* === CONFIRMACIÓN DE BORRADO === */
+      .confirm-text {
+        color: var(--text-secondary);
+        margin-bottom: var(--space-6);
+        font-size: var(--text-base);
+        line-height: var(--leading-normal);
+      }
+      .confirm-text strong {
+        color: var(--text-primary);
+      }
+      .confirm-actions {
+        display: flex;
+        gap: var(--space-4);
+        width: 100%;
+      }
+      .confirm-actions button {
+        min-height: var(--tier-target, var(--target-min));
       }
 
       .feed-list {
