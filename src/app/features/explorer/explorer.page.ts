@@ -409,9 +409,8 @@ const MUSCLE_GROUPS = [
       .search-container {
         padding: 0 0 1rem 0;
       }
-      .explorer-content {
-        --background: var(--ion-background-color, #121212);
-      }
+      /* Sin regla de fondo propia: la regla global de ion-content ya
+         pinta la tinta (fix-028). */
 
       /* ion-searchbar no expone variable de alto: el input interno lo
          fija en su propio CSS y medía 42px.
@@ -429,7 +428,7 @@ const MUSCLE_GROUPS = [
         --background: var(--bg-surface);
         --color: var(--text-primary);
         --placeholder-color: var(--text-muted);
-        --icon-color: var(--text-muted, #a1a1aa);
+        --icon-color: var(--text-muted);
         --border-radius: 12px;
         padding: 0 16px 8px 16px;
       }
@@ -486,8 +485,8 @@ const MUSCLE_GROUPS = [
 
       .exercise-item {
         --background: transparent;
-        --color: var(--text-primary, #fff);
-        --border-color: rgba(255, 255, 255, 0.06);
+        --color: var(--text-primary);
+        --border-color: var(--border-subtle);
         --padding-start: 12px;
         --padding-end: 12px;
         --inner-padding-end: 12px;
@@ -497,9 +496,11 @@ const MUSCLE_GROUPS = [
         cursor: pointer;
       }
 
+      /* Antes era 5% de blanco sobre la tinta: --bg-surface es el token
+         que más se le acerca y mantiene el mismo pulso sutil. */
       .exercise-item:active {
         transform: scale(0.98);
-        --background: rgba(255, 255, 255, 0.05);
+        --background: var(--bg-surface);
       }
 
       .exercise-icon {
@@ -537,7 +538,7 @@ const MUSCLE_GROUPS = [
         align-items: center;
         justify-content: center;
         padding: 3rem 1rem;
-        color: var(--text-muted, #a1a1aa);
+        color: var(--text-muted);
         gap: 1rem;
       }
     `,
