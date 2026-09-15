@@ -1,38 +1,51 @@
 /* Design System Tokens */
-@use "./styles/tokens/variables";
+@use './styles/tokens/variables';
 
 /* PrimeNG overrides (design system tokens + toast position) */
-@use "./styles/vendors/primeng-overrides";
+@use './styles/vendors/primeng-overrides';
 
 /* Layouts */
-@use "./styles/layout/bento-grid";
-@use "./styles/layout/page-shell";
+@use './styles/layout/bento-grid';
+@use './styles/layout/page-shell';
+@use './styles/layout/tiers';
 
 /* Motion — View Transitions API (page navigation) */
-@use "./styles/motion/view-transitions";
+@use './styles/motion/view-transitions';
 
 /* ============================================================
    GLOBAL UI POLISH — Dark Premium Theme
    ============================================================ */
 
 /* Ocultar spinners nativos en inputs numéricos */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 
 /* Scrollbar dark sutil */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
 
 /* Smooth scrolling global */
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 /* Ionic overrides para dark premium */
 ion-content {
@@ -53,9 +66,13 @@ ion-modal::part(content) {
   overflow: hidden;
 }
 
-/* Typography — Bricolage Grotesque
-   Loaded via <link preconnect> in index.html (NOT @import — avoids render-blocking).
-   Referenced in --font-display / --font-body tokens in _variables.scss. */
+/* Typography — Anton (impacto) / Oswald (datos) / Archivo (microcopy)
+   Cargadas con <link preconnect> en index.html (NO @import — evita bloquear
+   el render). Referenciadas por --font-display / --font-data / --font-body
+   en _variables.scss.
+
+   Nota: este comentario antes decía "Bricolage Grotesque", pero ese <link>
+   nunca existió en index.html — la app venía cayendo a system-ui. */
 
 /* Bloqueo de scroll (drawer mobile, modales) */
 body.layout-drawer-open,
