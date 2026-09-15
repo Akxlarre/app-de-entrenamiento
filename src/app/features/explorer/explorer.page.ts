@@ -65,6 +65,7 @@ const MUSCLE_GROUPS = [
             class="custom-searchbar"
             placeholder="Buscar ejercicio..."
             [debounce]="0"
+            [value]="searchQuery()"
             (ionInput)="onSearch($event)"
           >
           </ion-searchbar>
@@ -560,7 +561,7 @@ export class ExplorerPage implements OnInit {
   drawerOpen = signal(false);
 
   /** Distingue "no encontré nada" de "no hay nada cargado". */
-  hayFiltroActivo = computed(() => this.searchQuery() !== '' || this.selectedGroup() !== '');
+  hayFiltroActivo = computed(() => this.searchQuery().trim() !== '' || this.selectedGroup() !== '');
 
   ngOnInit() {
     this.facade.loadExercises('', '');
@@ -578,8 +579,10 @@ export class ExplorerPage implements OnInit {
   }
 
   onSearch(event: any) {
-    const query = (event.detail.value || '').toLowerCase().trim();
-    this.searchQuery.set(query);
+    // Se guarda tal como se escribe: el buscador muestra este valor y, si
+    // se normalizara, le borraría al usuario el espacio mientras escribe.
+    // ExerciseFacade ya normaliza al filtrar.
+    this.searchQuery.set(event.detail.value ?? '');
     this.displayLimit.set(30);
     this.facade.loadExercises(this.searchQuery(), this.selectedGroup());
   }
