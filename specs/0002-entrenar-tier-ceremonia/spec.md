@@ -53,8 +53,18 @@ El usuario decidió **bajar la barra al pie**.
   Entrenar: cero `rgba(59, 130, 246, …)` y cero hex de la paleta vieja.
 - **AC-03** — El estado "sesión en curso" se comunica en ember, no en
   verde. El verde no aparece en ninguna de las dos superficies.
-- **AC-04** — `workouts.page.ts` y `tabs-layout.component.ts` no tienen
-  atributos `style="…"` inline con color.
+- **AC-04** — La superficie de Entrenar y el shell no tienen atributos
+  `style="…"` inline con color.
+
+> **Alcance de AC-04 — el modal de detalle queda afuera.** `workouts.page.ts`
+> aloja también el modal "Detalle de Sesión" (182 líneas, fuertemente
+> inline). Esa no es parte de Entrenar: en el Manual de Campo figura como
+> **Resumen de sesión**, una vista Tier 1 con su propia fila en la matriz.
+> Migrarla apurada al final de este track sería peor que migrarla bien en
+> el suyo. Sus estilos inline ya usan tokens (`var(--bg-base)`,
+> `var(--text-muted)`), así que renderiza correcto en la paleta Eclipse —
+> lo que falta es la forma, no el color. **AC-04 no se da por cumplido
+> sobre el modal**; se traslada al track de Resumen de sesión.
 - **AC-05** — Todo objetivo táctil de ambas superficies mide ≥ 44px
   (`--target-min`).
 - **AC-06** — Entrenar tiene estado vacío (sin rutinas y sin historial) y

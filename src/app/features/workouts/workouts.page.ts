@@ -31,6 +31,7 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { RoutineWithExercises } from '@core/models/routine.model';
 
 @Component({
@@ -53,33 +54,28 @@ import { RoutineWithExercises } from '@core/models/routine.model';
     IonButton,
     IconComponent,
     ModalComponent,
+    EmptyStateComponent,
   ],
   template: `
-    <ion-content class="workout-home" [fullscreen]="true">
+    <ion-content class="workout-home tier-ceremonia" [fullscreen]="true">
       <app-header title="Entrenar" [showStreak]="true"></app-header>
 
       <div class="page-container">
         <!-- CTA Principal: Iniciar o Retomar Sesión Libre -->
-        <div class="start-card">
-          @if (
-            workoutFacade.activeSession() &&
-            !workoutFacade.activeSession()?.routine_id &&
-            !workoutFacade.activeSession()?.mesocycle_session_id
-          ) {
+        <div class="start-card" [class.is-running]="hasFreeSessionRunning()">
+          @if (hasFreeSessionRunning()) {
             <div class="start-info">
-              <h2 class="start-title" style="color: var(--state-success);">
-                Entrenamiento Libre Activo
-              </h2>
+              <span class="start-eyebrow">
+                <span class="indicator-live"></span>
+                En curso
+              </span>
+              <h2 class="start-title">Entrenamiento Libre</h2>
               <p class="start-subtitle">
                 Tienes una sesión libre en curso. Continúa donde lo dejaste.
               </p>
             </div>
-            <button
-              class="start-btn"
-              style="background: var(--state-success); box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);"
-              (click)="resumeWorkout()"
-            >
-              <app-icon name="play" [size]="20" />
+            <button class="start-btn" (click)="resumeWorkout()">
+              <app-icon name="play" [size]="20" [ariaHidden]="true" />
               <span>Retomar Sesión Libre</span>
             </button>
           } @else {
@@ -101,90 +97,64 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         </div>
 
         <!-- Sección: Plan Estructurado (Mesociclo) -->
-        <div class="plan-section bento-wide" style="margin-bottom: 1.5rem;">
-          @if (mesoFacade.activeMesocycle()) {
-            <div
-              class="start-card"
-              style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(59, 130, 246, 0.2);"
-            >
-              <div class="start-info" style="position: relative;">
-                <div
-                  style="display: flex; justify-content: space-between; align-items: flex-start;"
-                >
-                  <div>
-                    <span
-                      style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary-hover); font-weight: 700; margin-bottom: 0.25rem; display: block;"
-                      >Mi Plan Actual</span
-                    >
-                    <h2 class="start-title">{{ mesoFacade.activeMesocycle()?.name }}</h2>
-                  </div>
-                  <button
-                    (click)="goToPlan()"
-                    style="background: rgba(59, 130, 246, 0.15); border: none; color: var(--color-primary-hover); font-size: 0.75rem; font-weight: 700; border-radius: 6px; padding: 6px 10px; cursor: pointer;"
-                  >
-                    Ver Detalles
-                  </button>
+        <div class="plan-section">
+          @if (mesoFacade.activeMesocycle(); as meso) {
+            <div class="plan-card" [class.is-running]="hasPlannedSessionRunning()">
+              <div class="plan-card__head">
+                <div class="plan-card__id">
+                  <span class="plan-eyebrow">Mi Plan Actual</span>
+                  <h2 class="start-title">{{ meso.name }}</h2>
                 </div>
-
-                @if (
-                  workoutFacade.activeSession() &&
-                  (workoutFacade.activeSession()?.routine_id ||
-                    workoutFacade.activeSession()?.mesocycle_session_id)
-                ) {
-                  <p class="start-subtitle" style="color: var(--state-success);">
-                    Tienes un entrenamiento planificado en curso.
-                  </p>
-                  <button
-                    class="start-btn"
-                    style="margin-top: 1rem; background: var(--state-success); box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);"
-                    (click)="resumeWorkout()"
-                  >
-                    <app-icon name="play" [size]="20" />
-                    <span>Retomar Plan</span>
-                  </button>
-                } @else if (mesoFacade.getNextSession(); as next) {
-                  <p class="start-subtitle">
-                    Semana {{ next.week.week_number }} • Día {{ next.session.day_number }}
-                  </p>
-                  <button
-                    class="start-btn"
-                    style="margin-top: 1rem; background: linear-gradient(135deg, var(--ds-brand) 0%, var(--color-primary-dark) 100%);"
-                    (click)="
-                      workoutFacade.startWorkoutFromMesocycleSession(
-                        next.session,
-                        next.session.routine
-                      )
-                    "
-                    [disabled]="workoutFacade.activeSession() !== null"
-                  >
-                    <app-icon name="play" [size]="20" />
-                    <span>Iniciar Sesión Prescrita</span>
-                  </button>
-                } @else {
-                  <p class="start-subtitle">Has completado todas las sesiones de este bloque.</p>
-                }
+                <button type="button" class="section-action" (click)="goToPlan()">
+                  <span>Ver detalles</span>
+                </button>
               </div>
+
+              @if (hasPlannedSessionRunning()) {
+                <p class="start-subtitle start-subtitle--running">
+                  <span class="indicator-live"></span>
+                  Tienes un entrenamiento planificado en curso.
+                </p>
+                <button class="start-btn" (click)="resumeWorkout()">
+                  <app-icon name="play" [size]="20" [ariaHidden]="true" />
+                  <span>Retomar Plan</span>
+                </button>
+              } @else if (mesoFacade.getNextSession(); as next) {
+                <p class="start-subtitle">
+                  Semana <b>{{ next.week.week_number }}</b> · Día
+                  <b>{{ next.session.day_number }}</b>
+                </p>
+                <button
+                  class="start-btn"
+                  (click)="
+                    workoutFacade.startWorkoutFromMesocycleSession(
+                      next.session,
+                      next.session.routine
+                    )
+                  "
+                  [disabled]="workoutFacade.activeSession() !== null"
+                >
+                  <app-icon name="play" [size]="20" [ariaHidden]="true" />
+                  <span>Iniciar Sesión Prescrita</span>
+                </button>
+              } @else {
+                <p class="start-subtitle">Has completado todas las sesiones de este bloque.</p>
+              }
             </div>
           } @else {
-            <div
-              class="empty-plan-card"
-              style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.3); border-radius: 16px;"
-            >
-              <div>
-                <h2
-                  style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.25rem 0;"
-                >
-                  Bloque de Entrenamiento
-                </h2>
-                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin: 0;">
-                  No tienes un plan estructurado.
-                </p>
+            <div class="empty-plan-card">
+              <div class="empty-plan-card__text">
+                <h2 class="empty-plan-card__title">Bloque de Entrenamiento</h2>
+                <p class="empty-plan-card__sub">No tienes un plan estructurado.</p>
               </div>
               <button
+                type="button"
+                class="section-action"
                 (click)="goToCreatePlan()"
-                style="background: rgba(59,130,246,0.15); color: var(--color-primary-hover); border: none; padding: 0.6rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;"
+                data-llm-action="crear-plan"
               >
-                <app-icon name="plus" [size]="14"></app-icon> Crear Plan
+                <app-icon name="plus" [size]="16" [ariaHidden]="true"></app-icon>
+                <span>Crear Plan</span>
               </button>
             </div>
           }
@@ -192,18 +162,16 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
         <!-- Sección: Mis Rutinas -->
         <div class="routines-section">
-          <div
-            class="section-header"
-            style="justify-content: space-between; width: 100%; margin-bottom: 0.5rem;"
-          >
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <h3 class="section-title">Mis Rutinas</h3>
-            </div>
+          <div class="section-header">
+            <h3 class="section-title">Mis Rutinas</h3>
             <button
+              type="button"
+              class="section-action"
               (click)="goToCreateRoutine()"
-              style="background: rgba(59, 130, 246, 0.1); border: none; color: var(--ds-brand); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0.4rem 0.8rem; border-radius: 8px; display: flex; align-items: center; gap: 0.2rem;"
+              data-llm-action="crear-rutina"
             >
-              <span>+ Nueva</span>
+              <app-icon name="plus" [size]="16" [ariaHidden]="true" />
+              <span>Nueva</span>
             </button>
           </div>
 
@@ -213,9 +181,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
               <p>Cargando rutinas...</p>
             </div>
           } @else if (routineFacade.routines().length === 0) {
-            <div class="empty-feed" style="padding: 1.5rem;">
-              <p style="margin: 0; font-size: 0.85rem;">No tienes rutinas creadas.</p>
-            </div>
+            <app-empty-state
+              message="Todavía no tenés rutinas"
+              subtitle="Armá una plantilla con tus ejercicios y empezá tus sesiones con un toque."
+              icon="clipboard-list"
+              actionLabel="Crear rutina"
+              actionIcon="plus"
+              (action)="goToCreateRoutine()"
+            />
           } @else {
             <div class="routines-grid">
               @for (routine of routineFacade.routines(); track routine.id) {
@@ -227,17 +200,19 @@ import { RoutineWithExercises } from '@core/models/routine.model';
                         type="button"
                         class="card-icon-btn edit-btn"
                         (click)="editRoutine(routine.id)"
-                        title="Editar rutina"
+                        [attr.aria-label]="'Editar rutina ' + routine.name"
+                        data-llm-action="editar-rutina"
                       >
-                        <app-icon name="pencil" [size]="13"></app-icon>
+                        <app-icon name="pencil" [size]="16" [ariaHidden]="true"></app-icon>
                       </button>
                       <button
                         type="button"
                         class="card-icon-btn delete-btn"
                         (click)="confirmDeleteRoutine(routine)"
-                        title="Eliminar rutina"
+                        [attr.aria-label]="'Eliminar rutina ' + routine.name"
+                        data-llm-action="delete-rutina"
                       >
-                        <app-icon name="trash-2" [size]="13"></app-icon>
+                        <app-icon name="trash-2" [size]="16" [ariaHidden]="true"></app-icon>
                       </button>
                     </div>
                   </div>
@@ -285,19 +260,17 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
         <!-- Sección de Historial / Feed -->
         <div class="history-section">
-          <div class="section-header" style="justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="section-header">
+            <div class="section-header__title">
               <h3 class="section-title">Historial Reciente</h3>
               @if (workoutFacade.history().length > 0) {
                 <span class="badge-count">{{ totalWorkouts() }}</span>
               }
             </div>
             @if (workoutFacade.history().length > 3) {
-              <button
-                (click)="goToHistory()"
-                style="background: none; border: none; color: var(--ds-brand); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.5rem;"
-              >
-                Ver todo
+              <button type="button" class="section-action" (click)="goToHistory()">
+                <span>Ver todo</span>
+                <app-icon name="chevron-right" [size]="16" [ariaHidden]="true" />
               </button>
             }
           </div>
@@ -308,21 +281,15 @@ import { RoutineWithExercises } from '@core/models/routine.model';
               <p>Cargando tus entrenamientos...</p>
             </div>
           } @else if (totalWorkouts() === 0) {
-            <div class="empty-feed">
-              <app-icon name="clipboard-list" [size]="40" class="empty-icon" />
-              <h4>Aún no has registrado sesiones</h4>
-              <p>
-                Presiona "Iniciar Sesión" arriba para registrar tu primer entrenamiento en el gym.
-              </p>
-            </div>
+            <app-empty-state
+              message="Todavía no registraste sesiones"
+              subtitle="Cuando termines tu primer entrenamiento, vas a verlo acá con su volumen, series y duración."
+              icon="clipboard-list"
+            />
           } @else {
             <div class="feed-list">
               @for (item of recentHistory(); track item.id) {
-                <div
-                  class="workout-card history-card"
-                  (click)="viewDetails(item.id)"
-                  style="cursor: pointer;"
-                >
+                <div class="workout-card history-card" (click)="viewDetails(item.id)">
                   <div class="card-top">
                     <div class="card-date-box">
                       <app-icon name="calendar" [size]="14" />
@@ -623,112 +590,151 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: center;
         gap: 0.35rem;
         padding: 0.4rem 0.8rem;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--color-primary-hover);
+        background: var(--color-primary-muted);
+        border: 1px solid var(--accent-border);
+        border-radius: var(--radius-xl);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        color: var(--ds-brand);
       }
       .streak-fire {
         font-size: 0.85rem;
       }
       .workout-home {
-        --background: var(--ion-background-color, #0a0a0a);
+        --background: var(--bg-base);
       }
       .page-container {
-        padding: 1rem;
-        padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px));
+        padding: var(--tier-pad, var(--space-4));
+        /* El shell publica cuánto mide su cromo inferior (tabs + barra de
+           sesión cuando la hay). La vista no adivina el número. */
+        padding-bottom: var(--chrome-bottom, 114px);
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        gap: var(--tier-gap, var(--space-5));
         max-width: 600px;
         margin: 0 auto;
       }
 
-      /* === START CARD HERO === */
+      /* === ARRANQUE DE SESIÓN — el momento de ceremonia de la vista === */
       .start-card {
-        background: linear-gradient(
-          135deg,
-          rgba(59, 130, 246, 0.12) 0%,
-          rgba(37, 99, 235, 0.04) 100%
-        );
-        border: 1px solid rgba(59, 130, 246, 0.25);
-        border-radius: 20px;
-        padding: 1.5rem;
+        background: var(--gradient-subtle), var(--bg-surface);
+        border: var(--tier-border, var(--border-tier1)) solid var(--border-default);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        gap: var(--space-5);
       }
+
+      /* Solo cuando hay algo corriendo se gasta el acento de marca. */
+      .start-card.is-running {
+        border-color: var(--accent-border);
+      }
+
+      .start-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ds-brand);
+        margin-bottom: var(--space-2);
+      }
+
       .start-title {
-        font-family: var(--font-display);
-        font-size: 1.35rem;
-        font-weight: 800;
+        font-family: var(--font-body);
+        font-size: var(--text-xl);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
-        margin: 0 0 0.4rem 0;
-        letter-spacing: -0.01em;
+        margin: 0 0 var(--space-1) 0;
       }
       .start-subtitle {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.88rem;
-        line-height: 1.45;
+        color: var(--text-secondary);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
         margin: 0;
       }
+      .start-subtitle b {
+        color: var(--text-primary);
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+      }
+      .start-subtitle--running {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        color: var(--ds-brand);
+        margin-top: var(--space-3);
+      }
+
       .start-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.6rem;
+        gap: var(--space-2);
         width: 100%;
-        padding: 0.95rem;
-        background: var(--ds-brand);
-        color: var(--color-primary-text);
-        font-weight: 700;
-        font-size: 1rem;
+        min-height: var(--tier-target, var(--target-min));
+        padding: var(--space-3) var(--space-4);
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        font-family: var(--font-body);
+        font-weight: var(--font-bold);
+        font-size: var(--text-base);
         border: none;
-        border-radius: 14px;
+        border-radius: var(--radius-lg);
         cursor: pointer;
-        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
-        transition: all 0.15s ease;
+        transition: var(--transition-btn);
       }
-      .start-btn:active {
-        transform: scale(0.98);
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+      .start-btn:active:not(:disabled) {
+        background: var(--btn-primary-bg-hover);
+        transform: scale(var(--btn-press-scale-value));
+      }
+      .start-btn:disabled {
+        opacity: var(--input-disabled-opacity);
+        cursor: not-allowed;
       }
 
       /* === KPI GRID === */
       .kpi-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.6rem;
+        gap: var(--space-2);
       }
       .kpi-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 14px;
-        padding: 0.75rem 0.5rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: var(--space-3) var(--space-2);
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 0.3rem;
+        gap: var(--space-1);
+        color: var(--text-muted);
       }
       .kpi-data {
         display: flex;
         flex-direction: column;
       }
+      /* Es un dato: tipografía de datos con cifras de ancho fijo,
+         nunca la de impacto. */
       .kpi-val {
-        font-weight: 800;
-        font-size: 1.05rem;
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--font-bold);
+        font-size: var(--text-lg);
         color: var(--text-primary);
       }
       .kpi-lbl {
-        font-size: 0.65rem;
-        color: rgba(255, 255, 255, 0.4);
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        font-weight: 600;
+        font-weight: var(--font-semibold);
       }
 
       /* === ROUTINES SECTION === */
@@ -775,25 +781,38 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         display: flex;
         gap: 0.25rem;
       }
+      /* La caja visible queda compacta para no inflar la tarjeta, pero el
+         área táctil llega al piso de 44px con un ::after invisible
+         centrado. Antes medía 26px: imposible de acertar con el pulgar. */
       .card-icon-btn {
-        background: rgba(255, 255, 255, 0.06);
+        position: relative;
+        background: var(--bg-subtle);
         border: none;
-        color: rgba(255, 255, 255, 0.6);
-        width: 26px;
-        height: 26px;
-        border-radius: 6px;
+        color: var(--text-secondary);
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: var(--transition-color);
+      }
+      .card-icon-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: var(--target-min);
+        height: var(--target-min);
       }
       .card-icon-btn.edit-btn:hover {
-        background: rgba(59, 130, 246, 0.2);
-        color: var(--color-primary-hover);
+        background: var(--color-primary-muted);
+        color: var(--ds-brand);
       }
       .card-icon-btn.delete-btn:hover {
-        background: rgba(239, 68, 68, 0.2);
+        background: var(--state-error-bg);
         color: var(--state-error);
       }
       .routine-card-bottom {
@@ -842,23 +861,113 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       .section-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: space-between;
+        gap: var(--space-2);
+        width: 100%;
       }
+      .section-header__title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+      }
+      /* h3 no lleva la tipografía de impacto: a este tamaño quedaría
+         por debajo de --font-display-floor. */
       .section-title {
-        font-family: var(--font-display);
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
         margin: 0;
-        letter-spacing: -0.01em;
       }
       .badge-count {
-        background: rgba(255, 255, 255, 0.08);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 12px;
+        background: var(--bg-subtle);
+        color: var(--text-secondary);
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        padding: 2px var(--space-2);
+        border-radius: var(--radius-full);
+      }
+
+      /* Acción secundaria de sección: "Nueva", "Ver todo", "Ver detalles".
+         Área táctil completa aunque el texto sea corto. */
+      .section-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-1);
+        min-height: var(--tier-target, var(--target-min));
+        padding: var(--space-2) var(--space-3);
+        background: var(--color-primary-muted);
+        border: none;
+        border-radius: var(--radius-md);
+        color: var(--ds-brand);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: var(--transition-btn);
+      }
+      .section-action:active {
+        transform: scale(var(--btn-press-scale-value));
+      }
+
+      /* === PLAN / MESOCICLO === */
+      .plan-card {
+        background: var(--bg-surface);
+        border: var(--tier-border, var(--border-tier1)) solid var(--border-default);
+        border-radius: var(--radius-xl);
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+      .plan-card.is-running {
+        border-color: var(--accent-border);
+      }
+      .plan-card__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--space-3);
+      }
+      .plan-card__id {
+        min-width: 0;
+      }
+      .plan-eyebrow {
+        display: block;
+        font-family: var(--font-body);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--ds-brand);
+        font-weight: var(--font-bold);
+        margin-bottom: var(--space-1);
+      }
+
+      .empty-plan-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-5);
+        background: var(--bg-surface);
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius-xl);
+      }
+      .empty-plan-card__title {
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+        margin: 0 0 var(--space-1) 0;
+      }
+      .empty-plan-card__sub {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin: 0;
       }
 
       .feed-list {
@@ -918,15 +1027,20 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: baseline;
         gap: 0.35rem;
       }
+      /* Volumen, series y ejercicios se comparan entre tarjetas:
+         cifras de ancho fijo para que las columnas se lean alineadas. */
       .stat-val {
-        font-weight: 800;
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--font-bold);
         color: var(--text-primary);
-        font-size: 0.95rem;
+        font-size: var(--text-base);
       }
       .stat-lbl {
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 0.72rem;
-        font-weight: 600;
+        font-family: var(--font-body);
+        color: var(--text-muted);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
       }
 
       .exercise-tags {
@@ -935,13 +1049,13 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.4rem;
       }
       .ex-tag {
-        background: rgba(59, 130, 246, 0.08);
-        color: #93c5fd;
-        border: 1px solid rgba(59, 130, 246, 0.15);
-        border-radius: 6px;
-        font-size: 0.72rem;
-        padding: 2px 7px;
-        font-weight: 500;
+        background: var(--color-primary-tint);
+        color: var(--ds-brand);
+        border: 1px solid var(--accent-border);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-xs);
+        padding: 2px var(--space-2);
+        font-weight: var(--font-medium);
       }
 
       /* === EMPTY & LOADING STATES === */
@@ -1037,6 +1151,18 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
 
   totalWorkouts = computed(() => this.workoutFacade.history().length);
   recentHistory = computed(() => this.workoutFacade.history().slice(0, 3));
+
+  /** Sesión libre: sin rutina ni sesión de mesociclo detrás. */
+  hasFreeSessionRunning = computed(() => {
+    const session = this.workoutFacade.activeSession();
+    return !!session && !session.routine_id && !session.mesocycle_session_id;
+  });
+
+  /** Sesión que sí viene de una rutina o del plan estructurado. */
+  hasPlannedSessionRunning = computed(() => {
+    const session = this.workoutFacade.activeSession();
+    return !!session && !!(session.routine_id || session.mesocycle_session_id);
+  });
 
   formattedVolume = computed(() => {
     const total = this.workoutFacade.history().reduce((acc, curr) => acc + curr.total_volume, 0);
