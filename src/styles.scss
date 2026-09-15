@@ -47,9 +47,10 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Ionic overrides para dark premium */
+/* Fondo de toda vista: la tinta de Eclipse, vía el mapeo de Ionic en
+   theme/variables.css. Sin respaldo: la variable siempre está definida. */
 ion-content {
-  --background: var(--ion-background-color, #121212);
+  --background: var(--ion-background-color);
 }
 
 ion-modal {

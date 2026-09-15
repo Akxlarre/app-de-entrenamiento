@@ -1,10 +1,27 @@
 /**
- * Ionic Dark Theme
+ * Tema de Ionic — Eclipse
  * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
+ * Eclipse es un tema oscuro único: Ionic no sigue el modo del teléfono.
+ * dark.system.css envolvía la paleta en prefers-color-scheme: dark, y con
+ * el teléfono en modo claro Ionic se quedaba sin paleta (fix-028).
  */
+@import '@ionic/angular/css/palettes/dark.always.css';
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* Variables de aplicación de Ionic apuntando a los tokens de Eclipse.
+   Mismos selectores que la paleta importada (:root, :root.ios, :root.md):
+   ganan por venir después, sin subir la especificidad.
+   Los canales -rgb van en literal porque CSS no puede extraerlos de un
+   var(): son los de --brand-ink (#0a0608) y --brand-bone (#f5f0e6). */
+:root,
+:root.ios,
+:root.md {
+  --ion-background-color: var(--bg-base);
+  --ion-background-color-rgb: 10, 6, 8;
+  --ion-text-color: var(--text-primary);
+  --ion-text-color-rgb: 245, 240, 230;
+  --ion-item-background: var(--bg-surface);
+  --ion-toolbar-background: var(--bg-surface);
+  --ion-tab-bar-background: var(--bg-surface);
+  --ion-tab-bar-background-focused: var(--bg-elevated);
+  --ion-card-background: var(--bg-surface);
+}
