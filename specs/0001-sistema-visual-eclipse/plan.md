@@ -20,7 +20,7 @@ referencian cambian solos. Cero ediciones en `src/app/` (AC-02).
 | `src/styles/tokens/_variables.scss` | 0.1 | Colapso dark-only + paleta Eclipse + tokens de ergonomía |
 | `src/styles.scss` | 0.2 | Import de Google Fonts (Anton / Oswald / Archivo) |
 | `src/styles/tokens/_variables.scss` | 0.2 | `--font-display`, `--font-data`, `--font-body` |
-| `src/tailwind.css` | 0.3 | Mapa `@theme` sincronizado con los tokens nuevos |
+| ~~`src/tailwind.css`~~ | ~~0.3~~ | **Sin cambios.** Verificado en sesión: el mapa `@theme` ya referencia todo vía `var(--token)`, así que migró solo con el slice 0.1 |
 | `src/styles/vendors/_primeng-overrides.scss` | 0.3 | Limpiar bloque `[data-mode="dark"]` (línea 766) |
 | `src/styles/layout/_tiers.scss` | 0.4 | Archivo nuevo — clases de tier |
 | `src/app/shared/components/alert-card/` | 0.5 | Semántica por forma (único toque a `src/app/`, ver nota) |

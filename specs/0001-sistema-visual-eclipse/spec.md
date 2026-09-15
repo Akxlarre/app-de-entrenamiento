@@ -50,11 +50,27 @@ obligan a resolver la fundación antes de tocar cualquier vista:
 - **AC-03** — `--text-primary` sobre `--bg-base` alcanza ≥ 15:1.
   `--text-secondary` y `--text-muted` sobre `--bg-surface` alcanzan ≥ 4.5:1.
 - **AC-04** — `--color-primary-text` contrasta ≥ 4.5:1 sobre `--ds-brand`.
-- **AC-05** — Los cuatro `--state-*` contrastan ≥ 4.5:1 sobre `--bg-surface`
-  y se distinguen entre sí sin depender del tono (ícono + borde + posición).
+- **AC-05** — Los cuatro `--state-*` contrastan ≥ 4.5:1 sobre `--bg-surface`,
+  y el archivo de tokens documenta la regla de distinción por forma
+  (ícono + textura de borde + posición) que los componentes deben aplicar.
 - **AC-06** — Existen tokens de ergonomía: `--target-min` (44px),
   `--target-min-critical` (56px) y `--text-floor` (13px).
 - **AC-07** — `npm run test:ci` pasa sin regresiones y `ng build` compila.
+- **AC-08** — Existen tres roles tipográficos con familia propia
+  (`--font-display` impacto, `--font-data` números, `--font-body` microcopy)
+  y la escala arranca en `--text-floor`.
+- **AC-09** — `_primeng-overrides.scss` no conserva un bloque de tema
+  alternativo: los overrides aplican directo sobre el tema único.
+- **AC-10** — Existen clases de tier en `styles/layout/` que expresan el
+  presupuesto gráfico de cada nivel (ceremonia / trabajo / dato).
+
+> **AC-05b — difiere a Fase 1.** La verificación de que los cuatro estados
+> se distinguen *renderizados* sin depender del tono requiere modificar
+> `alert-card` y el toast, que viven en `src/app/` y están fuera del alcance
+> declarado de esta Fase. Queda como AC vinculante del primer slice de
+> Fase 1. La spec original juntaba ambas mitades en un solo AC que su propio
+> "Fuera de alcance" hacía imposible de cumplir — error de redacción, no
+> relajación de criterio.
 
 ## Fuera de alcance
 
