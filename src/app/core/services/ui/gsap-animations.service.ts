@@ -1483,15 +1483,25 @@ export class GsapAnimationsService {
     // resuelven los facades, por ejemplo-- los bloques quedan
     // congelados en opacity 0 y la vista se ve vacía. Que el contenido
     // aparezca NO puede depender de que una animación termine bien.
-    const revelar = () => gsap.set(todos, { clearProps: 'all' });
+    let tl: gsap.core.Timeline | null = null;
+    let revelado = false;
+    const revelar = () => {
+      // Guard de reentrada: kill() dispara onInterrupt, que llama de
+      // vuelta acá.
+      if (revelado) return;
+      revelado = true;
+      window.clearTimeout(seguro);
+      // Matar la timeline antes de limpiar: si solo se limpian los
+      // props, una timeline todavía viva vuelve a poner opacity 0 en su
+      // siguiente tick y el contenido desaparece de nuevo.
+      tl?.kill();
+      gsap.set(todos, { clearProps: 'all' });
+    };
     const seguro = window.setTimeout(revelar, (total + 0.4) * 1000);
 
-    const tl = gsap.timeline({
+    tl = gsap.timeline({
       defaults: { ease: 'power2.out' },
-      onComplete: () => {
-        window.clearTimeout(seguro);
-        revelar();
-      },
+      onComplete: revelar,
       onInterrupt: revelar,
     });
 
