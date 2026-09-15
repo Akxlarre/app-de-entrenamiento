@@ -1,10 +1,15 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { SupabaseService } from '../services/infrastructure/supabase.service';
+import { ToastService } from '../services/ui/toast.service';
 import { RoutineWithExercises, CreateRoutineDto } from '../models/routine.model';
+
+/** Código Postgres de foreign_key_violation. */
+const FK_VIOLATION = '23503';
 
 @Injectable({ providedIn: 'root' })
 export class RoutineFacade {
   private supabase = inject(SupabaseService);
+  private toast = inject(ToastService);
 
   readonly routines = signal<RoutineWithExercises[]>([]);
   readonly isLoading = signal<boolean>(false);
@@ -181,7 +186,6 @@ export class RoutineFacade {
     this.isLoading.set(true);
     this.error.set(null);
     try {
-      // RLS y Cascade en BD se encargan del borrado seguro
       const { error } = await this.supabase.client.from('routines').delete().eq('id', id);
 
       if (error) throw error;
@@ -190,7 +194,17 @@ export class RoutineFacade {
       return true;
     } catch (e: any) {
       console.error('[RoutineFacade] Error eliminando rutina:', e);
-      this.error.set(e?.message || 'Error al eliminar la rutina');
+      // mesocycle_sessions.routine_id es ON DELETE RESTRICT: si un plan usa la
+      // rutina, la base rechaza el borrado con foreign_key_violation.
+      if (e?.code === FK_VIOLATION) {
+        const detalle =
+          'Forma parte de un plan de entrenamiento. Para eliminarla, primero elimina el plan que la usa.';
+        this.error.set(detalle);
+        this.toast.error('No se puede eliminar la rutina', detalle);
+      } else {
+        this.error.set('No se pudo eliminar la rutina.');
+        this.toast.error('No se pudo eliminar la rutina', 'Inténtalo de nuevo en unos segundos.');
+      }
       return false;
     } finally {
       this.isLoading.set(false);

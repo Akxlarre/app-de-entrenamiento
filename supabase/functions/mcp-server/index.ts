@@ -181,6 +181,16 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
       .eq('user_id', authenticatedUserId)
       .select();
 
+    // 23503 = foreign_key_violation: la rutina está en uso por un plan
+    // (mesocycle_sessions.routine_id es ON DELETE RESTRICT desde fix-026).
+    // Se devuelve en español para que el Coach pueda explicárselo al usuario
+    // en vez de relayar el mensaje interno de Postgres.
+    if (error?.code === '23503') {
+      throw new Error(
+        'No se puede eliminar esta rutina porque forma parte de un plan de entrenamiento. ' +
+          'Para eliminarla, primero elimina el plan que la usa.',
+      );
+    }
     if (error) throw new Error(error.message);
     if (!data || data.length === 0) {
       throw new Error('No se encontró la rutina o no tienes permiso para eliminarla.');
