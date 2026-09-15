@@ -5,7 +5,7 @@ import {
   computed,
   OnInit,
   AfterViewInit,
-  effect,
+  ElementRef,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -62,7 +62,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
       <div class="page-container">
         <!-- CTA Principal: Iniciar o Retomar Sesión Libre -->
-        <div class="start-card" [class.is-running]="hasFreeSessionRunning()">
+        <div class="start-card" data-anim="ceremonia" [class.is-running]="hasFreeSessionRunning()">
           @if (hasFreeSessionRunning()) {
             <div class="start-info">
               <span class="start-eyebrow indicator-live">En curso</span>
@@ -94,7 +94,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         </div>
 
         <!-- Sección: Plan Estructurado (Mesociclo) -->
-        <div class="plan-section">
+        <div class="plan-section" data-anim="bloque">
           @if (mesoFacade.activeMesocycle(); as meso) {
             <div class="plan-card" [class.is-running]="hasPlannedSessionRunning()">
               <div class="plan-card__head">
@@ -158,7 +158,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         </div>
 
         <!-- Sección: Mis Rutinas -->
-        <div class="routines-section">
+        <div class="routines-section" data-anim="bloque">
           <div class="section-header">
             <h3 class="section-title">Mis Rutinas</h3>
             <button
@@ -230,7 +230,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
         <!-- Mini KPIs de Rendimiento -->
         @if (workoutFacade.history().length > 0) {
-          <div class="kpi-grid">
+          <div class="kpi-grid" data-anim="bloque">
             <div class="kpi-card">
               <app-icon name="dumbbell" [size]="20" />
               <div class="kpi-data">
@@ -256,7 +256,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         }
 
         <!-- Sección de Historial / Feed -->
-        <div class="history-section">
+        <div class="history-section" data-anim="bloque">
           <div class="section-header">
             <div class="section-header__title">
               <h3 class="section-title">Historial Reciente</h3>
@@ -1164,6 +1164,7 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
   routineFacade = inject(RoutineFacade);
   mesoFacade = inject(MesocycleFacade);
   gsap = inject(GsapAnimationsService);
+  private host = inject(ElementRef<HTMLElement>);
   router = inject(Router);
 
   // Estado del modal de detalles
@@ -1247,15 +1248,6 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
       chevronForwardOutline,
       closeOutline,
     });
-
-    effect(() => {
-      if (this.workoutFacade.history().length > 0) {
-        setTimeout(() => {
-          const cards = document.querySelectorAll('.history-card');
-          this.gsap.staggerListItems(cards as any);
-        }, 50);
-      }
-    });
   }
 
   ngOnInit() {
@@ -1274,5 +1266,11 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
     this.selectedWorkoutId.set(null);
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    // La entrada la orquesta el tier declarado en la raíz de la vista.
+    // Antes esto era un effect() que animaba solo las tarjetas de
+    // historial cada vez que cambiaba la lista, sin relación con el
+    // resto de los bloques.
+    this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-ceremonia'));
+  }
 }

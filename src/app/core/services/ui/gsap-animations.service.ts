@@ -1437,6 +1437,89 @@ export class GsapAnimationsService {
   }
 
   /**
+   * Entrada de vista según el tier declarado en su raíz.
+   *
+   * El presupuesto de movimiento sigue el mismo principio que el de
+   * color: es inversamente proporcional a la atención que le queda al
+   * usuario. Alguien con pulso a 150 entre series no necesita que le
+   * animen la pantalla.
+   *
+   *   .tier-ceremonia → dos tiempos: la ceremonia entra y el resto
+   *                     escalona detrás. Total ≤ --duration-slower.
+   *   .tier-trabajo   → stagger parejo ≤ --duration-normal.
+   *   .tier-dato      → nada. Solo se mueve el cronómetro, que no pasa
+   *                     por acá.
+   *
+   * El tier se LEE de la raíz en vez de recibirse por parámetro: así es
+   * imposible que una vista declare un tier en CSS y pida otro acá.
+   *
+   * Marcar los bloques con data-anim="ceremonia" | "bloque".
+   *
+   * @param rootEl - Raíz de la vista, la que lleva la clase de tier
+   */
+  animateTierEnter(rootEl: HTMLElement | null | undefined): void {
+    if (!rootEl) return;
+
+    const ceremonia = rootEl.querySelectorAll<HTMLElement>('[data-anim="ceremonia"]');
+    const bloques = rootEl.querySelectorAll<HTMLElement>('[data-anim="bloque"]');
+    const todos = [...ceremonia, ...bloques];
+    if (todos.length === 0) return;
+
+    // Fail-visible: el riesgo real de toda animación de entrada es
+    // dejar contenido en opacity 0. Si no se va a animar, se limpia
+    // cualquier estado inline y se sale con el contenido a la vista.
+    if (!this.shouldAnimate() || rootEl.classList.contains('tier-dato')) {
+      gsap.set(todos, { clearProps: 'all' });
+      return;
+    }
+
+    const esCeremonia = rootEl.classList.contains('tier-ceremonia');
+    const total = esCeremonia
+      ? this.getCssDuration('--duration-slower', 0.6)
+      : this.getCssDuration('--duration-normal', 0.3);
+
+    // Red de seguridad incondicional. Medido en navegador: si la
+    // timeline se interrumpe --por un re-render de Angular mientras
+    // resuelven los facades, por ejemplo-- los bloques quedan
+    // congelados en opacity 0 y la vista se ve vacía. Que el contenido
+    // aparezca NO puede depender de que una animación termine bien.
+    const revelar = () => gsap.set(todos, { clearProps: 'all' });
+    const seguro = window.setTimeout(revelar, (total + 0.4) * 1000);
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'power2.out' },
+      onComplete: () => {
+        window.clearTimeout(seguro);
+        revelar();
+      },
+      onInterrupt: revelar,
+    });
+
+    if (esCeremonia && ceremonia.length > 0) {
+      tl.fromTo(
+        ceremonia,
+        { opacity: 0, y: 18, scale: 0.985 },
+        { opacity: 1, y: 0, scale: 1, duration: total * 0.55 },
+      );
+      if (bloques.length > 0) {
+        tl.fromTo(
+          bloques,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: total * 0.5, stagger: total * 0.09 },
+          `-=${total * 0.25}`,
+        );
+      }
+      return;
+    }
+
+    tl.fromTo(
+      todos,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: total, stagger: total * 0.15 },
+    );
+  }
+
+  /**
    * Bell ring animation — estilo Aladino.
    * Oscilación pendular desde el origen superior del elemento, con amplitud decreciente.
    * Disparar al abrir el panel de notificaciones o al recibir una nueva notificación.
