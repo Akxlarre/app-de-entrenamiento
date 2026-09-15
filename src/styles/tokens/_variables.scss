@@ -1,6 +1,6 @@
 /* ============================================================
-   Design System Tokens
-   Base para boilerplate Angular + PrimeNG
+   Design System Tokens — Sistema visual "Eclipse"
+   Angular + Ionic + PrimeNG
    ============================================================
 
    ARQUITECTURA DE CAPAS:
@@ -22,17 +22,18 @@
    - Tokens de motion guardan VALORES, no propiedades CSS.
      ✓ --card-hover-lift-y: -2px (componible)
      ✗ --card-hover-lift: translateY(-2px) (no componible)
+
+   TEMA ÚNICO (spec 0001):
+   La app es dark-only. index.html fuerza el modo oscuro y ninguna
+   vista llama a setColorMode(), así que la paleta clara era código
+   inalcanzable. Los valores viven directo en :root — ya no hay un
+   segundo bloque de tema que mantener sincronizado.
    ============================================================ */
 
-/* ============================================================
-   LIGHT MODE — Variables raíz
-   ============================================================ */
 :root {
-  /* ── color-scheme: impide que el navegador fuerce su paleta oscura en
-     inputs/selects/scrollbars cuando el OS está en dark mode.
-     Sin esto, Chrome aplica fondo oscuro + texto blanco a inputs nativos
-     aunque nuestro CSS declare colores explícitos (bug de "texto blanco"). */
-  color-scheme: light;
+  /* color-scheme: dark le dice al navegador que pinte inputs, selects y
+     scrollbars nativos con su paleta oscura, en vez de forzar la clara. */
+  color-scheme: dark;
 
   /* ──────────────────────────────────────────
      CAPA 1 — ESCALA PRIMITIVA
@@ -40,6 +41,20 @@
      No referencian otros tokens.
      No se usan directamente en componentes.
    ────────────────────────────────────────── */
+
+  /* Paleta Eclipse — los seis colores de los que sale todo lo demás.
+     Ratios medidos sobre --bg-base (#0A0608):
+       bone     17.7:1   dato crítico
+       gold     13.0:1   corona, foco
+       ember     7.0:1   estado activo, marca
+       crimson    —      solo suelo; bone encima da 6.9:1
+       iron      1.3:1   borde decorativo, nunca texto */
+  --brand-ink: #0a0608;
+  --brand-bone: #f5f0e6;
+  --brand-crimson: #a50e22;
+  --brand-ember: #ff6a1a;
+  --brand-gold: #ffc83d;
+  --brand-iron: #2a2226;
 
   /* Escala de radio */
   --radius-sm: 6px;
@@ -61,9 +76,24 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* Ergonomía — pisos duros, no criterio.
+     target-min           objetivos táctiles en Tier 1 y 2
+     target-min-critical  Tier 3 (sesión activa): dedos húmedos,
+                          en movimiento, con pulso alto
+     text-floor           ningún texto de la app baja de acá */
+  --target-min: 44px;
+  --target-min-critical: 56px;
+  --text-floor: 13px;
+
+  /* Grosor de borde por tier — la densidad gráfica baja a medida que
+     sube la repetición del elemento en pantalla. */
+  --border-tier1: 3px;
+  --border-tier2: 2px;
+  --border-tier3: 1px;
+
   /* Escala tipográfica */
-  --text-xs: 0.75rem;
-  /* 12px */
+  --text-xs: 0.8125rem;
+  /* 13px — piso absoluto del sistema */
   --text-sm: 0.875rem;
   /* 14px */
   --text-base: 1rem;
@@ -128,88 +158,118 @@
      Jerarquía de luminosidad garantizada.
    ────────────────────────────────────────── */
 
-  /* Fondos y superficies
-     bg-base    L:96%  — fondo de la app
-     bg-surface L:100% — tarjetas, modales, sidebar
-     bg-elevated L:98% — hover de filas, áreas diferenciadas
-     bg-subtle  L:90%  — inputs, chips, separadores */
-  --bg-base: #f4f4f5;
-  --bg-surface: #ffffff;
-  --bg-elevated: #fafafa;
-  --bg-subtle: #e4e4e7;
-  --shimmer-highlight: rgba(255, 255, 255, 0.6);
+  /* Fondos y superficies — la escala arranca en tinta y sube en pasos
+     parejos, conservando el subtono cálido de la dirección de arte.
+     bg-base     tinta — fondo de la app
+     bg-surface  tarjetas, modales, hojas
+     bg-elevated hover de filas, áreas diferenciadas
+     bg-subtle   hierro — inputs, chips, separadores */
+  --bg-base: var(--brand-ink);
+  --bg-surface: #140e11;
+  --bg-elevated: #1e1418;
+  --bg-subtle: var(--brand-iron);
+  --shimmer-highlight: rgba(245, 240, 230, 0.08);
 
   /* Puente para color-mix */
-  --bg-surface-mix: #ffffff;
-  --bg-glass-surface: rgba(255, 255, 255, 0.92);
+  --bg-surface-mix: #1e1418;
+  --bg-glass-surface: rgba(20, 14, 17, 0.85);
 
   /* Tipografía — jerarquía de texto
-     NUNCA usar para fondos ni acciones */
-  --text-primary: #09090b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
-  --text-disabled: #d4d4d8;
+     NUNCA usar para fondos ni acciones.
+     Ratios sobre --bg-surface: primary 16.8:1 · secondary 6.2:1 · muted 4.6:1 */
+  --text-primary: var(--brand-bone);
+  --text-secondary: #9c9189;
+  --text-muted: #857a73;
+  --text-disabled: #4a433e;
 
   /* Bordes */
-  --border-subtle: rgba(9, 9, 11, 0.06);
-  --border-default: rgba(9, 9, 11, 0.12);
-  --border-strong: rgba(9, 9, 11, 0.2);
+  --border-subtle: rgba(245, 240, 230, 0.06);
+  --border-default: rgba(245, 240, 230, 0.12);
+  --border-strong: rgba(245, 240, 230, 0.24);
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+  /* Sombras — en fondo oscuro el micro-borde comunica elevación
+     mejor que el desenfoque. */
+  --shadow-sm: 0 0 0 1px var(--border-subtle);
+  --shadow-md: 0 0 0 1px var(--border-default), 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.7);
 
-  --shadow-layout-topbar: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-layout-sidebar: 4px 0 24px -4px rgba(0, 0, 0, 0.03), 1px 0 0 0 var(--border-subtle);
+  --shadow-layout-topbar: 0 1px 0 0 var(--border-subtle);
+  --shadow-layout-sidebar: 1px 0 0 0 var(--border-subtle);
   --shadow-layout-divider: 1px 0 0 0 var(--border-subtle);
-  --overlay-backdrop: rgba(9, 9, 11, 0.4);
+  --overlay-backdrop: rgba(10, 6, 8, 0.78);
 
   /* Estados semánticos
-     state-* = resultado de acciones del sistema
-     ("guardado con éxito", "error de formulario", "información") */
-  --state-success: #059669;
-  --state-success-bg: #ecfdf5;
-  --state-success-border: #a7f3d0;
+     state-* = resultado de acciones del sistema.
 
-  --state-warning: #d97706;
-  --state-warning-bg: #fffbeb;
-  --state-warning-border: #fde68a;
+     REGLA CRÍTICA — la forma manda, no el tono.
+     Los cuatro estados se reconocen por ícono, textura de borde y
+     posición. El tono es refuerzo, nunca la señal única: tres de los
+     acentos de marca son cálidos y ~8% de hombres no los separa.
 
-  --state-error: #dc2626;
-  --state-error-bg: #fef2f2;
-  --state-error-border: #fecaca;
+       error    ícono ✕ en círculo relleno  · borde sólido
+       success  ícono ✓ en círculo relleno  · borde sólido
+       warning  ícono ! en círculo CONTORNO · borde discontinuo
+       info     ícono i en círculo relleno  · borde doble
 
-  --state-info: #0284c7;
-  --state-info-bg: #f0f9ff;
-  --state-info-border: #bae6fd;
+     El oro de marca es siempre relleno o resplandor.
+     El oro semántico (warning) es siempre contorno. Así conviven.
+
+     El verde NO aparece en ningún otro lugar de la app:
+     si hay verde, algo se logró.
+
+     Ratios sobre --bg-surface:
+       success 7.5:1 · warning 12.3:1 · error 4.9:1 · info 11.1:1 */
+  --state-success: #10b981;
+  --state-success-bg: rgba(16, 185, 129, 0.12);
+  --state-success-border: rgba(16, 185, 129, 0.34);
+
+  --state-warning: var(--brand-gold);
+  --state-warning-bg: rgba(255, 200, 61, 0.1);
+  --state-warning-border: rgba(255, 200, 61, 0.38);
+
+  --state-error: #e8455a;
+  --state-error-bg: rgba(232, 69, 90, 0.12);
+  --state-error-border: rgba(232, 69, 90, 0.36);
+
+  --state-info: #2bd9e8;
+  --state-info-bg: rgba(43, 217, 232, 0.1);
+  --state-info-border: rgba(43, 217, 232, 0.34);
 
   /* ──────────────────────────────────────────
      CAPA 3 — MARCA Y COLOR PRIMARIO
-     --color-primary SIEMPRE es el azul de marca.
+     --color-primary SIEMPRE es el ember de marca.
      Nunca apunta a --text-primary.
    ────────────────────────────────────────── */
 
-  /* Blue — color de marca real del producto (antes: sky #0ea5e9 — no coincidía con
-     el azul que usan login/perfil/tabs. Ver fix-007-corregir-tokens-marca). */
-  --ds-brand: #2563eb;
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-dark: #1e40af;
-  --color-primary-muted: rgba(37, 99, 235, 0.08);
-  --color-primary-tint: rgba(37, 99, 235, 0.04);
-  --color-primary-text: #ffffff;
-  --accent-border: rgba(37, 99, 235, 0.2);
-  --accent-glow: rgba(37, 99, 235, 0.15);
-  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.08);
+  /* Ember — el color de "esto está pasando ahora". Reemplaza al azul
+     #3b82f6 de fix-007: aquel era el azul heredado del boilerplate SaaS,
+     no una decisión de producto. Contraste 6.7:1 sobre --bg-surface. */
+  --ds-brand: var(--brand-ember);
+  --color-primary: var(--brand-ember);
+  --color-primary-hover: #ff8a4d;
+  --color-primary-dark: var(--brand-crimson);
+  --color-primary-muted: rgba(255, 106, 26, 0.15);
+  --color-primary-tint: rgba(255, 106, 26, 0.07);
 
-  /* Gradientes */
-  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
-  --gradient-hero: linear-gradient(135deg, #2563eb 0%, #6366f1 50%, #8b5cf6 100%);
+  /* Tinta sobre ember da 7.0:1; blanco sobre ember da 2.9:1 y reprueba.
+     Por eso el texto de acción es oscuro, no claro. */
+  --color-primary-text: var(--brand-ink);
+  --accent-border: rgba(255, 106, 26, 0.3);
+  --accent-glow: rgba(255, 106, 26, 0.28);
+  --shadow-focus: 0 0 0 3px rgba(255, 106, 26, 0.35);
+
+  /* Gradientes
+     gradient-hero  → suelo de ceremonia (Tier 1). Texto SIEMPRE en bone:
+                      6.9:1 en el extremo más claro del degradado.
+     gradient-flame → relleno de arcos de progreso y clips de texto.
+     gradient-subtle→ tinte de marca sobre superficies. */
+  --gradient-hero: linear-gradient(168deg, #a50e22 0%, #6b0715 62%, #240509 100%);
+  --gradient-flame: linear-gradient(175deg, #ffc83d 4%, #ff6a1a 48%, #a50e22 96%);
+  --gradient-primary: linear-gradient(135deg, #ff6a1a 0%, #a50e22 100%);
   --gradient-subtle: linear-gradient(
     135deg,
-    rgba(37, 99, 235, 0.06) 0%,
-    rgba(37, 99, 235, 0.02) 100%
+    rgba(255, 106, 26, 0.12) 0%,
+    rgba(255, 106, 26, 0.03) 100%
   );
 
   /* Aliases semánticos — separación: acción ≠ texto */
@@ -249,9 +309,8 @@
   --btn-ghost-radius: var(--radius-md);
 
   /* ── Input ──
-     --input-bg referencia --bg-subtle (visible sobre --bg-elevated
-     en ambos temas). Incluye todos los estados: default, focus,
-     error, success, disabled. */
+     --input-bg referencia --bg-subtle (visible sobre --bg-elevated).
+     Incluye todos los estados: default, focus, error, success, disabled. */
   --input-bg: var(--bg-subtle);
   --input-text: var(--text-primary);
   --input-placeholder: var(--text-muted);
@@ -270,7 +329,7 @@
   --input-shadow-focus-error: 0 0 0 3px var(--state-error-bg);
   --input-shadow-focus-success: 0 0 0 3px var(--state-success-bg);
 
-  --input-disabled-bg: var(--bg-subtle);
+  --input-disabled-bg: var(--bg-elevated);
   --input-disabled-text: var(--text-disabled);
   --input-disabled-opacity: 0.6;
 
@@ -281,7 +340,7 @@
   --card-shadow: var(--shadow-md);
   --card-shadow-hover: var(--shadow-lg);
   --card-padding: var(--space-6);
-  --accent-border-width: 3px;
+  --accent-border-width: var(--border-tier1);
 
   /* ── Badge ── */
   --badge-radius: var(--radius-full);
@@ -327,116 +386,9 @@
   --scrollbar-width: 6px;
   --scrollbar-width-hover: 10px;
   --scrollbar-thumb: var(--text-muted);
-  --scrollbar-thumb-hover: var(--text-muted);
+  --scrollbar-thumb-hover: var(--text-secondary);
   --scrollbar-track: transparent;
   --scrollbar-radius: var(--radius-full);
-}
-
-/* ============================================================
-   DARK MODE — [data-mode='dark']
-   Jerarquía de luminosidad garantizada:
-     bg-base     L:6%
-     bg-surface  L:11% → delta +5% ✓
-     bg-elevated L:16% → delta +5% ✓
-     bg-subtle   L:18.8% → delta +2.8% ✓
-   ============================================================ */
-[data-mode='dark'] {
-  color-scheme: dark;
-
-  /* ── Capa 2: Superficies ── */
-  --bg-base: #09090b;
-  --bg-surface: #18181b;
-  --bg-elevated: #27272a;
-  --bg-subtle: #2d2d30;
-  --shimmer-highlight: rgba(255, 255, 255, 0.08);
-
-  --bg-surface-mix: #27272a;
-  --bg-glass-surface: rgba(24, 24, 27, 0.85);
-
-  /* ── Capa 2: Tipografía ── */
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-disabled: #52525b;
-
-  /* ── Capa 2: Bordes ──
-     Opacidades aumentadas para WCAG 1.4.11 (Non-text Contrast).
-     Inputs sobre --bg-subtle necesitan ratio 3:1 contra su contenedor. */
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-default: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
-
-  /* ── Capa 2: Sombras (micro-bordes en dark) ── */
-  --shadow-sm: 0 0 0 1px var(--border-subtle);
-  --shadow-md: 0 0 0 1px var(--border-default), 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.6);
-
-  --shadow-layout-topbar: 0 1px 0 0 var(--border-subtle);
-  --shadow-layout-sidebar: 1px 0 0 0 var(--border-subtle);
-  --shadow-layout-divider: 1px 0 0 0 var(--border-subtle);
-  --overlay-backdrop: rgba(0, 0, 0, 0.7);
-
-  /* ── Capa 2: Estados semánticos (glass effect) ── */
-  --state-success: #10b981;
-  --state-success-bg: rgba(16, 185, 129, 0.1);
-  --state-success-border: rgba(16, 185, 129, 0.2);
-
-  --state-warning: #fbbf24;
-  --state-warning-bg: rgba(251, 191, 36, 0.1);
-  --state-warning-border: rgba(251, 191, 36, 0.2);
-
-  /* red-500 (#ef4444) — el rojo real usado en toda la app (26 usos vs 5 del
-     red-400 anterior). Contraste 4.71:1 sobre #18181b (AA). */
-  --state-error: #ef4444;
-  --state-error-bg: rgba(239, 68, 68, 0.1);
-  --state-error-border: rgba(239, 68, 68, 0.2);
-
-  --state-info: #38bdf8;
-  --state-info-bg: rgba(56, 189, 248, 0.1);
-  --state-info-border: rgba(56, 189, 248, 0.2);
-
-  /* ── Capa 3: Marca (WCAG compliant en dark) ──
-     blue-500 (#3b82f6) — el azul real de marca del producto (login, avatar de
-     perfil, tab bar). Contraste verificado 4.82:1 sobre #18181b (AA — cumple el
-     mínimo del proyecto; el sky-400 anterior daba 8.22:1 AAA pero no coincidía con
-     ningún color usado en pantallas reales). Ver fix-007-corregir-tokens-marca. */
-  --ds-brand: #3b82f6;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
-  --color-primary-dark: #2563eb;
-  --color-primary-muted: rgba(59, 130, 246, 0.15);
-  --color-primary-tint: rgba(59, 130, 246, 0.08);
-  --color-primary-text: #ffffff;
-  --accent-border: rgba(59, 130, 246, 0.25);
-  --accent-glow: rgba(59, 130, 246, 0.25);
-  --shadow-focus: 0 0 0 3px rgba(59, 130, 246, 0.3);
-
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #818cf8 100%);
-  --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #818cf8 50%, #a78bfa 100%);
-  --gradient-subtle: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.12) 0%,
-    rgba(59, 130, 246, 0.04) 100%
-  );
-
-  --action-primary: var(--ds-brand);
-  --action-primary-hover: var(--color-primary-hover);
-  --action-primary-text: var(--color-primary-text);
-  --color-brand: var(--ds-brand);
-
-  /* ── Capa 4: Componentes (solo overrides necesarios) ──
-     La mayoría de tokens de componente propagan automáticamente
-     porque referencian tokens de escala. Solo se redefinen
-     los que necesitan ajuste explícito en dark. */
-  --input-bg: var(--bg-subtle);
-  --input-disabled-bg: var(--bg-elevated);
-
-  --card-bg: var(--bg-surface);
-  --card-border: var(--border-subtle);
-
-  /* ── Scrollbar (dark) ── */
-  --scrollbar-thumb: var(--text-muted);
-  --scrollbar-thumb-hover: var(--text-muted);
 }
 
 /* ============================================================
@@ -475,6 +427,7 @@ body {
    REGLA 3 — Estados del sistema
    Usar state-success / state-error / state-warning / state-info
    para feedback de acciones ("guardado", "error de formulario").
+   El tono NUNCA es la única señal: ícono + borde + posición.
 
    REGLA 4 — Motion
    Usar --transition-btn / --transition-input / --transition-card.
@@ -484,14 +437,22 @@ body {
    REGLA 5 — Accesibilidad (WCAG obligatorio)
    Texto interactivo: ratio mínimo 4.5:1 (AA).
    Componentes UI: ratio mínimo 3:1 (1.4.11).
+   Ningún texto por debajo de --text-floor (13px).
+   Objetivos táctiles: --target-min; en sesión activa --target-min-critical.
    NUNCA suprimir outline sin reemplazar con:
      box-shadow: var(--input-shadow-focus-neutral);
 
    REGLA 6 — Theming (cero valores fijos en componentes)
    Todo token de componente debe referenciar un token de escala.
 
-   JERARQUÍA DE SUPERFICIES (dark mode):
-   Delta mínimo +2.5% L entre cada nivel.
+   REGLA 7 — Presupuesto gráfico (sistema Eclipse)
+   El presupuesto gráfico de una pantalla es inversamente proporcional
+   a la atención que le queda al usuario.
+     Tier 1 Ceremonia → gradient-hero, carmesí, borde tier1
+     Tier 2 Trabajo   → bg-base, borde tier2, un acento de estado
+     Tier 3 Dato      → bone sobre tinta, borde tier3, cero decoración
+
+   JERARQUÍA DE SUPERFICIES:
    bg-base → bg-surface → bg-elevated → bg-subtle
 
    EASING DISPONIBLE:
@@ -508,7 +469,7 @@ body {
    No reemplazarlas con clases de Tailwind planas.
 
    .kpi-value / .kpi-label → datos numéricos en dashboards
-   .surface-hero            → banners, headers de sección
+   .surface-hero            → suelo de ceremonia (Tier 1)
    .surface-glass           → overlays flotantes, panels vidrio
    .indicator-live          → dot pulsante de actividad en vivo
    .badge-pulse             → badge con pulso de atención
@@ -546,24 +507,25 @@ body {
 }
 
 /* ── Jerarquía de Superficies ────────────────────────────────
-   surface-hero:  Banners, hero sections, CTAs de alta jerarquía.
-                  Texto sobre este fondo SIEMPRE en white/light.
+   surface-hero:  Suelo de ceremonia (Tier 1). Carmesí quemado.
+                  El texto encima va SIEMPRE en --text-primary (bone),
+                  que da 6.9:1 sobre el extremo más claro del degradado.
+                  Tinta encima reprobaría (2.6:1).
    surface-glass: Overlays flotantes, tooltips ricos, panels glass.
-                  Funciona en light y dark mode automáticamente.
    ─────────────────────────────────────────────────────────── */
 
 .surface-hero {
   background: var(--gradient-hero);
-  color: var(--color-primary-text);
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
 
-  /* Brillo sutil en esquina superior derecha — profundidad */
+  /* Resplandor de ember en la base — la corona del eclipse */
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(ellipse at top right, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    background: radial-gradient(90% 130% at 50% 118%, var(--accent-glow) 0%, transparent 62%);
     pointer-events: none;
   }
 }
@@ -577,10 +539,11 @@ body {
 }
 
 /* ── Indicadores de Actividad ────────────────────────────────
-   indicator-live: Dot verde pulsante.
+   indicator-live: Dot ember pulsante.
                    Indica sistema activo, conexión online, real-time.
+                   Usa ember y no verde: en este sistema el verde
+                   significa "logrado" y nada más.
    badge-pulse:    Pulso de atención en un badge/chip.
-                   Para alertas nuevas, conteos sin leer.
 
    REGLA GSAP: Las animaciones de entrada usan GsapAnimationsService.
    Estas utilidades son SOLO para animaciones de estado continuo (loops).
@@ -627,14 +590,14 @@ body {
   align-items: center;
   gap: var(--space-2);
 
-  /* Dot base (color success) */
+  /* Dot base */
   &::before {
     content: '';
     display: inline-block;
     width: 8px;
     height: 8px;
     border-radius: var(--radius-full);
-    background: var(--state-success);
+    background: var(--ds-brand);
     flex-shrink: 0;
     position: relative;
     z-index: 1;
@@ -650,7 +613,7 @@ body {
     width: 8px;
     height: 8px;
     border-radius: var(--radius-full);
-    background: var(--state-success);
+    background: var(--ds-brand);
     animation: ds-pulse-ring 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
     z-index: 0;
   }
