@@ -785,9 +785,12 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         flex-direction: column;
         gap: 0.5rem;
       }
+      /* auto-fit, no repeat(2): con una sola rutina, dos columnas fijas
+         dejaban media pantalla vacía al lado de la tarjeta. Ahora los
+         items llenan el ancho que haya. */
       .routines-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 0.75rem;
       }
       .routine-card {
