@@ -12,7 +12,7 @@ export class CoachFacade {
     {
       id: 'welcome-msg',
       sender: 'assistant',
-      text: '¡Hola! 👋 Soy tu Coach de Entrenamiento personal. ¿En qué te puedo ayudar hoy? Puedo revisar tus rutinas, analizar tu historial o recomendarte tu entrenamiento del día.',
+      text: '¡Hola! Soy tu Coach de Entrenamiento personal. ¿En qué te puedo ayudar hoy? Puedo revisar tus rutinas, analizar tu historial o recomendarte tu entrenamiento del día.',
       timestamp: new Date(),
     },
   ]);
@@ -55,7 +55,7 @@ export class CoachFacade {
     try {
       const responseText = await this.geminiService.generateResponse(
         this.messages().slice(0, -1), // Historial anterior
-        trimmed
+        trimmed,
       );
 
       const assistantMessage: ChatMessage = {

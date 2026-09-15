@@ -1,14 +1,29 @@
 <!doctype html>
 <html lang="es" class="ion-palette-dark" data-mode="dark">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.deepseek.com https://api.groq.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'">
-  <meta charset="utf-8">
-  <title>App de Entrenamiento</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+  <head>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:* https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.deepseek.com https://api.groq.com https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    />
+    <meta charset="utf-8" />
+    <title>App de Entrenamiento</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- Tipografía del sistema Eclipse — tres roles.
+       Anton   impacto (h1/h2, nunca por debajo de 28px ni sobre datos)
+       Oswald  números y datos comparables (tabular-nums)
+       Archivo microcopy y todo lo que se lee rápido
+       El CSP ya habilita fonts.googleapis.com y fonts.gstatic.com. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700&family=Oswald:wght@500;600;700&display=swap"
+    />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
 </html>

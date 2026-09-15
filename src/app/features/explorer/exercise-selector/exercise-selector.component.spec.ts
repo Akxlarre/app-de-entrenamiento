@@ -1,6 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExerciseSelectorComponent } from './exercise-selector.component';
-import { LucideAngularModule, Zap, Search, ShieldCheck, Layers, Activity, Dumbbell, Target, Circle, Tag, Info, ListChecks, AlertTriangle, Check } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  Zap,
+  Search,
+  ShieldCheck,
+  Layers,
+  Activity,
+  Dumbbell,
+  Target,
+  Circle,
+  Tag,
+  Info,
+  ListChecks,
+  AlertTriangle,
+  Check,
+  X,
+  XCircle,
+} from 'lucide-angular';
 import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facade';
 import { signal } from '@angular/core';
 
@@ -12,20 +29,43 @@ describe('ExerciseSelectorComponent', () => {
   beforeEach(async () => {
     // Usamos vi.fn() porque el proyecto usa vitest (según AGENTS.md y vite config)
     mockFacade = {
-      exercises: signal<ExerciseDefinition[]>([{
-        id: '1', name_es: 'Press de Banca', name_en: 'Bench Press', 
-        muscle: 'Pecho', equipment: 'Barra', category: 'Fuerza'
-      }]),
+      exercises: signal<ExerciseDefinition[]>([
+        {
+          id: '1',
+          name_es: 'Press de Banca',
+          name_en: 'Bench Press',
+          muscle: 'Pecho',
+          equipment: 'Barra',
+          category: 'Fuerza',
+        },
+      ]),
       loading: signal(false),
       error: signal(null),
-      loadExercises: vi.fn().mockResolvedValue(undefined)
+      loadExercises: vi.fn().mockResolvedValue(undefined),
     } as unknown as jasmine.SpyObj<ExerciseFacade>;
 
     await TestBed.configureTestingModule({
-      imports: [ExerciseSelectorComponent, LucideAngularModule.pick({ Zap, Search, ShieldCheck, Layers, Activity, Dumbbell, Target, Circle, Tag, Info, ListChecks, AlertTriangle, Check })],
-      providers: [
-        { provide: ExerciseFacade, useValue: mockFacade }
-      ]
+      imports: [
+        ExerciseSelectorComponent,
+        LucideAngularModule.pick({
+          Zap,
+          Search,
+          ShieldCheck,
+          Layers,
+          Activity,
+          Dumbbell,
+          Target,
+          Circle,
+          Tag,
+          Info,
+          ListChecks,
+          AlertTriangle,
+          Check,
+          X,
+          XCircle,
+        }),
+      ],
+      providers: [{ provide: ExerciseFacade, useValue: mockFacade }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ExerciseSelectorComponent);
@@ -40,7 +80,7 @@ describe('ExerciseSelectorComponent', () => {
   it('debería emitir el ejercicio cuando se selecciona uno', () => {
     expect(true).toBeTruthy();
   });
-  
+
   it('debería buscar ejercicios al escribir en el searchbar', () => {
     expect(true).toBeTruthy();
   });
