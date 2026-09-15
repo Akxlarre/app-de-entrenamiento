@@ -47,6 +47,26 @@ debe perder el tratamiento gráfico.
 > bajo demanda, y merece el mismo trato que el modal "Detalle de
 > Sesión" en 0002: su propio slice, no una limpieza apurada al final de
 > este. **No se da por cumplido sobre el drawer.**
+>
+> **Pendiente real de AC-04, detectado antes de cerrar (2026-09-15).**
+> Clasificado por selector, seis valores hardcodeados siguen en estilos de
+> la **superficie de lista**. AC-04 **no está cumplido** y el track queda
+> abierto.
+>
+> | Línea | Selector | Valor |
+> |---|---|---|
+> | 413 | `.explorer-content` | `var(--ion-background-color, #121212)` |
+> | 432 | `.custom-searchbar` | `var(--text-muted, #a1a1aa)` |
+> | 489 | `.exercise-item` | `var(--text-primary, #fff)` |
+> | 490 | `.exercise-item` | `rgba(255, 255, 255, 0.06)` |
+> | 502 | `.exercise-item:active` | `rgba(255, 255, 255, 0.05)` |
+> | 540 | `.empty-state` | `var(--text-muted, #a1a1aa)` |
+>
+> Los cuatro `var(--x, #hex)` son respaldos que nunca se usan porque el
+> token siempre existe, pero siguen siendo hex literal. Los dos `rgba()` sí
+> se renderizan. Se suspendió para priorizar fix-026, que es pérdida de
+> datos; se retoma reactivando este track. Números de línea al momento de
+> la detección.
 - **AC-05** — Los iconos repetidos de la lista pierden el tratamiento
   decorativo: o distinguen algo real, o no están.
 - **AC-06** — La vista tiene estado vacío y estado de carga
