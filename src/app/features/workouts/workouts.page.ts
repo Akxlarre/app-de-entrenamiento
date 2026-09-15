@@ -58,17 +58,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
   ],
   template: `
     <ion-content class="workout-home tier-ceremonia" [fullscreen]="true">
-      <app-header title="Entrenar" [showStreak]="true"></app-header>
+      <app-header title="Entrenar"></app-header>
 
       <div class="page-container">
         <!-- CTA Principal: Iniciar o Retomar Sesión Libre -->
         <div class="start-card" [class.is-running]="hasFreeSessionRunning()">
           @if (hasFreeSessionRunning()) {
             <div class="start-info">
-              <span class="start-eyebrow">
-                <span class="indicator-live"></span>
-                En curso
-              </span>
+              <span class="start-eyebrow indicator-live">En curso</span>
               <h2 class="start-title">Entrenamiento Libre</h2>
               <p class="start-subtitle">
                 Tienes una sesión libre en curso. Continúa donde lo dejaste.
@@ -622,10 +619,17 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         margin: 0 auto;
       }
 
-      /* === ARRANQUE DE SESIÓN — el momento de ceremonia de la vista === */
+      /* === ARRANQUE DE SESIÓN — la única ceremonia de la vista ===
+         Es el suelo carmesí del Tier 1, el que se construyó en la
+         fundación y hasta ahora no se había usado en ningún lado.
+         Solo este bloque lo gasta: la tarjeta de plan queda como
+         superficie normal, y así aparece la jerarquía que antes no
+         existía entre el camino primario y el secundario. */
       .start-card {
-        background: var(--gradient-subtle), var(--bg-surface);
-        border: var(--tier-border, var(--border-tier1)) solid var(--border-default);
+        position: relative;
+        overflow: hidden;
+        background: var(--gradient-hero);
+        border: none;
         border-radius: var(--radius-xl);
         padding: var(--space-6);
         display: flex;
@@ -633,33 +637,52 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: var(--space-5);
       }
 
-      /* Solo cuando hay algo corriendo se gasta el acento de marca. */
-      .start-card.is-running {
-        border-color: var(--accent-border);
+      /* La corona de ember, contenida detrás del contenido. */
+      .start-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(90% 130% at 50% 118%, var(--accent-glow) 0%, transparent 62%);
+        pointer-events: none;
+      }
+      .start-card > * {
+        position: relative;
+        z-index: 1;
       }
 
+      /* Sobre el carmesí TODO el texto va en hueso: 6.9:1 en el extremo
+         más claro del degradado. El gris secundario daría 2.5:1. */
       .start-eyebrow {
         display: inline-flex;
         align-items: center;
-        gap: var(--space-2);
         font-family: var(--font-body);
         font-size: var(--text-xs);
         font-weight: var(--font-bold);
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: var(--ds-brand);
-        margin-bottom: var(--space-2);
+        color: var(--text-primary);
+        margin-bottom: var(--space-3);
+      }
+      /* El punto pulsante hereda el ember del DS; acá el fondo es
+         carmesí, así que se pinta en hueso para no perderse. */
+      .start-eyebrow.indicator-live::before,
+      .start-eyebrow.indicator-live::after {
+        background: var(--text-primary);
       }
 
+      /* Tipografía de impacto: es Tier 1 y renderiza por encima de
+         --font-display-floor (28px), que es su condición de uso. */
       .start-title {
-        font-family: var(--font-body);
-        font-size: var(--text-xl);
-        font-weight: var(--font-bold);
+        font-family: var(--font-display);
+        font-weight: var(--font-regular);
+        font-size: 28px;
+        line-height: 1.05;
+        letter-spacing: 0.005em;
         color: var(--text-primary);
-        margin: 0 0 var(--space-1) 0;
+        margin: 0 0 var(--space-2) 0;
       }
       .start-subtitle {
-        color: var(--text-secondary);
+        color: var(--text-primary);
         font-size: var(--text-sm);
         line-height: var(--leading-normal);
         margin: 0;
@@ -698,6 +721,18 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       .start-btn:active:not(:disabled) {
         background: var(--btn-primary-bg-hover);
         transform: scale(var(--btn-press-scale-value));
+      }
+
+      /* Sobre el suelo carmesí el ember pierde separación del fondo.
+         Acá el CTA va en hueso con texto tinta (17.7:1): pasa a ser el
+         elemento más brillante de la pantalla, que es exactamente lo
+         que la acción primaria de la app debería ser. */
+      .start-card .start-btn {
+        background: var(--text-primary);
+        color: var(--brand-ink);
+      }
+      .start-card .start-btn:active:not(:disabled) {
+        background: var(--bone-pressed, #ffffff);
       }
       .start-btn:disabled {
         opacity: var(--input-disabled-opacity);
