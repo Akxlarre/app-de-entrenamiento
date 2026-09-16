@@ -12,7 +12,7 @@
      tailwind-base → primeng → tailwind-utilities
    ============================================================ */
 
-@import "tailwindcss";
+@import 'tailwindcss';
 @source ".";
 @source "./app/**/*.ts";
 @source "./app/**/*.html";
@@ -55,6 +55,7 @@
 
   /* ── Fuentes ── */
   --font-display: var(--font-display);
+  --font-data: var(--font-data);
   --font-body: var(--font-body);
   --font-mono: var(--font-mono);
 

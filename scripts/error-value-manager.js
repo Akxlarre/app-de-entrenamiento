@@ -21,6 +21,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { pathToFileURL } from 'url';
 import { matchError } from './error-catalog.js';
 
 const ANSI_RE = /\x1B\[[0-9;]*[a-zA-Z]|\x1B\][^\x07]*\x07/g;
@@ -69,16 +70,21 @@ function writeErrorMap(map) {
   fs.writeFileSync(ERROR_VALUE_PATH, JSON.stringify(map, null, 2), 'utf-8');
 }
 
-function evict(map) {
+function evict(map, protectedKey) {
   const keys = Object.keys(map.errors);
   if (keys.length <= MAX_UNIQUE_ERRORS) return map;
 
-  // Ordenar por score ascendente (menos crítico primero) para evictar
-  const scored = keys.map((k) => ({
-    key: k,
-    score: map.errors[k].count * map.errors[k].weight,
-    lastSeen: map.errors[k].last_seen,
-  }));
+  // Ordenar por score ascendente (menos crítico primero) para evictar.
+  // protectedKey (el error recién registrado en esta misma llamada) nunca
+  // es candidato — de lo contrario un error nuevo con count=1 se autoevicta
+  // apenas se crea cuando el mapa ya está en el tope.
+  const scored = keys
+    .filter((k) => k !== protectedKey)
+    .map((k) => ({
+      key: k,
+      score: map.errors[k].count * map.errors[k].weight,
+      lastSeen: map.errors[k].last_seen,
+    }));
 
   scored.sort((a, b) => a.score - b.score || a.lastSeen.localeCompare(b.lastSeen));
 
@@ -128,7 +134,7 @@ export function recordError({ pattern, source = 'cli', summary = '' }) {
     if (summary) map.errors[code].summary = summary;
   }
 
-  evict(map);
+  evict(map, code);
   writeErrorMap(map);
 
   return { code, isNew, count: map.errors[code].count, weight };
@@ -180,7 +186,9 @@ Opciones:
   `);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
   const args = process.argv.slice(2);
   const get = (flag) => {
     const i = args.indexOf(flag);

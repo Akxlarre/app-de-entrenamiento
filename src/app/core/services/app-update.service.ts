@@ -9,7 +9,7 @@ import { SupabaseService } from './infrastructure/supabase.service';
 import { AppUpdate } from '../models/app-update.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AppUpdateService {
   private supabase = inject(SupabaseService);
@@ -41,16 +41,14 @@ export class AppUpdateService {
       .select('*')
       .order('build_number', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code !== 'PGRST116') { // PGRST116 = No rows
-        console.error('Error fetching latest update:', error);
-      }
+      console.error('Error fetching latest update:', error);
       return null;
     }
 
-    return data as AppUpdate;
+    return data as AppUpdate | null;
   }
 
   /**
@@ -58,10 +56,8 @@ export class AppUpdateService {
    */
   async getApkDownloadUrl(apkPath: string): Promise<string | null> {
     // Si el bucket es público (como lo configuramos), getPublicUrl funciona.
-    const { data } = this.supabase.client.storage
-      .from('releases')
-      .getPublicUrl(apkPath);
-    
+    const { data } = this.supabase.client.storage.from('releases').getPublicUrl(apkPath);
+
     return data?.publicUrl || null;
   }
 
@@ -72,7 +68,7 @@ export class AppUpdateService {
     return this.http.get(url, {
       responseType: 'blob',
       reportProgress: true,
-      observe: 'events'
+      observe: 'events',
     });
   }
 
@@ -81,20 +77,20 @@ export class AppUpdateService {
    */
   async installApk(blob: Blob, fileName: string = 'update.apk'): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    
+
     try {
       const base64 = await this.blobToBase64(blob);
-      
+
       const savedFile = await Filesystem.writeFile({
         path: fileName,
         data: base64,
         directory: Directory.Cache,
-        recursive: true
+        recursive: true,
       });
 
       await FileOpener.open({
         filePath: savedFile.uri,
-        contentType: 'application/vnd.android.package-archive'
+        contentType: 'application/vnd.android.package-archive',
       });
     } catch (error) {
       console.error('Error installing APK:', error);

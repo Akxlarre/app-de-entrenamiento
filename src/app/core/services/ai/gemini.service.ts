@@ -27,7 +27,8 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'obtener_entrenamiento_en_curso',
-        description: 'Obtiene la sesión de entrenamiento ACTIVA actual del usuario (en vivo), incluyendo si proviene de una rutina guardada, hora de inicio, ejercicios, series completadas, pesos, reps, RIR y timestamps (completed_at) para calcular el descanso exacto.',
+        description:
+          'Obtiene la sesión de entrenamiento ACTIVA actual del usuario (en vivo), incluyendo si proviene de una rutina guardada, hora de inicio, ejercicios, series completadas, pesos, reps, RIR y timestamps (completed_at) para calcular el descanso exacto.',
         parameters: { type: 'object', properties: {} },
       },
     },
@@ -35,7 +36,8 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'obtener_mis_rutinas',
-        description: 'Obtiene la lista de plantillas de rutinas del usuario autenticado, incluyendo los ejercicios que componen cada una con sus nombres, orden, grupos musculares y notas.',
+        description:
+          'Obtiene la lista de plantillas de rutinas del usuario autenticado, incluyendo los ejercicios que componen cada una con sus nombres, orden, grupos musculares y notas.',
         parameters: { type: 'object', properties: {} },
       },
     },
@@ -43,7 +45,8 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'obtener_mis_entrenamientos_recientes',
-        description: 'Obtiene el historial de sesiones de entrenamiento pasadas/finalizadas del usuario autenticado, indicando si pertenecieron a una rutina.',
+        description:
+          'Obtiene el historial de sesiones de entrenamiento pasadas/finalizadas del usuario autenticado, indicando si pertenecieron a una rutina.',
         parameters: {
           type: 'object',
           properties: {
@@ -56,7 +59,8 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'obtener_series_de_entrenamiento',
-        description: 'Obtiene las series, repeticiones, peso y RIR de una sesión de entrenamiento específica pasada.',
+        description:
+          'Obtiene las series, repeticiones, peso y RIR de una sesión de entrenamiento específica pasada.',
         parameters: {
           type: 'object',
           properties: {
@@ -70,20 +74,31 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'crear_rutina',
-        description: 'Crea una nueva plantilla de rutina de entrenamiento para el usuario en la base de datos con los ejercicios especificados.',
+        description:
+          'Crea una nueva plantilla de rutina de entrenamiento para el usuario en la base de datos con los ejercicios especificados.',
         parameters: {
           type: 'object',
           properties: {
-            name: { type: 'string', description: 'Nombre claro de la rutina (Ej: Empuje A - Hipertrofia Pecho y Tríceps)' },
+            name: {
+              type: 'string',
+              description: 'Nombre claro de la rutina (Ej: Empuje A - Hipertrofia Pecho y Tríceps)',
+            },
             notes: { type: 'string', description: 'Descripción o notas explicativas de la rutina' },
             exercises: {
               type: 'array',
-              description: 'Lista de ejercicios a incluir en la rutina. IMPORTANTE: Usa primero buscar_ejercicios para obtener los UUIDs reales.',
+              description:
+                'Lista de ejercicios a incluir en la rutina. IMPORTANTE: Usa primero buscar_ejercicios para obtener los UUIDs reales.',
               items: {
                 type: 'object',
                 properties: {
-                  exercise_id: { type: 'string', description: 'UUID del ejercicio en la base de datos' },
-                  order_index: { type: 'number', description: 'Orden en la rutina (0 para el primero, 1 para el segundo, etc.)' },
+                  exercise_id: {
+                    type: 'string',
+                    description: 'UUID del ejercicio en la base de datos',
+                  },
+                  order_index: {
+                    type: 'number',
+                    description: 'Orden en la rutina (0 para el primero, 1 para el segundo, etc.)',
+                  },
                 },
                 required: ['exercise_id'],
               },
@@ -111,11 +126,15 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'analizar_historial_feedback',
-        description: 'Obtiene el historial de feedback (dolor, técnica, intensidad) reportado por el usuario en ejercicios específicos.',
+        description:
+          'Obtiene el historial de feedback (dolor, técnica, intensidad) reportado por el usuario en ejercicios específicos.',
         parameters: {
           type: 'object',
           properties: {
-            exercise_id: { type: 'string', description: 'UUID del ejercicio a analizar (opcional)' },
+            exercise_id: {
+              type: 'string',
+              description: 'UUID del ejercicio a analizar (opcional)',
+            },
             limit: { type: 'number', description: 'Número máximo de reportes (default: 10)' },
           },
         },
@@ -125,12 +144,19 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'buscar_ejercicios',
-        description: 'Busca ejercicios en el catálogo maestro de la app por término o grupo muscular para encontrar sus UUIDs.',
+        description:
+          'Busca ejercicios en el catálogo maestro de la app por término o grupo muscular para encontrar sus UUIDs.',
         parameters: {
           type: 'object',
           properties: {
-            search: { type: 'string', description: 'Término de búsqueda (ej: press, sentadilla, bicep)' },
-            muscle: { type: 'string', description: 'Grupo muscular opcional (ej: chest, legs, back, shoulders)' },
+            search: {
+              type: 'string',
+              description: 'Término de búsqueda (ej: press, sentadilla, bicep)',
+            },
+            muscle: {
+              type: 'string',
+              description: 'Grupo muscular opcional (ej: chest, legs, back, shoulders)',
+            },
             limit: { type: 'number', description: 'Número máximo de resultados (default: 10)' },
           },
         },
@@ -140,11 +166,15 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'analizar_volumen_muscular',
-        description: 'Calcula las series efectivas completadas y el tonelaje total por grupo muscular en los últimos días.',
+        description:
+          'Calcula las series efectivas completadas y el tonelaje total por grupo muscular en los últimos días.',
         parameters: {
           type: 'object',
           properties: {
-            days_ago: { type: 'number', description: 'Cantidad de días hacia atrás a analizar. Default: 7' },
+            days_ago: {
+              type: 'number',
+              description: 'Cantidad de días hacia atrás a analizar. Default: 7',
+            },
           },
         },
       },
@@ -153,11 +183,16 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'analizar_progresion_ejercicio',
-        description: 'Evalúa la progresión histórica (hasta 10 sesiones) en un ejercicio específico calculando 1RM estimado y RIR promedio.',
+        description:
+          'Evalúa la progresión histórica (hasta 10 sesiones) en un ejercicio específico calculando 1RM estimado y RIR promedio.',
         parameters: {
           type: 'object',
           properties: {
-            exercise_id: { type: 'string', description: 'UUID del ejercicio (búscalo con buscar_ejercicios primero si no lo tienes)' },
+            exercise_id: {
+              type: 'string',
+              description:
+                'UUID del ejercicio (búscalo con buscar_ejercicios primero si no lo tienes)',
+            },
           },
           required: ['exercise_id'],
         },
@@ -170,7 +205,11 @@ export class GeminiService {
    */
   async generateResponse(history: ChatMessage[], prompt: string): Promise<string> {
     const nowIso = new Date().toISOString();
-    const nowTimeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const nowTimeStr = new Date().toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
 
     // Formato de mensajes OpenAI / Groq con System Prompt de Alto Rendimiento
     const messages: any[] = [
@@ -238,7 +277,7 @@ export class GeminiService {
         messages,
         tools: this.toolsDeclaration,
         tool_choice: 'auto',
-        max_tokens: 1500
+        max_tokens: 1500,
       };
 
       // 1. Primera llamada a Groq
@@ -254,7 +293,12 @@ export class GeminiService {
           const toolName = toolCall.function.name;
           const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
 
-          const toolResultText = await this.mcpClient.callTool(toolName, toolArgs);
+          let toolResultText: string;
+          try {
+            toolResultText = await this.mcpClient.callTool(toolName, toolArgs);
+          } catch (toolErr: any) {
+            toolResultText = this.extractToolErrorMessage(toolErr);
+          }
 
           // Añadir el resultado de la función al contexto
           messages.push({
@@ -270,7 +314,7 @@ export class GeminiService {
           messages,
           tools: this.toolsDeclaration,
           tool_choice: 'auto',
-          max_tokens: 1500
+          max_tokens: 1500,
         };
         res = await firstValueFrom(this.http.post(url, body, { headers }));
         responseMessage = res?.choices?.[0]?.message;
@@ -285,5 +329,18 @@ export class GeminiService {
       }
       return 'Hubo un inconveniente al comunicarme con tu Coach (Groq). Verifica tu API Key o conexión.';
     }
+  }
+
+  /**
+   * Extrae el mensaje de error de una herramienta MCP fallida para pasárselo al modelo.
+   * La Edge Function responde `{ error: String(err) }`, que Angular expone en
+   * `HttpErrorResponse.error.error` con el prefijo "Error: " que agrega `String(new Error(...))`.
+   */
+  private extractToolErrorMessage(err: any): string {
+    const rawMessage = err?.error?.error;
+    if (typeof rawMessage === 'string' && rawMessage.trim().length > 0) {
+      return rawMessage.replace(/^Error:\s*/, '');
+    }
+    return 'La herramienta no pudo completarse. Intenta reformular la solicitud.';
   }
 }

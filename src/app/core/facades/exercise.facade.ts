@@ -31,7 +31,7 @@ export class ExerciseFacade {
       }
       await this.loadPromise;
     }
-    
+
     this.applyFilters(searchQuery, muscleGroup);
   }
 
@@ -42,7 +42,7 @@ export class ExerciseFacade {
         .from('exercises')
         .select('*')
         .order('name_es', { ascending: true });
-        
+
       if (error) {
         this.error.set(error.message);
       } else if (data) {
@@ -60,17 +60,22 @@ export class ExerciseFacade {
     const query = this.normalizeText(searchQuery);
     const muscle = muscleGroup.toLowerCase();
 
-    const filtered = this.allExercises().filter(ex => {
+    const filtered = this.allExercises().filter((ex) => {
       if (muscle && !(ex.muscle || '').toLowerCase().includes(muscle)) {
         return false;
       }
-      
+
       if (query) {
         const nameEs = this.normalizeText(ex.name_es);
         const nameEn = this.normalizeText(ex.name_en);
         const equipment = this.normalizeText(ex.equipment);
-        
-        if (!nameEs.includes(query) && !nameEn.includes(query) && !equipment.includes(query)) {
+        const haystack = `${nameEs} ${nameEn} ${equipment}`;
+
+        // Cada palabra buscada debe aparecer en algún campo (AND entre tokens,
+        // no substring contiguo del query completo) — "press banca" debe matchear
+        // "Press de Banca con Barra" aunque "de" quede en medio.
+        const tokens = query.split(/\s+/).filter(Boolean);
+        if (!tokens.every((t) => haystack.includes(t))) {
           return false;
         }
       }
@@ -82,6 +87,9 @@ export class ExerciseFacade {
 
   private normalizeText(text: string | undefined | null): string {
     if (!text) return '';
-    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 }

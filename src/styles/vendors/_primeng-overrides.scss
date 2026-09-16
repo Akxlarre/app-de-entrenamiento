@@ -3,9 +3,10 @@
    Mapping PrimeNG tokens to Design System
 
    Todas las variables --p-* referencian tokens de
-   _variables.scss que auto-switch en [data-mode='dark'].
-   El bloque dark mode al final solo cubre edge-cases
-   donde PrimeNG inyecta valores hardcodeados.
+   _variables.scss, que con tema único viven en :root.
+   Los overrides del final solo cubren edge-cases donde
+   PrimeNG inyecta valores hardcodeados o crea portales
+   fuera del árbol de componentes de Angular.
    ============================================ */
 
 :root {
@@ -41,16 +42,8 @@
   /* Button success */
   --p-button-success-background: var(--state-success);
   --p-button-success-border-color: var(--state-success);
-  --p-button-success-hover-background: color-mix(
-    in srgb,
-    var(--state-success) 85%,
-    black
-  );
-  --p-button-success-hover-border-color: color-mix(
-    in srgb,
-    var(--state-success) 85%,
-    black
-  );
+  --p-button-success-hover-background: color-mix(in srgb, var(--state-success) 85%, black);
+  --p-button-success-hover-border-color: color-mix(in srgb, var(--state-success) 85%, black);
 
   /* Button secondary */
   --p-button-secondary-background: var(--bg-elevated);
@@ -185,7 +178,7 @@
 
 /* Progress bar via pseudo-element */
 .p-toast-message::after {
-  content: "" !important;
+  content: '' !important;
   display: block !important;
   position: absolute !important;
   bottom: 0 !important;
@@ -197,8 +190,7 @@
   background: rgba(0, 0, 0, 0.4) !important;
   border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
   transform-origin: left !important;
-  animation: toast-progress-shrink var(--duration-toast-life, 3s) linear
-    forwards !important;
+  animation: toast-progress-shrink var(--duration-toast-life, 3s) linear forwards !important;
   z-index: 10 !important;
   pointer-events: none !important;
 }
@@ -582,20 +574,12 @@ app-main-layout p-toast.p-toast-top-center,
   }
 
   .p-sortable-column.p-highlight {
-    background: color-mix(
-      in srgb,
-      var(--color-primary-muted) 30%,
-      transparent
-    ) !important;
+    background: color-mix(in srgb, var(--color-primary-muted) 30%, transparent) !important;
     color: var(--text-primary) !important;
   }
 
   .p-sortable-column.p-highlight:hover {
-    background: color-mix(
-      in srgb,
-      var(--color-primary-muted) 40%,
-      transparent
-    ) !important;
+    background: color-mix(in srgb, var(--color-primary-muted) 40%, transparent) !important;
   }
 
   &.p-datatable-sm .p-datatable-thead > tr > th {
@@ -622,7 +606,7 @@ app-main-layout p-toast.p-toast-top-center,
     z-index: 1;
   }
 
-  .p-steppanel:not([data-p-active="true"]) {
+  .p-steppanel:not([data-p-active='true']) {
     display: none;
   }
 
@@ -705,11 +689,11 @@ app-main-layout p-toast.p-toast-top-center,
     text-overflow: ellipsis;
   }
 
-  .p-step[data-p-active="true"] .p-step-header {
+  .p-step[data-p-active='true'] .p-step-header {
     color: var(--text-primary);
   }
 
-  .p-step[data-p-active="true"] .p-step-number {
+  .p-step[data-p-active='true'] .p-step-number {
     background: var(--ds-brand);
     color: var(--color-primary-text);
     transform: scale(1.05);
@@ -757,47 +741,49 @@ i.pi {
 }
 
 /* ============================================
-   Dark Mode — Minimal overrides
-   Most components auto-switch via --p-* tokens
-   that reference _variables.scss tokens. Only
-   override here when PrimeNG ignores its own
-   token system (portals, inline styles, etc).
+   Overrides donde PrimeNG ignora su propio
+   sistema de tokens (portales, estilos inline).
+   El resto de los componentes cambia solo vía
+   los --p-* que referencian _variables.scss.
+
+   Antes esto vivía anidado dentro de
+   [data-mode="dark"]. Con tema único ese gate
+   no seleccionaba nada distinto: aplica siempre.
    ============================================ */
-[data-mode="dark"] {
-  /* Overlay masks — PrimeNG may inject hardcoded rgba */
-  .p-dialog-mask,
-  .p-overlay-mask {
-    background-color: var(--overlay-backdrop) !important;
-  }
 
-  /* Portal overlays — created outside Angular component tree */
-  .p-select-panel,
-  .p-select-overlay,
-  .p-multiselect-panel,
-  .p-datepicker-panel {
-    background-color: var(--bg-surface) !important;
-    border-color: var(--border-default) !important;
-    color: var(--text-primary) !important;
-  }
+/* Overlay masks — PrimeNG may inject hardcoded rgba */
+.p-dialog-mask,
+.p-overlay-mask {
+  background-color: var(--overlay-backdrop) !important;
+}
 
-  /* Dialog — may use inline backgrounds */
-  .p-dialog,
-  .p-dialog-content,
-  .p-dialog-header {
-    background-color: var(--bg-surface) !important;
-    color: var(--text-primary) !important;
-    border-color: var(--border-default) !important;
-  }
+/* Portal overlays — created outside Angular component tree */
+.p-select-panel,
+.p-select-overlay,
+.p-multiselect-panel,
+.p-datepicker-panel {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
 
-  /* Toggle controls — checked state needs brand color enforcement */
-  .p-togglebutton.p-togglebutton-checked,
-  .p-toggleswitch.p-toggleswitch-checked {
-    background-color: var(--ds-brand) !important;
-    border-color: var(--ds-brand) !important;
-  }
+/* Dialog — may use inline backgrounds */
+.p-dialog,
+.p-dialog-content,
+.p-dialog-header {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-default) !important;
+}
 
-  .p-checkbox-box.p-highlight {
-    background-color: var(--ds-brand) !important;
-    border-color: var(--ds-brand) !important;
-  }
+/* Toggle controls — checked state needs brand color enforcement */
+.p-togglebutton.p-togglebutton-checked,
+.p-toggleswitch.p-toggleswitch-checked {
+  background-color: var(--ds-brand) !important;
+  border-color: var(--ds-brand) !important;
+}
+
+.p-checkbox-box.p-highlight {
+  background-color: var(--ds-brand) !important;
+  border-color: var(--ds-brand) !important;
 }
