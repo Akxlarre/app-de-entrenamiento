@@ -1,43 +1,28 @@
-import { Component, ChangeDetectionStrategy, inject, AfterViewInit } from '@angular/core';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonIcon,
-  IonSpinner,
-} from '@ionic/angular';
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  AfterViewInit,
+  ElementRef,
+} from '@angular/core';
+import { IonContent, IonItem, IonLabel, IonList, IonSpinner } from '@ionic/angular';
 import { AuthFacade } from '@core/facades/auth.facade';
 import { AppUpdateFacade } from '@core/facades/app-update.facade';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { ToastService } from '@core/services/ui/toast.service';
 import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
-import { addIcons } from 'ionicons';
-import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    IonContent,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonIcon,
-    IonSpinner,
-    AppHeaderComponent,
-    IconComponent,
-  ],
+  imports: [IonContent, IonItem, IonLabel, IonList, IonSpinner, AppHeaderComponent, IconComponent],
   template: `
-    <ion-content class="profile-content" [fullscreen]="true">
+    <ion-content class="profile-content tier-trabajo" [fullscreen]="true">
       <app-header title="Perfil"></app-header>
       @if (auth.currentUser(); as user) {
-        <div class="profile-hero">
+        <div class="profile-hero" data-anim="bloque">
           <div class="avatar">
             {{ user.initials }}
           </div>
@@ -45,7 +30,7 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
           <p class="user-email">{{ user.email }}</p>
         </div>
 
-        <div class="options-section">
+        <div class="options-section" data-anim="bloque">
           <p class="section-label">OPCIONES</p>
           <ion-list class="options-list">
             <ion-item
@@ -55,16 +40,24 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
               class="option-item"
               (click)="checkForUpdates()"
             >
-              <ion-icon name="cloud-download-outline" slot="start" class="option-icon"></ion-icon>
+              <app-icon
+                name="download"
+                slot="start"
+                class="option-icon"
+                [size]="20"
+                [ariaHidden]="true"
+              />
               <ion-label>Buscar Actualizaciones</ion-label>
               @if (updateFacade.isChecking()) {
-                <ion-spinner
-                  slot="end"
-                  name="crescent"
-                  style="width: 18px; height: 18px; color: var(--ds-brand);"
-                ></ion-spinner>
+                <ion-spinner slot="end" name="crescent" class="update-spinner"></ion-spinner>
               } @else {
-                <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
+                <app-icon
+                  name="chevron-right"
+                  slot="end"
+                  class="chevron-icon"
+                  [size]="18"
+                  [ariaHidden]="true"
+                />
               }
             </ion-item>
             <ion-item
@@ -74,16 +67,28 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
               class="option-item"
               (click)="showPreferencesComingSoon()"
             >
-              <ion-icon name="settings-outline" slot="start" class="option-icon"></ion-icon>
+              <app-icon
+                name="settings"
+                slot="start"
+                class="option-icon"
+                [size]="20"
+                [ariaHidden]="true"
+              />
               <ion-label>Preferencias</ion-label>
-              <ion-icon name="chevron-forward-outline" slot="end" class="chevron-icon"></ion-icon>
+              <app-icon
+                name="chevron-right"
+                slot="end"
+                class="chevron-icon"
+                [size]="18"
+                [ariaHidden]="true"
+              />
             </ion-item>
           </ion-list>
         </div>
 
-        <div class="logout-section">
+        <div class="logout-section" data-anim="bloque">
           <button class="logout-btn" (click)="logout()">
-            <app-icon name="log-out" [size]="20" />
+            <app-icon name="log-out" [size]="20" [ariaHidden]="true" />
             Cerrar Sesión
           </button>
         </div>
@@ -96,67 +101,60 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
   `,
   styles: [
     `
-      .profile-content {
-        --background: var(--ion-background-color, #121212);
-      }
-
-      .page-container {
-        padding: 1rem;
-        padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px));
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        max-width: 600px;
-        margin: 0 auto;
-      }
+      /* Sin regla de fondo propia: la global de ion-content ya pinta la
+         tinta (fix-028). */
 
       .profile-hero {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 2rem 1rem 2.5rem 1rem;
-        background: transparent;
       }
 
+      /* Ember sólido con iniciales en tinta: 7.0:1, el mismo par del chip
+         activo. Antes iban en blanco sobre un degradé ember a carmesí
+         (2.9:1 en el extremo ember) con un resplandor azul del branding
+         anterior. Es el único acento de marca decorativo de la vista. */
       .avatar {
         width: 88px;
         height: 88px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--ds-brand), var(--color-primary-dark));
-        color: white;
+        background: var(--ds-brand);
+        color: var(--color-primary-text);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2rem;
         font-weight: 700;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
       }
 
+      /* Anton deja de leerse bajo 28px; medía 24. */
       .user-name {
         margin: 0 0 0.25rem 0;
         font-family: var(--font-display);
-        font-size: 1.5rem;
+        font-size: var(--font-display-floor);
         font-weight: 700;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
       }
 
       .user-email {
         margin: 0;
         font-size: 0.9rem;
-        color: var(--text-muted, #a1a1aa);
+        color: var(--text-muted);
       }
 
       .options-section {
         padding: 0 1rem;
       }
 
+      /* Medía 12px, bajo el piso de 13. */
       .section-label {
-        font-size: 0.75rem;
+        font-size: var(--text-xs);
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--text-muted, #a1a1aa);
+        color: var(--text-muted);
         padding: 0 4px;
         margin: 0 0 0.5rem 0;
       }
@@ -167,8 +165,8 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
       }
 
       .option-item {
-        --background: rgba(255, 255, 255, 0.04);
-        --color: var(--text-primary, #fff);
+        --background: var(--bg-surface);
+        --color: var(--text-primary);
         --border-radius: 12px;
         --padding-start: 16px;
         --padding-end: 16px;
@@ -177,14 +175,18 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
       }
 
       .option-icon {
-        color: var(--text-muted, #a1a1aa);
-        font-size: 1.2rem;
+        color: var(--text-muted);
         margin-right: 12px;
       }
 
       .chevron-icon {
-        color: var(--text-muted, #a1a1aa);
-        font-size: 1rem;
+        color: var(--text-muted);
+      }
+
+      .update-spinner {
+        width: 18px;
+        height: 18px;
+        color: var(--ds-brand);
       }
 
       .logout-section {
@@ -194,8 +196,8 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
       .logout-btn {
         width: 100%;
         padding: 0.9rem;
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
+        background: var(--state-error-bg);
+        border: 1px solid var(--state-error-border);
         border-radius: 12px;
         color: var(--state-error);
         font-weight: 700;
@@ -209,7 +211,7 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
       }
 
       .logout-btn:active {
-        background: rgba(239, 68, 68, 0.2);
+        background: var(--state-error-border);
         transform: scale(0.98);
       }
 
@@ -218,7 +220,7 @@ import { settingsOutline, chevronForwardOutline, cloudDownloadOutline } from 'io
         align-items: center;
         justify-content: center;
         padding: 3rem;
-        color: var(--text-muted, #a1a1aa);
+        color: var(--text-muted);
       }
     `,
   ],
@@ -228,16 +230,12 @@ export class ProfilePage implements AfterViewInit {
   updateFacade = inject(AppUpdateFacade);
   gsap = inject(GsapAnimationsService);
   private toast = inject(ToastService);
-
-  constructor() {
-    addIcons({ settingsOutline, chevronForwardOutline, cloudDownloadOutline });
-  }
+  private host = inject(ElementRef<HTMLElement>);
 
   ngAfterViewInit() {
-    setTimeout(() => {
-      const options = document.querySelectorAll('.option-item, .logout-section');
-      this.gsap.staggerListItems(options as any);
-    }, 50);
+    // Acotado al host: Ionic mantiene otras vistas en el DOM, y el
+    // querySelectorAll global de antes también podía encontrar las suyas.
+    this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-trabajo'));
   }
 
   async checkForUpdates() {
