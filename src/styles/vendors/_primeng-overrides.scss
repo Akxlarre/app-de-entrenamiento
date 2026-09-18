@@ -82,22 +82,40 @@
   --p-overlay-select-border-color: var(--border-default);
   --p-overlay-select-shadow: var(--shadow-lg);
 
-  /* Toast/Messages */
-  --p-toast-info-background: var(--state-info-bg);
+  /* Toast/Messages (fix-035).
+     PrimeNG 20 lee --p-toast-<sev>-color (título, ícono) y
+     --p-toast-<sev>-detail-color (detalle). Las -text-color que había acá
+     no existen en PrimeNG, así que regían los colores de Aura, pensados
+     para tema claro: el detalle caía en gris pizarra sobre fondo oscuro.
+     Fondo opaco: el color de estado al 12% sobre la superficie elevada.
+     El translúcido de antes dejaba ver lo que había debajo. */
+  --p-toast-info-background: color-mix(in srgb, var(--state-info) 12%, var(--bg-elevated));
   --p-toast-info-border-color: var(--state-info-border);
-  --p-toast-info-text-color: var(--state-info);
+  --p-toast-info-color: var(--state-info);
+  --p-toast-info-detail-color: var(--text-primary);
+  --p-toast-info-shadow: var(--shadow-md);
+  --p-toast-info-close-button-hover-background: var(--state-info-bg);
 
-  --p-toast-success-background: var(--state-success-bg);
+  --p-toast-success-background: color-mix(in srgb, var(--state-success) 12%, var(--bg-elevated));
   --p-toast-success-border-color: var(--state-success-border);
-  --p-toast-success-text-color: var(--state-success);
+  --p-toast-success-color: var(--state-success);
+  --p-toast-success-detail-color: var(--text-primary);
+  --p-toast-success-shadow: var(--shadow-md);
+  --p-toast-success-close-button-hover-background: var(--state-success-bg);
 
-  --p-toast-error-background: var(--state-error-bg);
+  --p-toast-error-background: color-mix(in srgb, var(--state-error) 12%, var(--bg-elevated));
   --p-toast-error-border-color: var(--state-error-border);
-  --p-toast-error-text-color: var(--state-error);
+  --p-toast-error-color: var(--state-error);
+  --p-toast-error-detail-color: var(--text-primary);
+  --p-toast-error-shadow: var(--shadow-md);
+  --p-toast-error-close-button-hover-background: var(--state-error-bg);
 
-  --p-toast-warn-background: var(--state-warning-bg);
+  --p-toast-warn-background: color-mix(in srgb, var(--state-warning) 12%, var(--bg-elevated));
   --p-toast-warn-border-color: var(--state-warning-border);
-  --p-toast-warn-text-color: var(--state-warning);
+  --p-toast-warn-color: var(--state-warning);
+  --p-toast-warn-detail-color: var(--text-primary);
+  --p-toast-warn-shadow: var(--shadow-md);
+  --p-toast-warn-close-button-hover-background: var(--state-warning-bg);
 
   /* Menu */
   --p-menu-background: var(--bg-surface);
@@ -187,7 +205,7 @@
   width: 100% !important;
   height: 4px !important;
   min-height: 4px !important;
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: var(--border-strong) !important;
   border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
   transform-origin: left !important;
   animation: toast-progress-shrink var(--duration-toast-life, 3s) linear forwards !important;
@@ -280,13 +298,14 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 2rem !important;
-  height: 2rem !important;
-  min-width: 2rem !important;
+  /* Medía 32px, bajo el piso de 44 (fix-035). */
+  width: var(--target-min) !important;
+  height: var(--target-min) !important;
+  min-width: var(--target-min) !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;
-  background: rgba(0, 0, 0, 0.06) !important;
+  background: transparent !important;
   border-radius: var(--radius-full) !important;
   cursor: pointer !important;
   color: inherit !important;
@@ -296,7 +315,7 @@
 }
 
 .p-toast-message-content .p-toast-close-button:hover {
-  background: rgba(0, 0, 0, 0.12) !important;
+  background: var(--bg-subtle) !important;
 }
 
 .p-toast-message-content .p-toast-close-icon {
@@ -304,14 +323,12 @@
   opacity: 1 !important;
 }
 
-/* Toast: below topbar (h-16 = 4rem) */
-app-main-layout p-toast.p-toast-top-right,
-app-main-layout p-toast.p-toast-top-left,
-app-main-layout p-toast.p-toast-top-center,
+/* Toast arriba: bajo el notch, sin barra superior que esquivar. El 4rem
+   de antes era para una topbar que ya no existe (fix-035). */
 .p-toast.p-toast-top-right,
 .p-toast.p-toast-top-left,
 .p-toast.p-toast-top-center {
-  top: 4rem !important;
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-4)) !important;
 }
 
 /* ============================================

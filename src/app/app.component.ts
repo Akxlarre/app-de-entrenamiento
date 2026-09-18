@@ -15,9 +15,13 @@ import { AppUpdateModalComponent } from './shared/components/app-update-modal/ap
   template: `
     <ion-app>
       <ion-router-outlet></ion-router-outlet>
+      <!-- Arriba: abajo vive el cromo del shell (tabs y barra de sesión) y
+           el toast lo tapaba entero (fix-035). -->
       <p-toast
-        position="bottom-right"
-        [breakpoints]="{ '768px': { width: '100%', right: '0', left: '0' } }"
+        position="top-center"
+        [breakpoints]="{
+          '768px': { width: 'auto', left: '1rem', right: '1rem', transform: 'none' },
+        }"
       />
       <app-update-modal
         [visible]="!!updateFacade.updateAvailable()"
