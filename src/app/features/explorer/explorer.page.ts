@@ -60,7 +60,7 @@ const MUSCLE_GROUPS = [
   template: `
     <ion-content class="explorer-content tier-trabajo" [fullscreen]="true">
       <app-header title="Catálogo de Ejercicios">
-        <div slot="bottom" class="search-container">
+        <div slot="bottom" class="search-container" data-anim="bloque">
           <ion-searchbar
             class="custom-searchbar"
             placeholder="Buscar ejercicio..."
@@ -90,7 +90,7 @@ const MUSCLE_GROUPS = [
         </div>
       </app-header>
 
-      <ion-list class="exercise-list">
+      <ion-list class="exercise-list" data-anim="bloque">
         @if (facade.loading()) {
           <div class="empty-state">
             <ion-spinner color="primary"></ion-spinner>
