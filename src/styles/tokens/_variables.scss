@@ -266,6 +266,10 @@
   /* Tinta sobre ember da 7.0:1; blanco sobre ember da 2.9:1 y reprueba.
      Por eso el texto de acción es oscuro, no claro. */
   --color-primary-text: var(--brand-ink);
+
+  /* Hueso presionado: el CTA en hueso del bloque de arranque, sobre el
+     suelo carmesí, se enciende a blanco al tocarlo (fix-031). */
+  --bone-pressed: #ffffff;
   --accent-border: rgba(255, 106, 26, 0.3);
   --accent-glow: rgba(255, 106, 26, 0.28);
   --shadow-focus: 0 0 0 3px rgba(255, 106, 26, 0.35);

@@ -727,7 +727,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         color: var(--brand-ink);
       }
       .start-card .start-btn:active:not(:disabled) {
-        background: var(--bone-pressed, #ffffff);
+        background: var(--bone-pressed);
       }
 
       /* === KPI GRID === */
