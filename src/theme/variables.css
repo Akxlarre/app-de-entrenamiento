@@ -25,3 +25,47 @@
   --ion-tab-bar-background-focused: var(--bg-elevated);
   --ion-card-background: var(--bg-surface);
 }
+
+/* Colores con nombre de Ionic (color="primary", "danger"...) en la paleta
+   Eclipse (fix-030). El texto encima va en tinta en los cinco: todos pasan
+   AA con tinta, y blanco sobre ember reprueba (2.9:1).
+   -shade y -tint siguen la fórmula de Ionic: 12% hacia negro y 10% hacia
+   blanco. Los canales -rgb van en literal, igual que arriba. */
+:root,
+:root.ios,
+:root.md {
+  --ion-color-primary: var(--color-primary);
+  --ion-color-primary-rgb: 255, 106, 26;
+  --ion-color-primary-contrast: var(--brand-ink);
+  --ion-color-primary-contrast-rgb: 10, 6, 8;
+  --ion-color-primary-shade: #e05d17;
+  --ion-color-primary-tint: var(--color-primary-hover);
+
+  --ion-color-medium: var(--text-muted);
+  --ion-color-medium-rgb: 133, 122, 115;
+  --ion-color-medium-contrast: var(--brand-ink);
+  --ion-color-medium-contrast-rgb: 10, 6, 8;
+  --ion-color-medium-shade: #756b65;
+  --ion-color-medium-tint: #918781;
+
+  --ion-color-danger: var(--state-error);
+  --ion-color-danger-rgb: 232, 69, 90;
+  --ion-color-danger-contrast: var(--brand-ink);
+  --ion-color-danger-contrast-rgb: 10, 6, 8;
+  --ion-color-danger-shade: #cc3d4f;
+  --ion-color-danger-tint: #ea586b;
+
+  --ion-color-success: var(--state-success);
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: var(--brand-ink);
+  --ion-color-success-contrast-rgb: 10, 6, 8;
+  --ion-color-success-shade: #0ea372;
+  --ion-color-success-tint: #28c08e;
+
+  --ion-color-warning: var(--state-warning);
+  --ion-color-warning-rgb: 255, 200, 61;
+  --ion-color-warning-contrast: var(--brand-ink);
+  --ion-color-warning-contrast-rgb: 10, 6, 8;
+  --ion-color-warning-shade: #e0b036;
+  --ion-color-warning-tint: #ffce50;
+}
