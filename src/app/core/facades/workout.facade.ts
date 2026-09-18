@@ -140,7 +140,28 @@ export class WorkoutFacade {
     }
   }
 
-  async startAdhocWorkout() {
+  /**
+   * Si ya hay una sesión viva, no se crea otra: se lleva al usuario a la
+   * suya y se le explica por qué. Pisarla perdía su estado local y dejaba
+   * su fila de workouts abierta para siempre (fix-029).
+   *
+   * Los métodos de inicio llaman esto antes de su primer await, así que
+   * también frena el doble toque.
+   */
+  private hayOtraSesionEnCurso(): boolean {
+    if (!this.activeSession()) return false;
+    this.toast.warning(
+      'Ya tenés una sesión en curso',
+      'Terminala o descartala antes de empezar otra.',
+    );
+    this.router.navigate(['/app/workouts/active']);
+    return true;
+  }
+
+  /** Devuelve `false` si no inició porque ya había una sesión en curso. */
+  async startAdhocWorkout(): Promise<boolean> {
+    if (this.hayOtraSesionEnCurso()) return false;
+
     const workoutId = crypto.randomUUID();
     const session: ActiveWorkoutState = {
       id: workoutId,
@@ -165,9 +186,13 @@ export class WorkoutFacade {
         );
       }
     }
+    return true;
   }
 
-  async startWorkoutFromRoutine(routine: RoutineWithExercises) {
+  /** Devuelve `false` si no inició porque ya había una sesión en curso. */
+  async startWorkoutFromRoutine(routine: RoutineWithExercises): Promise<boolean> {
+    if (this.hayOtraSesionEnCurso()) return false;
+
     const workoutId = crypto.randomUUID();
     const session: ActiveWorkoutState = {
       id: workoutId,
@@ -202,9 +227,16 @@ export class WorkoutFacade {
         await this.addExerciseFromRoutine(rx, name);
       }
     }
+    return true;
   }
 
-  async startWorkoutFromMesocycleSession(mesoSession: any, routine: RoutineWithExercises) {
+  /** Devuelve `false` si no inició porque ya había una sesión en curso. */
+  async startWorkoutFromMesocycleSession(
+    mesoSession: any,
+    routine: RoutineWithExercises,
+  ): Promise<boolean> {
+    if (this.hayOtraSesionEnCurso()) return false;
+
     const workoutId = crypto.randomUUID();
     const stateSession: ActiveWorkoutState = {
       id: workoutId,
@@ -242,6 +274,7 @@ export class WorkoutFacade {
         await this.addExerciseFromRoutine(rx, name, targets);
       }
     }
+    return true;
   }
 
   async addExerciseFromRoutine(rx: RoutineExercise, exerciseName: string, mesoTargets?: any[]) {

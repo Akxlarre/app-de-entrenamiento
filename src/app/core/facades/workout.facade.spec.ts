@@ -151,4 +151,89 @@ describe('WorkoutFacade', () => {
       expect(item.notes).toBeUndefined();
     });
   });
+
+  // Antes: con una sesión en curso, tocar una tarjeta de rutina la
+  // reemplazaba sin preguntar. Se perdía su estado local y la fila de
+  // workouts quedaba abierta para siempre.
+  describe('inicio con otra sesión en curso — no la reemplaza', () => {
+    let facade: WorkoutFacade;
+    let toast: { warning: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+    let router: { navigate: ReturnType<typeof vi.fn> };
+    let workoutsUpsert: ReturnType<typeof vi.fn>;
+
+    const enCurso = {
+      id: 'en-curso',
+      start_time: new Date(),
+      routine_id: 'rutina-a',
+      exercises: [{ exercise_id: 'ej-1', name: 'Press', sets: [] }],
+    };
+    const rutina = { id: 'rutina-b', name: 'Pierna', routine_exercises: [] } as any;
+
+    function setup(sesionActiva: unknown) {
+      localStorage.clear();
+      toast = { warning: vi.fn(), error: vi.fn() };
+      router = { navigate: vi.fn() };
+      workoutsUpsert = vi.fn().mockResolvedValue({ error: null });
+
+      TestBed.configureTestingModule({
+        providers: [
+          WorkoutFacade,
+          {
+            provide: SupabaseService,
+            useValue: { client: createMockClient({ workouts: { upsert: workoutsUpsert } }) },
+          },
+          { provide: Router, useValue: router },
+          { provide: ToastService, useValue: toast },
+        ],
+      });
+
+      facade = TestBed.inject(WorkoutFacade);
+      (facade as any).activeSession.set(sesionActiva);
+    }
+
+    const iniciar: Record<string, (f: WorkoutFacade) => Promise<boolean>> = {
+      startAdhocWorkout: (f) => f.startAdhocWorkout(),
+      startWorkoutFromRoutine: (f) => f.startWorkoutFromRoutine(rutina),
+      startWorkoutFromMesocycleSession: (f) =>
+        f.startWorkoutFromMesocycleSession({ id: 'meso-sesion-1', targets: [] }, rutina),
+    };
+
+    for (const [metodo, llamar] of Object.entries(iniciar)) {
+      it(`${metodo} deja intacta la sesión en curso y lleva a ella`, async () => {
+        setup(enCurso);
+
+        const inicio = await llamar(facade);
+
+        expect(inicio).toBe(false);
+        expect(facade.activeSession()?.id).toBe('en-curso');
+        expect(facade.activeSession()?.exercises).toHaveLength(1);
+        expect(workoutsUpsert).not.toHaveBeenCalled();
+        expect(router.navigate).toHaveBeenCalledWith(['/app/workouts/active']);
+        expect(toast.warning).toHaveBeenCalledOnce();
+      });
+    }
+
+    it('sin sesión en curso, iniciar crea una sesión nueva y no avisa', async () => {
+      setup(null);
+
+      const inicio = await facade.startAdhocWorkout();
+
+      expect(inicio).toBe(true);
+      expect(facade.activeSession()).not.toBeNull();
+      expect(workoutsUpsert).toHaveBeenCalledOnce();
+      expect(toast.warning).not.toHaveBeenCalled();
+    });
+
+    it('un doble toque no crea dos entrenamientos', async () => {
+      setup(null);
+
+      const [primero, segundo] = await Promise.all([
+        facade.startWorkoutFromRoutine(rutina),
+        facade.startWorkoutFromRoutine(rutina),
+      ]);
+
+      expect([primero, segundo]).toEqual([true, false]);
+      expect(workoutsUpsert).toHaveBeenCalledOnce();
+    });
+  });
 });
