@@ -655,27 +655,6 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         color: var(--ds-brand);
       }
 
-      .modal-btn-cancel,
-      .modal-btn-danger {
-        flex: 1;
-        padding: 0.85rem;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
-      }
-      .modal-btn-cancel {
-        background: var(--bg-elevated);
-        color: var(--text-primary);
-        border: 1px solid var(--border-default);
-      }
-      .modal-btn-danger {
-        background: var(--state-error-bg);
-        color: var(--state-error);
-        border: 1px solid var(--state-error-border);
-      }
-
       /* === HISTORY SECTION === */
       .history-section {
         display: flex;

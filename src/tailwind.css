@@ -122,6 +122,46 @@
   }
 }
 
+/* ── Acciones del pie de app-modal ─────────────────────────── */
+/* Estaban copiadas en cada página que abre un app-modal (Entrenar
+   y la sesión activa), y app-modal no puede darle estilo a lo que
+   se le proyecta. Leen el piso del tier donde se abre el modal:
+   56px en la sesión activa, 44 en el resto. Spec 0011. */
+@layer components {
+  .modal-btn-cancel,
+  .modal-btn-danger,
+  .modal-btn-primary {
+    flex: 1;
+    min-height: var(--tier-target, var(--target-min));
+    border-radius: 12px;
+    border: var(--border-tier3) solid;
+    font-weight: var(--font-bold);
+    font-size: var(--text-base);
+    cursor: pointer;
+  }
+  .modal-btn-cancel:active,
+  .modal-btn-danger:active,
+  .modal-btn-primary:active {
+    transform: scale(0.96);
+  }
+  .modal-btn-cancel {
+    background: var(--bg-elevated);
+    border-color: var(--border-default);
+    color: var(--text-primary);
+  }
+  .modal-btn-danger {
+    background: var(--state-error-bg);
+    border-color: var(--state-error-border);
+    color: var(--state-error);
+  }
+  /* Acción principal: ember con tinta. */
+  .modal-btn-primary {
+    background: var(--ds-brand);
+    border-color: var(--ds-brand);
+    color: var(--color-primary-text);
+  }
+}
+
 /* ── @utility: Botones del Design System ─────────────────── */
 /* Expone los tokens de botón como utilities de Tailwind v4.
    Uso: class="btn-primary", "btn-secondary", "btn-ghost".
