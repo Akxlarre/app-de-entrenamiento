@@ -32,6 +32,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { SessionDetailComponent } from './components/session-detail/session-detail.component';
 import { RoutineWithExercises } from '@core/models/routine.model';
 
 @Component({
@@ -55,6 +56,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
     IconComponent,
     ModalComponent,
     EmptyStateComponent,
+    SessionDetailComponent,
   ],
   template: `
     <ion-content class="workout-home tier-ceremonia" [fullscreen]="true">
@@ -346,168 +348,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
           <ion-content class="ion-padding" style="--background: var(--bg-base);">
             @if (selectedWorkout(); as workout) {
-              <div
-                style="display: flex; flex-direction: column; gap: 1rem; color: var(--text-primary); max-width: 600px; margin: 0 auto;"
-              >
-                <div
-                  style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;"
-                >
-                  <div>
-                    <div
-                      style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;"
-                    >
-                      Fecha
-                    </div>
-                    <div style="font-weight: 500;">
-                      {{ workout.start_time | date: 'EEEE, d MMMM yyyy' | titlecase }}
-                    </div>
-                  </div>
-                  <div style="text-align: right;">
-                    <div
-                      style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;"
-                    >
-                      Duración
-                    </div>
-                    <div style="font-weight: 500;">{{ workout.duration_minutes }} min</div>
-                  </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                  <div
-                    style="background: var(--bg-subtle); padding: 1rem; border-radius: 12px; text-align: center;"
-                  >
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">
-                      {{ workout.total_volume | number: '1.0-0' }}
-                    </div>
-                    <div
-                      style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"
-                    >
-                      Volumen (kg)
-                    </div>
-                  </div>
-                  <div
-                    style="background: var(--bg-subtle); padding: 1rem; border-radius: 12px; text-align: center;"
-                  >
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--color-primary);">
-                      {{ workout.total_sets }}
-                    </div>
-                    <div
-                      style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"
-                    >
-                      Series Totales
-                    </div>
-                  </div>
-                </div>
-
-                @if (workout.energy_level || workout.session_rpe || workout.notes) {
-                  <div
-                    style="background: var(--bg-subtle); padding: 1rem; border-radius: 12px; display: flex; flex-direction: column; gap: 0.75rem;"
-                  >
-                    @if (workout.energy_level || workout.session_rpe) {
-                      <div style="display: flex; gap: 1.5rem;">
-                        @if (workout.energy_level) {
-                          <div>
-                            <div
-                              style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"
-                            >
-                              Energía
-                            </div>
-                            <div style="font-weight: 500;">{{ workout.energy_level }}/5</div>
-                          </div>
-                        }
-                        @if (workout.session_rpe) {
-                          <div>
-                            <div
-                              style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;"
-                            >
-                              RPE
-                            </div>
-                            <div style="font-weight: 500;">{{ workout.session_rpe }}/10</div>
-                          </div>
-                        }
-                      </div>
-                    }
-                    @if (workout.notes) {
-                      <div>
-                        <div
-                          style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;"
-                        >
-                          Notas
-                        </div>
-                        <div style="font-weight: 500; font-style: italic;">
-                          {{ workout.notes }}
-                        </div>
-                      </div>
-                    }
-                  </div>
-                }
-
-                <div style="margin-top: 0.5rem;">
-                  <h4
-                    style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);"
-                  >
-                    Ejercicios Realizados
-                  </h4>
-                  <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    @for (ex of workout.detailed_exercises; track ex.name) {
-                      <div
-                        style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden;"
-                      >
-                        <div
-                          style="background: var(--bg-subtle); padding: 0.75rem 1rem; font-weight: 600; border-bottom: 1px solid var(--border-subtle);"
-                        >
-                          {{ ex.name }}
-                        </div>
-                        <div style="padding: 0.5rem 1rem;">
-                          @for (set of ex.sets; track set.set_number; let i = $index) {
-                            <div
-                              style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-subtle); font-size: 0.9rem;"
-                            >
-                              <div
-                                style="display: flex; align-items: center; gap: 0.5rem; width: 80px;"
-                              >
-                                <span style="color: var(--text-muted); font-weight: 600;"
-                                  >S{{ i + 1 }}</span
-                                >
-                                @if (set.set_type === 'warmup') {
-                                  <span
-                                    style="background: rgba(234, 179, 8, 0.15); color: #eab308; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase;"
-                                    >W</span
-                                  >
-                                } @else if (set.set_type === 'dropset') {
-                                  <span
-                                    style="background: rgba(168, 85, 247, 0.15); color: #a855f7; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase;"
-                                    >D</span
-                                  >
-                                } @else if (set.set_type === 'failure') {
-                                  <span
-                                    style="background: rgba(239, 68, 68, 0.15); color: var(--state-error); font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase;"
-                                    >F</span
-                                  >
-                                }
-                              </div>
-                              <div style="font-weight: 500;">{{ set.weight }} kg</div>
-                              <div style="font-weight: 500;">{{ set.reps }} reps</div>
-                              <div
-                                style="font-weight: 500; color: var(--text-muted); font-size: 0.85rem;"
-                              >
-                                RIR: {{ set.rir ?? '-' }}
-                              </div>
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    }
-                    @if (workout.detailed_exercises?.length === 0) {
-                      <div
-                        style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem;"
-                      >
-                        No se registraron ejercicios detallados.
-                      </div>
-                    }
-                  </div>
-                </div>
-              </div>
+              <app-session-detail [workout]="workout" />
             }
           </ion-content>
         </ng-template>
@@ -732,8 +573,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.75rem;
       }
       .routine-card {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
         border-radius: 14px;
         padding: 0.9rem;
         display: flex;
@@ -744,7 +585,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       }
       .routine-card:active {
         transform: scale(0.98);
-        background: rgba(255, 255, 255, 0.07);
+        background: var(--bg-elevated);
       }
       .routine-card-top {
         display: flex;
@@ -804,12 +645,12 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: center;
       }
       .routine-summary {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.5);
+        font-size: var(--text-xs);
+        color: var(--text-muted);
         margin: 0;
       }
       .start-badge {
-        font-size: 0.72rem;
+        font-size: var(--text-xs);
         font-weight: 700;
         color: var(--ds-brand);
       }
@@ -825,14 +666,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         cursor: pointer;
       }
       .modal-btn-cancel {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary, #fff);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
       }
       .modal-btn-danger {
-        background: rgba(239, 68, 68, 0.15);
+        background: var(--state-error-bg);
         color: var(--state-error);
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        border: 1px solid var(--state-error-border);
       }
 
       /* === HISTORY SECTION === */
@@ -978,8 +819,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.75rem;
       }
       .workout-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 16px;
         padding: 1.15rem;
         display: flex;
@@ -988,8 +829,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         transition: all 0.15s ease;
       }
       .workout-card:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        border-color: var(--border-default);
       }
       .card-top {
         display: flex;
@@ -1001,7 +842,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--text-primary);
         font-weight: 600;
         text-transform: capitalize;
       }
@@ -1012,7 +853,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         display: flex;
         align-items: center;
         gap: 0.3rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 500;
       }
 
@@ -1022,7 +863,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.5rem 0.75rem;
       }
       .stat-pill {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--bg-elevated);
         padding: 0.4rem 0.75rem;
         border-radius: 8px;
         display: flex;
@@ -1047,8 +888,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
       /* === LOADING STATE === */
       .loading-box {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.06);
+        background: var(--bg-surface);
+        border: 1px dashed var(--border-subtle);
         border-radius: 16px;
         padding: 2.5rem 1.5rem;
         text-align: center;
@@ -1059,7 +900,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       }
       .loading-box p {
         margin: 0;
-        color: rgba(255, 255, 255, 0.45);
+        color: var(--text-muted);
         font-size: 0.82rem;
         line-height: 1.4;
         max-width: 300px;
