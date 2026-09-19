@@ -27,6 +27,7 @@ import { closeOutline, timerOutline, flameOutline, checkmarkOutline } from 'ioni
 import { RoutineFacade } from '@core/facades/routine.facade';
 import { ExerciseSelectorComponent } from '../../explorer/exercise-selector/exercise-selector.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { CreateRoutineDto, RoutineSetType } from '@core/models/routine.model';
 import { ExerciseDefinition } from '@core/facades/exercise.facade';
 
@@ -62,29 +63,31 @@ interface DraftExercise {
     IonReorderGroup,
     IonReorder,
     IconComponent,
+    EmptyStateComponent,
     ExerciseSelectorComponent,
   ],
   template: `
     <ion-header class="ion-no-border">
-      <ion-toolbar style="--background: var(--bg-base);">
+      <ion-toolbar class="editor-toolbar">
         <ion-buttons slot="start">
           @if (isInline()) {
-            <ion-button color="medium" (click)="cancelInline.emit()">
+            <ion-button color="medium" class="close-btn" (click)="cancelInline.emit()">
               <ion-icon name="close-outline"></ion-icon>
             </ion-button>
           } @else {
             <ion-back-button defaultHref="/app/workouts" color="medium"></ion-back-button>
           }
         </ion-buttons>
-        <ion-title style="color: var(--text-primary); font-weight: 800;">{{
+        <ion-title class="editor-title">{{
           isEditMode() ? 'Editar Rutina' : 'Nueva Rutina'
         }}</ion-title>
         <ion-buttons slot="end">
           <ion-button
+            class="save-btn"
+            data-llm-action="guardar-rutina"
             (click)="saveRoutine()"
             [disabled]="!canSave() || facade.isLoading()"
             color="primary"
-            style="font-weight: 700;"
           >
             @if (facade.isLoading()) {
               Guardando...
@@ -96,7 +99,7 @@ interface DraftExercise {
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding" style="--background: var(--bg-base);">
+    <ion-content class="ion-padding tier-trabajo">
       <div class="editor-container">
         <!-- Nombre y Notas Generales -->
         <div class="meta-card">
@@ -111,14 +114,14 @@ interface DraftExercise {
             />
           </div>
 
-          <div class="input-group" style="margin-top: 0.85rem;">
+          <div class="input-group">
             <label class="field-label">Notas o descripción general (opcional)</label>
             <textarea
               class="custom-input textarea-input"
               placeholder="Ej. Descansar 2 minutos en compuestos y foco en fase excéntrica..."
               [value]="notes()"
               (input)="notes.set($any($event.target).value)"
-              rows="2"
+              rows="3"
             ></textarea>
           </div>
         </div>
@@ -130,22 +133,19 @@ interface DraftExercise {
               <h3 class="section-heading">Ejercicios y Series</h3>
               <p class="section-subheading">Configura series, tipos y descansos sugeridos</p>
             </div>
-            <button class="add-exercise-btn" (click)="isSelectorOpen.set(true)">
-              <app-icon name="plus" [size]="14" />
+            <button type="button" class="add-exercise-btn" (click)="isSelectorOpen.set(true)">
+              <app-icon name="plus" [size]="16" [ariaHidden]="true" />
               <span>Añadir</span>
             </button>
           </div>
 
           @if (exercises().length === 0) {
-            <div class="empty-state">
-              <app-icon
-                name="dumbbell"
-                [size]="40"
-                style="color: var(--text-muted); opacity: 0.6;"
-              ></app-icon>
-              <h4>Sin ejercicios en la rutina</h4>
-              <p>Presiona "Añadir" para incluir ejercicios a esta plantilla.</p>
-            </div>
+            <app-empty-state
+              class="empty-exercises"
+              icon="dumbbell"
+              message="Sin ejercicios en la rutina"
+              subtitle='Presiona "Añadir" para incluir ejercicios a esta plantilla.'
+            />
           } @else {
             <ion-reorder-group
               [disabled]="false"
@@ -155,42 +155,43 @@ interface DraftExercise {
               @for (ex of exercises(); track ex.id; let exIndex = $index) {
                 <div class="exercise-card">
                   <!-- Header del ejercicio -->
+                  <!-- El nombre a lo ancho, como título de la tarjeta; entre
+                       cuatro controles de 44 quedaba en cuatro líneas. -->
                   <div class="ex-card-header">
-                    <div class="ex-title-box">
-                      <ion-reorder class="drag-handle" title="Arrastrar para reordenar">
-                        <app-icon name="menu" [size]="15" class="drag-icon"></app-icon>
-                      </ion-reorder>
-                      <span class="ex-index">{{ exIndex + 1 }}</span>
-                      <h4 class="ex-name">{{ ex.name }}</h4>
-                    </div>
-
-                    <div class="ex-header-actions">
-                      <button
-                        type="button"
-                        class="reorder-arrow-btn"
-                        [disabled]="exIndex === 0"
-                        (click)="moveExercise(exIndex, -1)"
-                        title="Mover arriba"
-                      >
-                        <app-icon name="chevron-up" [size]="14"></app-icon>
-                      </button>
-                      <button
-                        type="button"
-                        class="reorder-arrow-btn"
-                        [disabled]="exIndex === exercises().length - 1"
-                        (click)="moveExercise(exIndex, 1)"
-                        title="Mover abajo"
-                      >
-                        <app-icon name="chevron-down" [size]="14"></app-icon>
-                      </button>
-                      <button
-                        class="remove-ex-btn"
-                        (click)="removeExercise(ex.id)"
-                        title="Eliminar ejercicio"
-                      >
-                        <app-icon name="x" [size]="20" />
-                      </button>
-                    </div>
+                    <span class="ex-index">{{ exIndex + 1 }}</span>
+                    <h4 class="ex-name">{{ ex.name }}</h4>
+                  </div>
+                  <div class="ex-toolbar">
+                    <ion-reorder class="drag-handle" title="Arrastrar para reordenar">
+                      <app-icon name="menu" [size]="18" [ariaHidden]="true"></app-icon>
+                    </ion-reorder>
+                    <span class="toolbar-spacer"></span>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      [disabled]="exIndex === 0"
+                      (click)="moveExercise(exIndex, -1)"
+                      title="Mover arriba"
+                    >
+                      <app-icon name="chevron-up" [size]="18" [ariaHidden]="true"></app-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      [disabled]="exIndex === exercises().length - 1"
+                      (click)="moveExercise(exIndex, 1)"
+                      title="Mover abajo"
+                    >
+                      <app-icon name="chevron-down" [size]="18" [ariaHidden]="true"></app-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn danger"
+                      (click)="removeExercise(ex.id)"
+                      title="Eliminar ejercicio"
+                    >
+                      <app-icon name="x" [size]="20" [ariaHidden]="true" />
+                    </button>
                   </div>
 
                   <!-- Descanso y Notas -->
@@ -259,11 +260,11 @@ interface DraftExercise {
                             @if (ex.sets.length > 1) {
                               <button
                                 type="button"
-                                class="delete-set-btn"
+                                class="icon-btn danger"
                                 (click)="removeSet(ex.id, set.id)"
                                 title="Eliminar serie"
                               >
-                                <app-icon name="trash-2" />
+                                <app-icon name="trash-2" [size]="18" [ariaHidden]="true" />
                               </button>
                             }
                           </div>
@@ -297,42 +298,67 @@ interface DraftExercise {
   `,
   styles: [
     `
+      /* Tier 2 — Trabajo (spec 0012): objetivos de 44px, color solo
+         para estado. */
+
+      /* === CABECERA === */
+      .editor-toolbar {
+        --background: var(--bg-base);
+      }
+      .editor-title {
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
+      }
+      /* "Guardar" medía 32px. */
+      .save-btn,
+      .close-btn {
+        min-height: var(--target-min);
+        font-weight: var(--font-bold);
+      }
+
       .editor-container {
         max-width: 620px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        gap: var(--space-5);
         padding-bottom: 3rem;
       }
 
-      /* === META CARD === */
+      /* === NOMBRE Y NOTAS === */
       .meta-card {
-        background: var(--bg-subtle, rgba(255, 255, 255, 0.03));
-        border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-        border-radius: 16px;
-        padding: 1.15rem;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-4);
+        padding: var(--space-4);
+        background: var(--bg-surface);
+        border: var(--border-tier3) solid var(--border-subtle);
+        border-radius: var(--radius-lg);
       }
       .input-group {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: var(--space-2);
       }
+      /* Medían 12.5px. */
       .field-label {
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: var(--text-muted, #a1a1aa);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.06em;
       }
+      /* 16px o más: con menos, iOS hace zoom al tocar el campo. Las
+         notas medían 14px. */
       .custom-input {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: var(--target-min);
+        padding: var(--space-3);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
         border-radius: 10px;
-        padding: 0.75rem 0.9rem;
         color: var(--text-primary);
-        font-size: 0.95rem;
         font-family: inherit;
+        font-size: var(--text-base);
         outline: none;
         transition: border-color 0.15s ease;
       }
@@ -340,344 +366,298 @@ interface DraftExercise {
         border-color: var(--ds-brand);
       }
       .title-input {
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
       }
       .textarea-input {
         resize: none;
-        font-size: 0.88rem;
         line-height: 1.4;
       }
 
-      /* === EXERCISES SECTION === */
+      /* === EJERCICIOS === */
       .exercises-section {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: var(--space-4);
       }
       .section-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: var(--space-3);
       }
       .section-heading {
         margin: 0;
-        font-size: 1.15rem;
-        font-weight: 800;
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
-        letter-spacing: -0.01em;
       }
       .section-subheading {
-        margin: 0.15rem 0 0 0;
-        font-size: 0.78rem;
-        color: var(--text-muted, #a1a1aa);
+        margin: 2px 0 0;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
       }
+      /* Hueso sobre ember daba 2.9:1; tinta da 7.0:1. Sin la sombra
+         azul. Medía 30px. */
       .add-exercise-btn {
+        flex-shrink: 0;
+        min-height: var(--target-min);
         display: flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: var(--space-1);
+        padding: 0 var(--space-4);
         background: var(--ds-brand);
-        color: var(--text-primary);
+        color: var(--color-primary-text);
         border: none;
-        padding: 0.5rem 0.9rem;
         border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 700;
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        transition: all 0.15s ease;
       }
       .add-exercise-btn:active {
         transform: scale(0.96);
+        background: var(--color-primary-hover);
       }
 
-      /* === EMPTY STATE === */
-      .empty-state {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 2.5rem 1.5rem;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .empty-state h4 {
-        margin: 0;
-        color: var(--text-primary);
-        font-size: 1rem;
-        font-weight: 700;
-      }
-      .empty-state p {
-        margin: 0;
-        color: var(--text-muted, #a1a1aa);
-        font-size: 0.85rem;
+      .empty-exercises {
+        background: var(--bg-surface);
+        border: var(--border-tier3) dashed var(--border-default);
+        border-radius: var(--radius-lg);
       }
 
-      /* === EXERCISE CARD === */
+      /* === TARJETA DE EJERCICIO === */
       .exercises-list {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: var(--space-4);
       }
       .exercise-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.15rem;
         display: flex;
         flex-direction: column;
-        gap: 0.85rem;
+        gap: var(--space-3);
+        padding: var(--space-3);
+        background: var(--bg-surface);
+        border: var(--border-tier3) solid var(--border-subtle);
+        border-radius: var(--radius-lg);
       }
       .ex-card-header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        align-items: baseline;
+        gap: var(--space-2);
       }
-      .ex-title-box {
+      .ex-toolbar {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: var(--space-1);
+        margin: calc(-1 * var(--space-2)) 0;
       }
+      .toolbar-spacer {
+        flex: 1;
+      }
+      /* Iba en un círculo azul. */
       .ex-index {
-        width: 24px;
-        height: 24px;
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 800;
+        flex-shrink: 0;
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
+        font-variant-numeric: tabular-nums;
+        color: var(--text-muted);
       }
       .ex-name {
         margin: 0;
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: var(--text-base);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
+        overflow-wrap: anywhere;
       }
-      .remove-ex-btn {
+      /* Subir, bajar y quitar medían 28px; borrar serie, 20. */
+      .icon-btn {
+        flex-shrink: 0;
+        width: var(--target-min);
+        height: var(--target-min);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: transparent;
         border: none;
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 1.25rem;
+        border-radius: 10px;
+        color: var(--text-secondary);
         cursor: pointer;
-        padding: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 6px;
-        transition: color 0.15s ease;
       }
-      .remove-ex-btn:hover {
-        color: var(--state-error);
+      .icon-btn:active:not(:disabled) {
+        background: var(--bg-elevated);
       }
-      .ex-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-      }
-      .reorder-arrow-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-secondary, #d4d4d8);
-        border-radius: 8px;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .reorder-arrow-btn:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.12);
-        color: var(--text-primary);
-        border-color: rgba(255, 255, 255, 0.2);
-      }
-      .reorder-arrow-btn:disabled {
-        opacity: 0.2;
+      .icon-btn:disabled {
+        opacity: 0.3;
         cursor: not-allowed;
       }
+      .icon-btn.danger {
+        color: var(--text-muted);
+      }
+      .icon-btn.danger:active {
+        color: var(--state-error);
+      }
+      /* Medía 23×19. */
       .drag-handle {
+        flex-shrink: 0;
+        width: var(--target-min);
+        height: var(--target-min);
         display: flex;
         align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
         cursor: grab;
-        padding: 2px 4px;
-      }
-      .drag-icon {
-        color: var(--text-muted, #a1a1aa);
-        opacity: 0.6;
-        transition: opacity 0.15s ease;
-      }
-      .drag-handle:hover .drag-icon {
-        opacity: 1;
-        color: var(--text-primary);
       }
 
-      /* === REST OPTIONS === */
+      /* === DESCANSO === */
       .ex-options-row {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        background: rgba(0, 0, 0, 0.2);
-        padding: 0.5rem 0.75rem;
-        border-radius: 10px;
       }
       .rest-selector-group {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-2);
       }
+      /* Medía 11.5px. */
       .option-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--text-muted, #a1a1aa);
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: var(--space-1);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
         text-transform: uppercase;
       }
       .rest-pills {
         display: flex;
-        gap: 0.35rem;
+        gap: var(--space-1);
       }
+      /* Medían 35×18. Elegido en ember, no en azul. */
       .rest-pill {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-muted, #a1a1aa);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.72rem;
-        font-weight: 700;
+        min-width: var(--target-min);
+        min-height: var(--target-min);
+        padding: 0 var(--space-2);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        font-family: var(--font-data);
+        font-size: var(--text-base);
+        font-weight: var(--font-semibold);
         cursor: pointer;
-        transition: all 0.15s ease;
       }
       .rest-pill.active {
-        background: rgba(59, 130, 246, 0.2);
+        background: var(--color-primary-muted);
         border-color: var(--ds-brand);
-        color: var(--color-primary-hover);
+        color: var(--text-primary);
       }
 
-      /* === SETS TABLE === */
+      /* === SERIES === */
       .sets-table {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: var(--space-2);
       }
-      .sets-header {
+      /* 44 · tipo · 72 · 44: en 375px la columna del tipo mide unos
+         140px y "Calentamiento (W)" entra en una línea. */
+      .sets-header,
+      .set-row {
         display: grid;
-        grid-template-columns: 36px 95px 1fr 36px;
-        gap: 0.5rem;
+        grid-template-columns: var(--target-min) 1fr 72px var(--target-min);
+        gap: 6px;
         align-items: center;
-        font-size: 0.65rem;
-        font-weight: 800;
-        color: rgba(255, 255, 255, 0.35);
-        letter-spacing: 0.06em;
-        padding: 0 4px;
       }
+      /* Medía 10.4px, y "SERIE" se partía en dos líneas. */
+      .sets-header {
+        text-align: center;
+        white-space: nowrap;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
+        letter-spacing: 0.02em;
+      }
+      /* "OBJETIVO REPS" no entra en 72px: toma también la columna de
+         borrar, que no tiene encabezado. */
+      .sets-header .col-reps {
+        grid-column: span 2;
+        text-align: left;
+      }
+      .sets-header .col-action {
+        display: none;
+      }
+      /* Filas sin tarjeta propia: se repiten (regla de densidad). */
       .sets-rows {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
-      }
-      .set-row {
-        display: grid;
-        grid-template-columns: 36px 95px 1fr 36px;
-        gap: 0.5rem;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        padding: 0.4rem 0.5rem;
+        gap: var(--space-2);
       }
       .set-num-label {
         text-align: center;
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: var(--text-muted, #a1a1aa);
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
+        color: var(--text-muted);
       }
 
-      /* Set Type Badge Button */
+      /* Neutros, como en la sesión activa y el historial: iban en verde
+         de éxito, amarillo, morado y rojo de error. Medían 25px. */
       .set-type-badge {
         width: 100%;
-        padding: 0.35rem 0.5rem;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        border: 1px solid transparent;
+        min-height: var(--target-min);
+        padding: 0 6px;
+        border-radius: 10px;
+        background: transparent;
+        border: var(--border-tier3) solid var(--border-default);
+        color: var(--text-secondary);
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        white-space: nowrap;
         cursor: pointer;
-        text-align: center;
-        transition: all 0.15s ease;
       }
-      .set-type-badge.normal {
-        background: rgba(16, 185, 129, 0.12);
-        border-color: rgba(16, 185, 129, 0.3);
-        color: var(--state-success);
-      }
-      .set-type-badge.warmup {
-        background: rgba(234, 179, 8, 0.12);
-        border-color: rgba(234, 179, 8, 0.3);
-        color: #eab308;
-      }
-      .set-type-badge.dropset {
-        background: rgba(168, 85, 247, 0.12);
-        border-color: rgba(168, 85, 247, 0.3);
-        color: #a855f7;
-      }
+      .set-type-badge.warmup,
+      .set-type-badge.dropset,
       .set-type-badge.failure {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.3);
-        color: var(--state-error);
+        border-color: var(--border-strong);
+        color: var(--text-primary);
       }
 
+      /* Medía 34px de alto y 13.6px de letra: iOS hacía zoom. */
       .reps-input {
         width: 100%;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
-        padding: 0.35rem 0.6rem;
+        min-height: var(--target-min);
+        padding: 0 var(--space-1);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 10px;
         color: var(--text-primary);
-        font-size: 0.85rem;
-        font-weight: 600;
-        outline: none;
+        font-family: var(--font-data);
+        font-size: var(--text-base);
+        font-weight: var(--font-semibold);
         text-align: center;
+        outline: none;
       }
       .reps-input:focus {
         border-color: var(--ds-brand);
       }
 
-      .delete-set-btn {
-        background: transparent;
-        border: none;
-        color: rgba(255, 255, 255, 0.3);
-        font-size: 1rem;
-        cursor: pointer;
+      .action-cell {
         display: flex;
-        align-items: center;
         justify-content: center;
-        padding: 2px;
-      }
-      .delete-set-btn:hover {
-        color: var(--state-error);
       }
 
+      /* Medía 29px. */
       .add-set-btn {
-        margin-top: 0.35rem;
+        min-height: var(--target-min);
         background: transparent;
-        border: 1px dashed rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 0.45rem;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.8rem;
-        font-weight: 700;
+        border: var(--border-tier3) dashed var(--border-default);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
         cursor: pointer;
-        transition: all 0.15s ease;
       }
       .add-set-btn:active {
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--bg-elevated);
         color: var(--text-primary);
       }
     `,
