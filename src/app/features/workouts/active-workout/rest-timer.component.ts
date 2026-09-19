@@ -6,6 +6,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent],
+  // El anillo es un cronómetro: lo único que Tier 3 deja moverse.
+  host: { class: 'tier-cronometro' },
   template: `
     @if (isActive()) {
       <div class="rest-timer-container">
@@ -36,7 +38,6 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
         } @else {
           <div class="finished-state">
-            <div class="finished-ripple"></div>
             <h2 class="finished-text">¡A DARLE!</h2>
           </div>
         }
@@ -52,24 +53,15 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   `,
   styles: [
     `
+      /* Tier 3: el anillo es el cronómetro y es lo único que se mueve.
+         Se fueron la entrada animada, el pulso de lo urgente, el destello
+         y el "pop" de "¡A DARLE!", todos en @keyframes propios. */
       .rest-timer-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1.25rem 0;
-        gap: 1rem;
-        animation: fadeIn 0.3s ease;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        padding: var(--space-4) 0;
+        gap: var(--space-4);
       }
 
       .timer-ring {
@@ -86,7 +78,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 
       .ring-bg {
         fill: none;
-        stroke: rgba(255, 255, 255, 0.06);
+        stroke: var(--border-default);
         stroke-width: 6;
       }
 
@@ -100,8 +92,9 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           stroke-dashoffset 1s linear,
           stroke 0.3s ease;
       }
+      /* Aviso, no error: que el descanso se termine no es una falla. */
       .ring-progress.urgent {
-        stroke: var(--state-error);
+        stroke: var(--state-warning);
       }
 
       .timer-text {
@@ -111,145 +104,102 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: color 0.3s ease;
+      }
+      .timer-text.urgent-text .timer-seconds {
+        color: var(--state-warning);
       }
 
-      .timer-text.urgent-text {
-        animation: pulse-urgent 1s infinite;
-      }
-      .timer-text.urgent-text .timer-seconds,
-      .timer-text.urgent-text .timer-label {
-        color: var(--state-error) !important;
-      }
-      @keyframes pulse-urgent {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.08);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
+      /* Iba en Anton. */
       .timer-seconds {
-        font-family: var(--font-display);
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--text-primary, #fff);
+        font-family: var(--font-data);
+        font-size: var(--text-3xl);
+        font-weight: var(--font-semibold);
+        line-height: 1.1;
+        color: var(--text-primary);
         font-variant-numeric: tabular-nums;
-        transition: color 0.3s ease;
       }
 
+      /* Medía 11.2px. */
       .timer-label {
-        font-size: 0.7rem;
+        font-size: var(--text-xs);
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-muted, #a1a1aa);
-        margin-top: 2px;
-        transition: color 0.3s ease;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
       }
 
+      /* Mismo alto que anillo + acciones, para que nada salte. */
       .finished-state {
-        position: relative;
         width: 120px;
         height: 120px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 34px; /* matches timer-actions height roughly to prevent jump */
-      }
-      .finished-ripple {
-        position: absolute;
-        inset: 0;
-        border-radius: 50%;
-        background: rgba(59, 130, 246, 0.2);
-        border: 2px solid var(--ds-brand);
-        animation: ripple-out 1.2s ease-out forwards;
+        margin-bottom: calc(var(--space-4) + var(--target-min-critical));
       }
       .finished-text {
-        position: relative;
-        z-index: 10;
-        font-size: 1.5rem;
-        font-weight: 800;
-        font-style: italic;
-        color: var(--text-primary);
+        font-family: var(--font-data);
+        font-size: var(--text-2xl);
+        font-weight: var(--font-bold);
+        color: var(--ds-brand);
         margin: 0;
-        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      }
-
-      @keyframes ripple-out {
-        0% {
-          transform: scale(0.8);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(2.5);
-          opacity: 0;
-        }
-      }
-      @keyframes pop-in {
-        0% {
-          transform: scale(0.5);
-          opacity: 0;
-        }
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
       }
 
       .timer-actions {
         display: flex;
-        gap: 0.75rem;
+        gap: var(--space-2);
       }
 
+      /* Medían 34px. */
       .timer-action-btn {
-        padding: 0.5rem 1.25rem;
-        border-radius: 10px;
-        border: none;
-        font-weight: 600;
-        font-size: 0.85rem;
+        min-width: var(--target-min-critical);
+        min-height: var(--target-min-critical);
+        padding: 0 var(--space-4);
+        border-radius: 12px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-surface);
+        color: var(--text-primary);
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        font-variant-numeric: tabular-nums;
         cursor: pointer;
-        transition: all 0.15s ease;
-        background: rgba(255, 255, 255, 0.06);
-        color: var(--text-primary, #fff);
+        transition: transform 0.15s ease;
       }
-
       .timer-action-btn:active {
         transform: scale(0.95);
+        background: var(--bg-elevated);
       }
-
+      /* Iba en el azul de la marca anterior. */
       .timer-action-btn.skip {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
       }
 
       .manual-rest-container {
         display: flex;
         justify-content: center;
-        padding-top: 0.5rem;
-        animation: fadeIn 0.3s ease;
+        padding-top: var(--space-2);
       }
+      /* Medía 37px. */
       .manual-rest-btn {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 1.25rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
-        color: var(--text-muted, #a1a1aa);
-        font-weight: 600;
-        font-size: 0.85rem;
+        gap: var(--space-2);
+        min-height: var(--target-min-critical);
+        padding: 0 var(--space-5);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-full);
+        color: var(--text-secondary);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease;
       }
       .manual-rest-btn:active {
         transform: scale(0.95);
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
         color: var(--text-primary);
       }
     `,

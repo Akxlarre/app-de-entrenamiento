@@ -26,6 +26,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { CoachChatComponent } from '@shared/components/coach-chat/coach-chat.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { nombreTipoSerie } from '@core/utils/set-type.utils';
 import {
   WorkoutReport,
   WorkoutExerciseFeedback,
@@ -54,16 +56,15 @@ import {
     ModalComponent,
     DrawerComponent,
     CoachChatComponent,
+    EmptyStateComponent,
     FormsModule,
   ],
   template: `
-    <!-- Floating Header -->
-    <ion-header
-      class="ion-no-border"
-      style="position: absolute; background: transparent; z-index: 50;"
-    >
-      <ion-toolbar style="--background: transparent;">
-        <div class="active-header-card">
+    <!-- Tier 3 en encabezado y contenido, no en el host: los modales
+         (0011) no son la superficie de registro. -->
+    <ion-header class="ion-no-border tier-dato">
+      <ion-toolbar class="active-toolbar">
+        <div class="active-header">
           <ion-back-button
             defaultHref="/app/workouts"
             text=""
@@ -71,24 +72,33 @@ import {
             class="back-btn"
           ></ion-back-button>
           <h1 class="header-title">Sesión</h1>
-          <div style="display: flex; gap: 2px; align-items: center; flex-shrink: 0;">
+          <div class="header-actions">
             <button
+              type="button"
               class="coach-header-btn"
               (click)="coachFacade.toggleDrawer()"
               title="Consultar a tu Coach IA"
             >
-              <app-icon name="sparkles" [size]="16"></app-icon>
+              <app-icon name="sparkles" [size]="16" [ariaHidden]="true"></app-icon>
               Coach
             </button>
             <button
+              type="button"
               class="discard-header-btn"
+              data-llm-action="descartar-entrenamiento"
               (click)="discardModalOpen.set(true)"
               title="Descartar entrenamiento"
             >
-              <app-icon name="trash-2" [size]="16"></app-icon>
+              <app-icon name="trash-2" [size]="20" [ariaHidden]="true"></app-icon>
             </button>
-            <button class="finish-btn" (click)="confirmFinishWorkout()">
-              <app-icon name="check-circle" [size]="16"></app-icon>
+            <!-- Sin ícono: con controles de 56px, es lo que deja entrar
+                 "Sesión" sin cortarse en 375px. -->
+            <button
+              type="button"
+              class="finish-btn"
+              data-llm-action="terminar-entrenamiento"
+              (click)="confirmFinishWorkout()"
+            >
               Terminar
             </button>
           </div>
@@ -96,7 +106,7 @@ import {
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="workout-content">
+    <ion-content class="workout-content tier-dato">
       @if (facade.activeSession(); as session) {
         <!-- Timer Global -->
         <div class="timer-container">
@@ -111,36 +121,35 @@ import {
           @for (ex of session.exercises; track ex.exercise_id; let exIndex = $index) {
             <div class="exercise-card">
               <!-- Exercise Header -->
+              <!-- Sin la mancuerna: era el mismo ícono en cada ejercicio. -->
               <div class="exercise-header">
-                <div style="display:flex; align-items:center; gap: 0.5rem">
-                  <span class="exercise-emoji">
-                    <app-icon name="dumbbell" [size]="20"></app-icon>
-                  </span>
-                  <div>
-                    <h3 class="exercise-title">{{ ex.exercise_name }}</h3>
-                    @if (ex.rest_seconds) {
-                      <span
-                        style="font-size: 0.72rem; color: var(--color-primary-hover); font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"
-                      >
-                        <app-icon name="timer" [size]="12"></app-icon> Descanso:
-                        {{ ex.rest_seconds }}s
-                      </span>
-                    }
-                  </div>
+                <div class="exercise-heading">
+                  <h3 class="exercise-title">{{ ex.exercise_name }}</h3>
+                  @if (ex.rest_seconds) {
+                    <span class="ex-rest">
+                      <app-icon name="timer" [size]="14" [ariaHidden]="true"></app-icon>
+                      Descanso: {{ ex.rest_seconds }}s
+                    </span>
+                  }
                 </div>
 
                 <button
+                  type="button"
                   class="feedback-ex-btn"
+                  [attr.aria-label]="'Feedback de ' + ex.exercise_name"
                   (click)="openExerciseFeedback(ex.exercise_id, ex.exercise_name, ex.feedback)"
                   [class.has-feedback]="ex.feedback"
                 >
-                  <app-icon name="message-circle" [size]="20" />
+                  <app-icon name="message-circle" [size]="20" [ariaHidden]="true" />
                 </button>
                 <button
+                  type="button"
                   class="delete-ex-btn"
+                  [attr.aria-label]="'Quitar ' + ex.exercise_name"
+                  data-llm-action="quitar-ejercicio"
                   (click)="confirmRemoveExercise(ex.exercise_id, ex.exercise_name)"
                 >
-                  <app-icon name="x" [size]="20" />
+                  <app-icon name="x" [size]="20" [ariaHidden]="true" />
                 </button>
               </div>
 
@@ -164,8 +173,12 @@ import {
                     <ion-item class="set-item" lines="none">
                       <div class="set-row" [class.is-completed]="set.completed">
                         <button
+                          type="button"
                           class="set-badge {{ set.set_type || 'normal' }}"
                           [class.completed]="set.completed"
+                          [attr.aria-label]="
+                            'Serie ' + (setIndex + 1) + ': ' + nombreTipoSerie(set.set_type)
+                          "
                           (click)="
                             openSetTypeOptions(ex.exercise_id, set.id, set.set_type || 'normal')
                           "
@@ -191,6 +204,7 @@ import {
                         <div
                           class="input-wrapper reps-wrapper"
                           [class.is-previous]="set.is_from_previous && !set.completed"
+                          [class.has-target]="set.target_reps && !set.completed"
                         >
                           <ion-input
                             type="number"
@@ -226,11 +240,14 @@ import {
                           </ion-input>
                         </div>
                         <button
+                          type="button"
                           class="check-btn"
                           [class.checked]="set.completed"
+                          [attr.aria-label]="'Serie ' + (setIndex + 1) + ' completada'"
+                          [attr.aria-pressed]="set.completed"
                           (click)="onToggleSet(ex.exercise_id, set.id, set.completed, $event)"
                         >
-                          <app-icon name="check" [size]="18" />
+                          <app-icon name="check" [size]="22" [ariaHidden]="true" />
                         </button>
                       </div>
                     </ion-item>
@@ -248,7 +265,7 @@ import {
               </div>
 
               <!-- Add Set -->
-              <button class="add-set-btn" (click)="facade.addSet(ex.exercise_id)">
+              <button type="button" class="add-set-btn" (click)="facade.addSet(ex.exercise_id)">
                 + Añadir Serie
               </button>
             </div>
@@ -256,21 +273,20 @@ import {
         </div>
 
         <!-- Add Exercise CTA -->
-        <button class="add-exercise-btn" (click)="isSelectorOpen.set(true)">
-          <app-icon name="plus" [size]="20" />
+        <button type="button" class="add-exercise-btn" (click)="isSelectorOpen.set(true)">
+          <app-icon name="plus" [size]="20" [ariaHidden]="true" />
           Añadir Ejercicio
         </button>
 
         <!-- Bottom spacer for safe area -->
         <div class="bottom-spacer"></div>
       } @else {
-        <div class="empty-workout">
-          <span class="empty-emoji">
-            <app-icon name="dumbbell" [size]="48" style="color: var(--text-muted)"></app-icon>
-          </span>
-          <h2>No hay entrenamiento activo</h2>
-          <p>Inicia uno desde la pestaña Entrenar.</p>
-        </div>
+        <!-- El estado vacío unificado de la app; tenía uno propio. -->
+        <app-empty-state
+          icon="dumbbell"
+          message="No hay entrenamiento activo"
+          subtitle="Inicia uno desde la pestaña Entrenar."
+        />
       }
     </ion-content>
 
@@ -285,8 +301,10 @@ import {
       </ng-template>
     </ion-modal>
 
+    <!-- Los seis modales se usan entrenando: Tier 3 (spec 0011). -->
     <!-- Discard Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="discardModalOpen()"
       title="Descartar Entrenamiento"
       (closed)="discardModalOpen.set(false)"
@@ -309,6 +327,7 @@ import {
 
     <!-- Delete Exercise Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="deleteExerciseData() !== null"
       title="Eliminar Ejercicio"
       (closed)="deleteExerciseData.set(null)"
@@ -334,20 +353,18 @@ import {
 
     <!-- Finish Workout Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="finishModalOpen()"
       title="Terminar Entrenamiento"
       (closed)="finishModalOpen.set(false)"
     >
       @if (uncompletedSetsCount() > 0) {
-        <div
-          style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;"
-        >
-          <h4
-            style="color: #eab308; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;"
-          >
-            <app-icon name="alert-triangle" [size]="18"></app-icon> Series incompletas
+        <div class="finish-warning">
+          <h4 class="finish-warning-title">
+            <app-icon name="alert-triangle" [size]="18" [ariaHidden]="true"></app-icon> Series
+            incompletas
           </h4>
-          <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">
+          <p class="finish-warning-text">
             Tienes <strong>{{ uncompletedSetsCount() }}</strong> serie(s) sin marcar. Si terminas
             ahora, esas series no se guardarán en tu progreso.
           </p>
@@ -360,13 +377,14 @@ import {
       <ng-container appModalFooter>
         <div style="display: flex; gap: 1rem; width: 100%">
           <button class="modal-btn-cancel" (click)="finishModalOpen.set(false)">Volver</button>
-          <button class="modal-btn-success" (click)="proceedToReport()">Continuar</button>
+          <button class="modal-btn-primary" (click)="proceedToReport()">Continuar</button>
         </div>
       </ng-container>
     </app-modal>
 
     <!-- Set Type Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="activeSetForType() !== null"
       title="Tipo de Serie"
       (closed)="activeSetForType.set(null)"
@@ -409,6 +427,7 @@ import {
 
     <!-- Exercise Feedback Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="exerciseFeedbackData() !== null"
       [title]="'Feedback: ' + exerciseFeedbackData()?.name"
       (closed)="exerciseFeedbackData.set(null)"
@@ -474,13 +493,14 @@ import {
           <button class="modal-btn-cancel" (click)="exerciseFeedbackData.set(null)">
             Cancelar
           </button>
-          <button class="modal-btn-success" (click)="saveExerciseFeedback()">Guardar</button>
+          <button class="modal-btn-primary" (click)="saveExerciseFeedback()">Guardar</button>
         </div>
       </ng-container>
     </app-modal>
 
     <!-- Session Report Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="sessionReportOpen()"
       title="Resumen de Sesión"
       (closed)="sessionReportOpen.set(false)"
@@ -506,7 +526,7 @@ import {
         </div>
 
         <label class="form-label mt-4">RPE Global (Dificultad 1-10)</label>
-        <div class="rating-row" style="flex-wrap: wrap; gap: 4px;">
+        <div class="rating-row">
           @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
             <button
               class="rating-btn small"
@@ -529,7 +549,7 @@ import {
       <ng-container appModalFooter>
         <div style="display: flex; gap: 1rem; width: 100%">
           <button class="modal-btn-cancel" (click)="sessionReportOpen.set(false)">Saltar</button>
-          <button class="modal-btn-success" (click)="executeFinishWorkout()">
+          <button class="modal-btn-primary" (click)="executeFinishWorkout()">
             Terminar y Guardar
           </button>
         </div>
@@ -555,222 +575,308 @@ import {
   `,
   styles: [
     `
-      /* === TOOLBAR === */
-      .workout-content {
-        --background: var(--ion-background-color, #0a0a0a);
-      }
+      /* Sin regla de fondo propia: la global de ion-content ya pinta la
+         tinta (fix-028). */
 
-      .feedback-ex-btn {
-        background: transparent;
-        color: rgba(255, 255, 255, 0.3);
-        font-size: 1.2rem;
-        padding: 0.2rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .feedback-ex-btn.has-feedback {
-        color: var(--ds-brand);
-        background: rgba(59, 130, 246, 0.1);
-      }
-      .feedback-ex-btn:active {
-        background: rgba(59, 130, 246, 0.2);
-      }
-
+      /* === MODALES (spec 0011) ===
+         Llevan .tier-dato: --tier-target vale 56px. El margen de
+         .mt-4 lo pone la utilidad de Tailwind (aplica desde fix-036). */
       .form-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 700;
-        margin-bottom: 0.5rem;
         display: block;
-      }
-      .mt-4 {
-        margin-top: 1rem;
+        margin-bottom: var(--space-2);
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
       }
 
       .category-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: var(--space-2);
       }
 
+      /* Energía en una fila y RPE en dos, de cinco: 57px por celda en
+         375px. Medían 54×37 y 26×31. */
+      .rating-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--space-1);
+      }
+
+      /* Las categorías medían 34px. */
       .category-btn,
       .rating-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 0.5rem;
-        color: var(--text-primary);
-        font-weight: 600;
-        transition: all 0.2s;
-      }
-
-      .category-btn.selected,
-      .rating-btn.selected {
-        background: rgba(59, 130, 246, 0.15);
-        border-color: var(--ds-brand);
-        color: var(--color-primary-hover);
-      }
-
-      .rating-row {
+        min-height: var(--tier-target);
         display: flex;
-        gap: 8px;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-weight: var(--font-semibold);
       }
       .rating-btn {
-        flex: 1;
-        text-align: center;
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-variant-numeric: tabular-nums;
       }
-      .rating-btn.small {
-        padding: 0.4rem 0.2rem;
+      /* Elegido: ember, no el azul anterior. */
+      .category-btn.selected,
+      .rating-btn.selected,
+      .set-type-option.selected {
+        background: var(--color-primary-muted);
+        border-color: var(--ds-brand);
       }
 
       .input-wrapper-feedback {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        padding: 0 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: var(--tier-target);
+        display: flex;
+        align-items: center;
+        padding: 0 var(--space-3);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 12px;
+      }
+      .input-wrapper-feedback:focus-within {
+        border-color: var(--ds-brand);
       }
       .input-wrapper-feedback ion-input {
         --padding-start: 0;
         --padding-end: 0;
+        min-height: var(--tier-target);
         text-align: left;
         font-weight: 400;
       }
 
-      /* === FLOATING HEADER === */
-      .active-header-card {
-        margin: max(4px, env(safe-area-inset-top, 4px)) 12px 4px 12px;
-        background: rgba(10, 10, 12, 0.85);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      /* ============================================================
+         SUPERFICIE DE REGISTRO — Tier 3 (spec 0010)
+         Objetivos de 56px, cifras en --font-data, sin sombras ni
+         superficie decorativa. Ember solo en el cronómetro, "Terminar"
+         y "Añadir Ejercicio" (regla 3-2-1).
+         ============================================================ */
+
+      /* === ENCABEZADO ===
+         Era una tarjeta flotante de vidrio con desenfoque y sombra, y
+         botones de 30px. Barra sólida en tinta. */
+      .active-toolbar {
+        --background: var(--bg-base);
+        --border-style: solid;
+        --border-width: 0 0 var(--border-tier3);
+        --border-color: var(--border-subtle);
+        --min-height: calc(var(--target-min-critical) + var(--space-2));
+        --padding-start: var(--space-1);
+        --padding-end: var(--space-2);
+      }
+
+      .active-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: 6px 12px;
+        gap: var(--space-1);
+        width: 100%;
       }
 
+      /* Ionic fija 48px en su :host y no lee --min-width. */
       .back-btn {
-        --color: var(--text-muted, #a1a1aa);
+        --color: var(--text-secondary);
+        width: var(--target-min-critical);
+        height: var(--target-min-critical);
+        min-width: var(--target-min-critical);
+        min-height: var(--target-min-critical);
         margin: 0;
+        flex-shrink: 0;
       }
 
+      /* Iba en Anton a 16px. */
       .header-title {
-        font-size: 1rem;
-        font-weight: 700;
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-weight: var(--font-semibold);
         color: var(--text-primary);
         margin: 0;
         flex: 1;
-        text-align: left;
-        padding-left: 4px;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      .discard-header-btn {
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        flex-shrink: 0;
+      }
+
+      .coach-header-btn,
+      .finish-btn {
+        min-height: var(--target-min-critical);
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 6px 8px;
-        background: rgba(239, 68, 68, 0.12);
-        border: 1px solid rgba(239, 68, 68, 0.25);
-        border-radius: 10px;
+        gap: var(--space-1);
+        padding: 0 var(--space-3);
+        border-radius: 12px;
+        font-weight: var(--font-bold);
+        font-size: var(--text-sm);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      /* Iba en un degradado violeta que Eclipse no tiene. */
+      .coach-header-btn {
+        background: var(--bg-surface);
+        border: var(--border-tier3) solid var(--border-default);
+        color: var(--text-secondary);
+      }
+      /* Acción principal de la vista: ember. Iba en el verde de éxito,
+         que es un estado, no una acción. */
+      .finish-btn {
+        background: var(--ds-brand);
+        border: var(--border-tier3) solid var(--ds-brand);
+        color: var(--color-primary-text);
+      }
+      .finish-btn:active {
+        background: var(--color-primary-hover);
+      }
+
+      .discard-header-btn {
+        width: var(--target-min-critical);
+        height: var(--target-min-critical);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--state-error-bg);
+        border: var(--border-tier3) solid var(--state-error-border);
+        border-radius: 12px;
         color: var(--state-error);
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease;
       }
+
+      .coach-header-btn:active,
+      .finish-btn:active,
       .discard-header-btn:active {
         transform: scale(0.95);
       }
 
-      .finish-btn {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 10px;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-        border-radius: 10px;
-        color: var(--state-success);
-        font-weight: 700;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .finish-btn:active {
-        transform: scale(0.95);
-      }
-      .finish-btn ion-icon {
-        font-size: 1.1rem;
-      }
-
-      /* === TIMER === */
+      /* === CRONÓMETRO === */
       .timer-container {
         text-align: center;
-        padding: calc(80px + env(safe-area-inset-top, 0px)) 0 0.5rem 0;
+        padding: var(--space-4) 0 var(--space-2);
       }
 
-      /* === EXERCISES === */
+      /* === EJERCICIOS ===
+         Sección con línea, no tarjeta: Tier 3 no tiene superficie
+         decorativa, y el ancho del borde y el relleno lo necesitan
+         cinco columnas de 56px. */
       .exercises-container {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        padding: 0.5rem 1rem 0 1rem;
+        padding: var(--space-2) var(--space-4) 0;
       }
 
       .exercise-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        border-radius: 16px;
-        padding: 1.25rem;
+        padding: var(--space-4) 0;
+        border-top: var(--border-tier3) solid var(--border-default);
+      }
+      .exercise-card:first-child {
+        border-top: none;
       }
 
       .exercise-header {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: var(--space-1);
       }
 
-      .exercise-emoji {
-        font-size: 1.4rem;
+      .exercise-heading {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }
 
       .exercise-title {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text-primary, #fff);
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
+        color: var(--text-primary);
         margin: 0;
         letter-spacing: -0.01em;
       }
 
-      .divider {
-        height: 1px;
-        background: rgba(255, 255, 255, 0.06);
-        margin: 0.85rem 0;
+      /* Medía 11.5px y en ember. */
+      .ex-rest {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--text-secondary);
       }
 
-      /* === SET TABLE === */
-      .set-header {
+      /* Medían 26px. */
+      .feedback-ex-btn,
+      .delete-ex-btn {
+        width: var(--target-min-critical);
+        height: var(--target-min-critical);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-full);
+        color: var(--text-muted);
+        cursor: pointer;
+      }
+      /* Con nota: más contraste, no ember. Puede haber una por
+         ejercicio y el ember ya tiene sus tres lugares. */
+      .feedback-ex-btn.has-feedback {
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+      }
+      .feedback-ex-btn:active,
+      .delete-ex-btn:active {
+        background: var(--bg-elevated);
+      }
+      .delete-ex-btn:active {
+        color: var(--state-error);
+      }
+
+      .divider {
+        height: var(--border-tier3);
+        background: var(--border-subtle);
+        margin: var(--space-3) 0;
+      }
+
+      /* === TABLA DE SERIES === */
+      .set-header,
+      .set-row {
         display: grid;
-        grid-template-columns: 36px 1fr 1fr 0.8fr 44px;
+        grid-template-columns:
+          var(--target-min-critical) 1fr 1fr 0.8fr
+          var(--target-min-critical);
+        gap: var(--space-1);
+      }
+
+      /* Medía 10.4px. */
+      .set-header {
+        align-items: center;
         text-align: center;
-        font-size: 0.65rem;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.35);
-        letter-spacing: 0.08em;
-        margin-bottom: 0.5rem;
-        padding: 0 2px;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
+        letter-spacing: 0.06em;
+        margin-bottom: var(--space-2);
       }
 
       .sets-list {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-2);
       }
 
       ion-item.set-item {
@@ -782,158 +888,115 @@ import {
       }
 
       ion-item-options {
-        border-radius: 10px;
-        margin: 3px 0;
+        border-radius: 12px;
         overflow: hidden;
       }
       ion-item-option {
-        --border-radius: 10px;
-        margin-left: 6px;
+        --border-radius: 12px;
+        min-width: var(--target-min-critical);
+        margin-left: var(--space-2);
       }
 
+      /* Ancho explícito: dentro de ion-item la fila medía lo que su
+         contenido, y los campos ya no aportan ancho (van superpuestos). */
       .set-row {
-        display: grid;
-        grid-template-columns: 36px 1fr 1fr 0.8fr 44px;
+        width: 100%;
         align-items: center;
-        gap: 6px;
-        padding: 3px;
-        border-radius: 10px;
+        border-radius: 12px;
         transition: background 0.25s ease;
       }
 
       .set-row.is-completed {
-        background: rgba(16, 185, 129, 0.08);
+        background: var(--state-success-bg);
       }
 
+      /* Medía 28px. */
       .set-badge {
-        font-weight: 700;
-        font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.3);
-        text-align: center;
-        width: 28px;
-        height: 28px;
+        width: 100%;
+        height: var(--target-min-critical);
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.04);
-        margin: 0 auto;
+        border-radius: 12px;
+        border: var(--border-tier3) solid var(--border-default);
+        background: transparent;
+        color: var(--text-secondary);
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
+        font-variant-numeric: tabular-nums;
         cursor: pointer;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
       }
       .set-badge:active {
         transform: scale(0.9);
       }
-
-      .set-badge.normal.completed {
-        background: rgba(16, 185, 129, 0.15);
-        color: var(--state-success);
-      }
-
-      /* Warmup */
-      .set-badge.warmup {
-        background: rgba(234, 179, 8, 0.15);
-        color: #eab308;
-        border-color: rgba(234, 179, 8, 0.3);
-      }
-      .set-badge.warmup.completed {
-        background: #eab308;
-        color: #000;
-      }
-
-      /* Dropset */
-      .set-badge.dropset {
-        background: rgba(168, 85, 247, 0.15);
-        color: #a855f7;
-        border-color: rgba(168, 85, 247, 0.3);
-      }
-      .set-badge.dropset.completed {
-        background: #a855f7;
-        color: var(--text-primary);
-      }
-
-      /* Failure */
+      /* Neutros, como en el historial (0008): iban en amarillo y
+         morado, que Eclipse no tiene, y "al fallo" en rojo de error.
+         La letra dice el tipo y el aria-label lo nombra. */
+      .set-badge.warmup,
+      .set-badge.dropset,
       .set-badge.failure {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--state-error);
-        border-color: rgba(239, 68, 68, 0.3);
-      }
-      .set-badge.failure.completed {
-        background: var(--state-error);
+        border-color: var(--border-strong);
         color: var(--text-primary);
       }
-
-      .delete-ex-btn {
-        background: transparent;
-        color: rgba(255, 255, 255, 0.3);
-        font-size: 1.2rem;
-        padding: 0.2rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .delete-ex-btn:active {
-        background: rgba(255, 0, 0, 0.1);
-        color: var(--state-error);
+      .set-row.is-completed .set-badge {
+        border-color: transparent;
       }
 
-      /* === INPUTS === */
+      /* === CAMPOS === */
+      /* Medían 44px. */
       .input-wrapper {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        height: 42px; /* Espacio para dos líneas */
+        height: var(--target-min-critical);
         position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        background: var(--bg-surface);
+        border: var(--border-tier3) solid var(--border-subtle);
+        border-radius: 12px;
+        transition: border-color 0.2s ease;
       }
-
+      /* Tier 3 no admite sombras, tampoco la del foco: lo marca el
+         borde ember. Iba en azul. */
       .input-wrapper:focus-within {
-        background: rgba(59, 130, 246, 0.08);
-        box-shadow: 0 0 0 1.5px rgba(59, 130, 246, 0.4);
+        background: var(--bg-elevated);
+        border-color: var(--ds-brand);
       }
 
       .set-row.is-completed .input-wrapper {
         background: transparent;
+        border-color: transparent;
       }
 
+      /* Valor de la sesión anterior: se ve, pero todavía no es tuyo. */
       .input-wrapper.is-previous {
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px dashed rgba(255, 255, 255, 0.12);
+        background: transparent;
+        border: var(--border-tier3) dashed var(--border-default);
       }
-
       .input-wrapper.is-previous ion-input {
-        color: rgba(255, 255, 255, 0.35) !important;
-        font-weight: 500;
+        color: var(--text-muted) !important;
       }
-
-      .reps-wrapper {
-        position: relative;
-      }
-
-      .inline-target {
-        font-size: 0.55rem;
-        color: var(--color-primary-hover);
-        font-weight: 700;
-        line-height: 1;
-        margin-top: -2px;
-        margin-bottom: 4px;
-        pointer-events: none;
-        letter-spacing: 0.02em;
-      }
-
       .input-wrapper.is-previous:focus-within {
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.4);
+        border: var(--border-tier3) solid var(--ds-brand);
+      }
+      .input-wrapper.is-previous:focus-within ion-input {
+        color: var(--text-primary) !important;
       }
 
-      .input-wrapper.is-previous:focus-within ion-input {
-        color: var(--text-primary, #fff) !important;
-        font-weight: 600;
+      /* Medía 8.8px y en ember. Va superpuesto al pie del campo para que
+         ion-input ocupe los 56px completos: es su área táctil. */
+      .inline-target {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: var(--space-1);
+        text-align: center;
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
+        color: var(--text-muted);
+        line-height: 1;
+        pointer-events: none;
       }
 
       ion-input {
@@ -944,265 +1007,170 @@ import {
         text-align: center;
         font-weight: 600;
         font-size: 1.05rem;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         width: 100%;
-        --placeholder-color: rgba(255, 255, 255, 0.2);
+        --placeholder-color: var(--text-muted);
         --placeholder-font-weight: 400;
+      }
+      /* Las cifras de la tabla, en la tipografía de datos. El campo llena
+         la celda: Ionic lo deja en 44px y ese es el área que se toca. */
+      .input-wrapper ion-input {
+        position: absolute;
+        inset: calc(-1 * var(--border-tier3));
+        width: auto;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-variant-numeric: tabular-nums;
+      }
+      .input-wrapper.has-target ion-input {
+        --padding-bottom: var(--space-4);
       }
 
       .set-row.is-completed ion-input {
-        color: rgba(16, 185, 129, 0.7);
+        color: var(--text-secondary);
       }
 
-      /* === CHECK BUTTON === */
+      /* === CHECK ===
+         El control más usado de la app: medía 38px. */
       .check-btn {
-        width: 38px;
-        height: 38px;
+        width: var(--target-min-critical);
+        height: var(--target-min-critical);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1.5px solid rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        color: rgba(255, 255, 255, 0.25);
-        font-size: 1.15rem;
+        background: transparent;
+        border: 1.5px solid var(--border-strong);
+        border-radius: 12px;
+        color: var(--text-muted);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
         margin: 0 auto;
       }
-
+      /* Completada es un estado: verde de éxito, con tinta encima. */
       .check-btn.checked {
         background: var(--state-success);
         border-color: var(--state-success);
-        color: white;
-        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.35);
+        color: var(--color-primary-text);
       }
-
       .check-btn:active {
         transform: scale(0.9);
       }
 
-      /* === ACTION BUTTONS === */
+      /* === AÑADIR === */
+      /* Medía 35px. */
       .add-set-btn {
         width: 100%;
-        margin-top: 0.75rem;
-        padding: 0.6rem;
+        min-height: var(--target-min-critical);
+        margin-top: var(--space-3);
         background: transparent;
-        border: 1px dashed rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        color: rgba(255, 255, 255, 0.35);
-        font-weight: 600;
-        font-size: 0.85rem;
+        border: var(--border-tier3) dashed var(--border-default);
+        border-radius: 12px;
+        color: var(--text-secondary);
+        font-weight: var(--font-semibold);
+        font-size: var(--text-sm);
         cursor: pointer;
-        transition: all 0.15s ease;
       }
       .add-set-btn:active {
-        background: rgba(255, 255, 255, 0.03);
-        color: rgba(255, 255, 255, 0.5);
+        background: var(--bg-surface);
+        color: var(--text-primary);
       }
 
+      /* Iba en azul. */
       .add-exercise-btn {
-        width: calc(100% - 2rem);
-        margin: 1rem 1rem 0 1rem;
-        padding: 0.9rem;
-        background: rgba(59, 130, 246, 0.08);
-        border: 1px solid rgba(59, 130, 246, 0.15);
-        border-radius: 14px;
-        color: var(--color-primary-hover);
-        font-weight: 700;
-        font-size: 0.95rem;
+        width: calc(100% - 2 * var(--space-4));
+        min-height: var(--target-min-critical);
+        margin: var(--space-2) var(--space-4) 0;
+        background: transparent;
+        border: var(--border-tier3) solid var(--ds-brand);
+        border-radius: 12px;
+        color: var(--ds-brand);
+        font-weight: var(--font-bold);
+        font-size: var(--text-base);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
+        gap: var(--space-2);
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease;
       }
       .add-exercise-btn:active {
         transform: scale(0.98);
+        background: var(--color-primary-muted);
       }
 
       .bottom-spacer {
         height: calc(2rem + env(safe-area-inset-bottom, 0px));
       }
 
-      /* === EMPTY STATE === */
-      .empty-workout {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 70%;
-        text-align: center;
-        padding: 2rem;
-      }
-      .empty-emoji {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
-      }
-      .empty-workout h2 {
-        color: var(--text-primary, #fff);
-        font-weight: 700;
-        font-size: 1.3rem;
-        margin: 0 0 0.5rem 0;
-      }
-      .empty-workout p {
-        color: rgba(255, 255, 255, 0.4);
-        margin: 0;
-      }
-      .coach-header-btn {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 10px;
-        background: linear-gradient(
-          135deg,
-          rgba(99, 102, 241, 0.2) 0%,
-          rgba(168, 85, 247, 0.2) 100%
-        );
-        border: 1px solid rgba(168, 85, 247, 0.4);
-        border-radius: 10px;
-        color: #c084fc;
-        font-weight: 700;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .coach-header-btn:active {
-        transform: scale(0.95);
-      }
+      /* Pie de los modales: .modal-btn-* vive en tailwind.css, porque
+         Entrenar lo usa igual. "Continuar", "Guardar" y "Terminar y
+         Guardar" pasan a .modal-btn-primary (ember): iban en el verde
+         de éxito, que es un estado y no una acción. */
 
-      .modal-btn-cancel,
-      .modal-btn-danger,
-      .modal-btn-success {
-        flex: 1;
-        padding: 0.85rem;
+      /* Series sin marcar al terminar: aviso, en dorado de la paleta.
+         Iba en un amarillo escrito a mano, en línea. */
+      .finish-warning {
+        margin-bottom: var(--space-5);
+        padding: var(--space-4);
+        background: var(--state-warning-bg);
+        border: var(--border-tier3) solid var(--state-warning-border);
         border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
       }
-      .modal-btn-cancel {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .finish-warning-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-2);
+        font-size: var(--text-base);
+        color: var(--state-warning);
       }
-      .modal-btn-cancel:active {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(0.96);
-      }
-
-      .modal-btn-danger {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--state-error);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-      }
-      .modal-btn-danger:active {
-        background: rgba(239, 68, 68, 0.25);
-        transform: scale(0.96);
+      .finish-warning-text {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
       }
 
-      .modal-btn-success {
-        background: rgba(16, 185, 129, 0.15);
-        color: var(--state-success);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-      .modal-btn-success:active {
-        background: rgba(16, 185, 129, 0.25);
-        transform: scale(0.96);
-      }
-
-      /* === SET TYPE OPTIONS === */
+      /* === TIPO DE SERIE ===
+         Neutro, como la letra en la tabla: iba en amarillo, morado,
+         rojo de error y verde de éxito según el tipo. */
       .set-type-list {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
-        padding-bottom: 1rem;
+        gap: var(--space-2);
       }
-
       .set-type-option {
+        min-height: var(--tier-target);
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0.85rem 1rem;
+        gap: var(--space-4);
+        padding: var(--space-2) var(--space-4);
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
         color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1rem;
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
         cursor: pointer;
-        transition: all 0.2s ease;
       }
       .set-type-option:active {
         transform: scale(0.97);
       }
-
-      .set-type-option .option-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+      .option-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
-        font-size: 0.9rem;
-      }
-
-      /* Normal */
-      .set-type-option.normal.selected {
-        border-color: rgba(16, 185, 129, 0.4);
-        background: rgba(16, 185, 129, 0.05);
-      }
-      .set-type-option.normal .option-icon {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--text-primary);
-      }
-      .set-type-option.normal.selected .option-icon {
-        background: var(--state-success);
-        color: var(--text-primary);
-      }
-
-      /* Warmup */
-      .set-type-option.warmup.selected {
-        border-color: rgba(234, 179, 8, 0.4);
-        background: rgba(234, 179, 8, 0.05);
-      }
-      .set-type-option.warmup .option-icon {
-        background: rgba(234, 179, 8, 0.15);
-        color: #eab308;
-      }
-      .set-type-option.warmup.selected .option-icon {
-        background: #eab308;
-        color: #000;
-      }
-
-      /* Dropset */
-      .set-type-option.dropset.selected {
-        border-color: rgba(168, 85, 247, 0.4);
-        background: rgba(168, 85, 247, 0.05);
-      }
-      .set-type-option.dropset .option-icon {
-        background: rgba(168, 85, 247, 0.15);
-        color: #a855f7;
-      }
-      .set-type-option.dropset.selected .option-icon {
-        background: #a855f7;
-        color: var(--text-primary);
-      }
-
-      /* Failure */
-      .set-type-option.failure.selected {
-        border-color: rgba(239, 68, 68, 0.4);
-        background: rgba(239, 68, 68, 0.05);
-      }
-      .set-type-option.failure .option-icon {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--state-error);
-      }
-      .set-type-option.failure.selected .option-icon {
-        background: var(--state-error);
-        color: var(--text-primary);
+        border-radius: 8px;
+        border: var(--border-tier3) solid var(--border-strong);
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
       }
     `,
   ],
@@ -1213,6 +1181,9 @@ export class ActiveWorkoutPage {
   gsap = inject(GsapAnimationsService);
   restTimer = viewChild<RestTimerComponent>('restTimer');
   alertCtrl = inject(AlertController);
+
+  /** Nombre completo del tipo de serie, para el aria-label de su letra. */
+  readonly nombreTipoSerie = nombreTipoSerie;
 
   constructor() {
     addIcons({
