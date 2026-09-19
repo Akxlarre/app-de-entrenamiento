@@ -12,7 +12,18 @@
      tailwind-base → primeng → tailwind-utilities
    ============================================================ */
 
+/* ── Capas: Ionic entre el reset y las utilidades ──────────────
+   Sin capa, los CSS de Ionic le ganaban a TODA utilidad de
+   Tailwind: `button { padding: 0; border-radius: 0 }` anulaba
+   `px-4` o `rounded-full`, y los h1–h6 anulaban `m-0` o `text-sm`.
+   En `ionic` le siguen ganando al preflight (`base`) y pierden
+   contra las utilidades. Los estilos sin capa (styles.scss,
+   componentes) les ganan igual que antes. fix-036.            */
+@layer theme, base, ionic, components, utilities;
+
 @import 'tailwindcss';
+@import '@ionic/angular/css/normalize.css' layer(ionic);
+@import '@ionic/angular/css/typography.css' layer(ionic);
 @source ".";
 @source "./app/**/*.ts";
 @source "./app/**/*.html";
@@ -98,11 +109,17 @@
   --ease-in: var(--ease-in);
 }
 
-/* ── Disable Preflight ─────────────────────────────────────── */
-/* PrimeNG tiene su propio reset. Preflight de Tailwind conflictuaría
-   con botones, headings, y tablas de PrimeNG. Desactivamos. */
+/* ── Preflight y shadow DOM ────────────────────────────────── */
+/* El preflight de Tailwind está activo: `@import 'tailwindcss'` lo
+   incluye. Su `* { padding: 0 }` se aplica desde afuera del shadow
+   DOM y le gana al `:host` de los componentes de Ionic. En
+   `ion-title` eso lo pegaba al borde de la pantalla: revert-layer
+   retira el preflight solo ahí y devuelve el padding de Ionic para
+   cada modo (20px md, 90px iOS). fix-036. */
 @layer base {
-  /* Tailwind base layer vacío — design system ya aplica reset via body styles */
+  ion-title {
+    padding: revert-layer;
+  }
 }
 
 /* ── @utility: Botones del Design System ─────────────────── */
