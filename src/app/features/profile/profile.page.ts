@@ -239,7 +239,7 @@ export class ProfilePage implements AfterViewInit {
   }
 
   async checkForUpdates() {
-    await this.updateFacade.checkForUpdates();
+    await this.updateFacade.checkForUpdates('manual');
   }
 
   showPreferencesComingSoon(): void {
