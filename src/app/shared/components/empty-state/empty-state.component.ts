@@ -68,8 +68,7 @@ import { PressFeedbackDirective } from '@core/directives/press-feedback.directiv
     @if (actionLabel()) {
       <button
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border cursor-pointer"
-        style="border-color: var(--border-subtle); background: var(--bg-elevated); color: var(--text-secondary)"
+        class="empty-state-action inline-flex items-center gap-1.5 rounded-full px-4 text-sm font-medium border cursor-pointer"
         [appPressFeedback]="'press'"
         (click)="action.emit()"
         [attr.aria-label]="actionLabel()"
@@ -81,6 +80,18 @@ import { PressFeedbackDirective } from '@core/directives/press-feedback.directiv
       </button>
     }
   `,
+  styles: [
+    `
+      /* Medía 14px de alto: la acción de recuperación es un toque del
+         pulgar como cualquier otro. */
+      .empty-state-action {
+        min-height: var(--target-min);
+        border-color: var(--border-subtle);
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+      }
+    `,
+  ],
 })
 export class EmptyStateComponent {
   /**
