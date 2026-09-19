@@ -26,6 +26,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { CoachChatComponent } from '@shared/components/coach-chat/coach-chat.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { nombreTipoSerie } from '@core/utils/set-type.utils';
 import {
   WorkoutReport,
@@ -55,6 +56,7 @@ import {
     ModalComponent,
     DrawerComponent,
     CoachChatComponent,
+    EmptyStateComponent,
     FormsModule,
   ],
   template: `
@@ -279,13 +281,12 @@ import {
         <!-- Bottom spacer for safe area -->
         <div class="bottom-spacer"></div>
       } @else {
-        <div class="empty-workout">
-          <span class="empty-emoji">
-            <app-icon name="dumbbell" [size]="48" style="color: var(--text-muted)"></app-icon>
-          </span>
-          <h2>No hay entrenamiento activo</h2>
-          <p>Inicia uno desde la pestaña Entrenar.</p>
-        </div>
+        <!-- El estado vacío unificado de la app; tenía uno propio. -->
+        <app-empty-state
+          icon="dumbbell"
+          message="No hay entrenamiento activo"
+          subtitle="Inicia uno desde la pestaña Entrenar."
+        />
       }
     </ion-content>
 
@@ -300,8 +301,10 @@ import {
       </ng-template>
     </ion-modal>
 
+    <!-- Los seis modales se usan entrenando: Tier 3 (spec 0011). -->
     <!-- Discard Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="discardModalOpen()"
       title="Descartar Entrenamiento"
       (closed)="discardModalOpen.set(false)"
@@ -324,6 +327,7 @@ import {
 
     <!-- Delete Exercise Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="deleteExerciseData() !== null"
       title="Eliminar Ejercicio"
       (closed)="deleteExerciseData.set(null)"
@@ -349,20 +353,18 @@ import {
 
     <!-- Finish Workout Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="finishModalOpen()"
       title="Terminar Entrenamiento"
       (closed)="finishModalOpen.set(false)"
     >
       @if (uncompletedSetsCount() > 0) {
-        <div
-          style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;"
-        >
-          <h4
-            style="color: #eab308; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1rem;"
-          >
-            <app-icon name="alert-triangle" [size]="18"></app-icon> Series incompletas
+        <div class="finish-warning">
+          <h4 class="finish-warning-title">
+            <app-icon name="alert-triangle" [size]="18" [ariaHidden]="true"></app-icon> Series
+            incompletas
           </h4>
-          <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">
+          <p class="finish-warning-text">
             Tienes <strong>{{ uncompletedSetsCount() }}</strong> serie(s) sin marcar. Si terminas
             ahora, esas series no se guardarán en tu progreso.
           </p>
@@ -375,13 +377,14 @@ import {
       <ng-container appModalFooter>
         <div style="display: flex; gap: 1rem; width: 100%">
           <button class="modal-btn-cancel" (click)="finishModalOpen.set(false)">Volver</button>
-          <button class="modal-btn-success" (click)="proceedToReport()">Continuar</button>
+          <button class="modal-btn-primary" (click)="proceedToReport()">Continuar</button>
         </div>
       </ng-container>
     </app-modal>
 
     <!-- Set Type Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="activeSetForType() !== null"
       title="Tipo de Serie"
       (closed)="activeSetForType.set(null)"
@@ -424,6 +427,7 @@ import {
 
     <!-- Exercise Feedback Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="exerciseFeedbackData() !== null"
       [title]="'Feedback: ' + exerciseFeedbackData()?.name"
       (closed)="exerciseFeedbackData.set(null)"
@@ -489,13 +493,14 @@ import {
           <button class="modal-btn-cancel" (click)="exerciseFeedbackData.set(null)">
             Cancelar
           </button>
-          <button class="modal-btn-success" (click)="saveExerciseFeedback()">Guardar</button>
+          <button class="modal-btn-primary" (click)="saveExerciseFeedback()">Guardar</button>
         </div>
       </ng-container>
     </app-modal>
 
     <!-- Session Report Modal -->
     <app-modal
+      class="tier-dato"
       [isOpen]="sessionReportOpen()"
       title="Resumen de Sesión"
       (closed)="sessionReportOpen.set(false)"
@@ -521,7 +526,7 @@ import {
         </div>
 
         <label class="form-label mt-4">RPE Global (Dificultad 1-10)</label>
-        <div class="rating-row" style="flex-wrap: wrap; gap: 4px;">
+        <div class="rating-row">
           @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
             <button
               class="rating-btn small"
@@ -544,7 +549,7 @@ import {
       <ng-container appModalFooter>
         <div style="display: flex; gap: 1rem; width: 100%">
           <button class="modal-btn-cancel" (click)="sessionReportOpen.set(false)">Saltar</button>
-          <button class="modal-btn-success" (click)="executeFinishWorkout()">
+          <button class="modal-btn-primary" (click)="executeFinishWorkout()">
             Terminar y Guardar
           </button>
         </div>
@@ -573,63 +578,73 @@ import {
       /* Sin regla de fondo propia: la global de ion-content ya pinta la
          tinta (fix-028). */
 
+      /* === MODALES (spec 0011) ===
+         Llevan .tier-dato: --tier-target vale 56px. El margen de
+         .mt-4 lo pone la utilidad de Tailwind (aplica desde fix-036). */
       .form-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 700;
-        margin-bottom: 0.5rem;
         display: block;
-      }
-      .mt-4 {
-        margin-top: 1rem;
+        margin-bottom: var(--space-2);
+        font-size: var(--text-sm);
+        font-weight: var(--font-bold);
+        color: var(--text-muted);
       }
 
       .category-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: var(--space-2);
       }
 
+      /* Energía en una fila y RPE en dos, de cinco: 57px por celda en
+         375px. Medían 54×37 y 26×31. */
+      .rating-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--space-1);
+      }
+
+      /* Las categorías medían 34px. */
       .category-btn,
       .rating-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 0.5rem;
-        color: var(--text-primary);
-        font-weight: 600;
-        transition: all 0.2s;
-      }
-
-      .category-btn.selected,
-      .rating-btn.selected {
-        background: rgba(59, 130, 246, 0.15);
-        border-color: var(--ds-brand);
-        color: var(--color-primary-hover);
-      }
-
-      .rating-row {
+        min-height: var(--tier-target);
         display: flex;
-        gap: 8px;
-        justify-content: space-between;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-weight: var(--font-semibold);
       }
       .rating-btn {
-        flex: 1;
-        text-align: center;
+        font-family: var(--font-data);
+        font-size: var(--text-lg);
+        font-variant-numeric: tabular-nums;
       }
-      .rating-btn.small {
-        padding: 0.4rem 0.2rem;
+      /* Elegido: ember, no el azul anterior. */
+      .category-btn.selected,
+      .rating-btn.selected,
+      .set-type-option.selected {
+        background: var(--color-primary-muted);
+        border-color: var(--ds-brand);
       }
 
       .input-wrapper-feedback {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        padding: 0 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: var(--tier-target);
+        display: flex;
+        align-items: center;
+        padding: 0 var(--space-3);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
+        border-radius: 12px;
+      }
+      .input-wrapper-feedback:focus-within {
+        border-color: var(--ds-brand);
       }
       .input-wrapper-feedback ion-input {
         --padding-start: 0;
         --padding-end: 0;
+        min-height: var(--tier-target);
         text-align: left;
         font-weight: 400;
       }
@@ -969,10 +984,6 @@ import {
         color: var(--text-primary) !important;
       }
 
-      .reps-wrapper {
-        position: relative;
-      }
-
       /* Medía 8.8px y en ember. Va superpuesto al pie del campo para que
          ion-input ocupe los 56px completos: es su área táctil. */
       .inline-target {
@@ -1096,161 +1107,70 @@ import {
         height: calc(2rem + env(safe-area-inset-bottom, 0px));
       }
 
-      /* === SIN SESIÓN === */
-      .empty-workout {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 70%;
-        text-align: center;
-        padding: 2rem;
-      }
-      .empty-emoji {
-        margin-bottom: var(--space-4);
-      }
-      .empty-workout h2 {
-        color: var(--text-primary);
-        font-weight: var(--font-bold);
-        font-size: var(--text-xl);
-        margin: 0 0 var(--space-2);
-      }
-      .empty-workout p {
-        color: var(--text-muted);
-        margin: 0;
-      }
+      /* Pie de los modales: .modal-btn-* vive en tailwind.css, porque
+         Entrenar lo usa igual. "Continuar", "Guardar" y "Terminar y
+         Guardar" pasan a .modal-btn-primary (ember): iban en el verde
+         de éxito, que es un estado y no una acción. */
 
-      .modal-btn-cancel,
-      .modal-btn-danger,
-      .modal-btn-success {
-        flex: 1;
-        padding: 0.85rem;
+      /* Series sin marcar al terminar: aviso, en dorado de la paleta.
+         Iba en un amarillo escrito a mano, en línea. */
+      .finish-warning {
+        margin-bottom: var(--space-5);
+        padding: var(--space-4);
+        background: var(--state-warning-bg);
+        border: var(--border-tier3) solid var(--state-warning-border);
         border-radius: 12px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
       }
-      .modal-btn-cancel {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .finish-warning-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-2);
+        font-size: var(--text-base);
+        color: var(--state-warning);
       }
-      .modal-btn-cancel:active {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(0.96);
-      }
-
-      .modal-btn-danger {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--state-error);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-      }
-      .modal-btn-danger:active {
-        background: rgba(239, 68, 68, 0.25);
-        transform: scale(0.96);
+      .finish-warning-text {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
       }
 
-      .modal-btn-success {
-        background: rgba(16, 185, 129, 0.15);
-        color: var(--state-success);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-      .modal-btn-success:active {
-        background: rgba(16, 185, 129, 0.25);
-        transform: scale(0.96);
-      }
-
-      /* === SET TYPE OPTIONS === */
+      /* === TIPO DE SERIE ===
+         Neutro, como la letra en la tabla: iba en amarillo, morado,
+         rojo de error y verde de éxito según el tipo. */
       .set-type-list {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
-        padding-bottom: 1rem;
+        gap: var(--space-2);
       }
-
       .set-type-option {
+        min-height: var(--tier-target);
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0.85rem 1rem;
+        gap: var(--space-4);
+        padding: var(--space-2) var(--space-4);
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-elevated);
+        border: var(--border-tier3) solid var(--border-default);
         color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1rem;
+        font-weight: var(--font-semibold);
+        font-size: var(--text-base);
         cursor: pointer;
-        transition: all 0.2s ease;
       }
       .set-type-option:active {
         transform: scale(0.97);
       }
-
-      .set-type-option .option-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+      .option-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 800;
-        font-size: 0.9rem;
-      }
-
-      /* Normal */
-      .set-type-option.normal.selected {
-        border-color: rgba(16, 185, 129, 0.4);
-        background: rgba(16, 185, 129, 0.05);
-      }
-      .set-type-option.normal .option-icon {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--text-primary);
-      }
-      .set-type-option.normal.selected .option-icon {
-        background: var(--state-success);
-        color: var(--text-primary);
-      }
-
-      /* Warmup */
-      .set-type-option.warmup.selected {
-        border-color: rgba(234, 179, 8, 0.4);
-        background: rgba(234, 179, 8, 0.05);
-      }
-      .set-type-option.warmup .option-icon {
-        background: rgba(234, 179, 8, 0.15);
-        color: #eab308;
-      }
-      .set-type-option.warmup.selected .option-icon {
-        background: #eab308;
-        color: #000;
-      }
-
-      /* Dropset */
-      .set-type-option.dropset.selected {
-        border-color: rgba(168, 85, 247, 0.4);
-        background: rgba(168, 85, 247, 0.05);
-      }
-      .set-type-option.dropset .option-icon {
-        background: rgba(168, 85, 247, 0.15);
-        color: #a855f7;
-      }
-      .set-type-option.dropset.selected .option-icon {
-        background: #a855f7;
-        color: var(--text-primary);
-      }
-
-      /* Failure */
-      .set-type-option.failure.selected {
-        border-color: rgba(239, 68, 68, 0.4);
-        background: rgba(239, 68, 68, 0.05);
-      }
-      .set-type-option.failure .option-icon {
-        background: rgba(239, 68, 68, 0.15);
-        color: var(--state-error);
-      }
-      .set-type-option.failure.selected .option-icon {
-        background: var(--state-error);
-        color: var(--text-primary);
+        border-radius: 8px;
+        border: var(--border-tier3) solid var(--border-strong);
+        font-family: var(--font-data);
+        font-weight: var(--font-semibold);
       }
     `,
   ],
