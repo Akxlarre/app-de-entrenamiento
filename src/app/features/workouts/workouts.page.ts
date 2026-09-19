@@ -546,59 +546,6 @@ import { RoutineWithExercises } from '@core/models/routine.model';
   `,
   styles: [
     `
-      /* === TOP APP HEADER === */
-      .app-top-header {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        background: rgba(10, 10, 12, 0.88);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        padding: 1rem 1.25rem 0.85rem 1.25rem;
-      }
-      .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        max-width: 600px;
-        margin: 0 auto;
-      }
-      .title-group {
-        display: flex;
-        flex-direction: column;
-      }
-      .brand-tag {
-        font-size: 0.68rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        color: var(--ds-brand);
-        text-transform: uppercase;
-      }
-      .page-main-title {
-        font-family: var(--font-display);
-        font-size: 1.75rem;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        color: var(--text-primary);
-        margin: 0.15rem 0 0 0;
-        line-height: 1.1;
-      }
-      .streak-pill {
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.8rem;
-        background: var(--color-primary-muted);
-        border: 1px solid var(--accent-border);
-        border-radius: var(--radius-xl);
-        font-size: var(--text-xs);
-        font-weight: var(--font-bold);
-        color: var(--ds-brand);
-      }
-      .streak-fire {
-        font-size: 0.85rem;
-      }
       .workout-home {
         --background: var(--bg-base);
       }
@@ -727,7 +674,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         color: var(--brand-ink);
       }
       .start-card .start-btn:active:not(:disabled) {
-        background: var(--bone-pressed, #ffffff);
+        background: var(--bone-pressed);
       }
 
       /* === KPI GRID === */
@@ -1098,24 +1045,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         font-weight: var(--font-semibold);
       }
 
-      .exercise-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-      }
-      .ex-tag {
-        background: var(--color-primary-tint);
-        color: var(--ds-brand);
-        border: 1px solid var(--accent-border);
-        border-radius: var(--radius-sm);
-        font-size: var(--text-xs);
-        padding: 2px var(--space-2);
-        font-weight: var(--font-medium);
-      }
-
-      /* === EMPTY & LOADING STATES === */
-      .loading-box,
-      .empty-feed {
+      /* === LOADING STATE === */
+      .loading-box {
         background: rgba(255, 255, 255, 0.02);
         border: 1px dashed rgba(255, 255, 255, 0.06);
         border-radius: 16px;
@@ -1126,16 +1057,6 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: center;
         gap: 0.6rem;
       }
-      .empty-icon {
-        margin-bottom: 0.2rem;
-      }
-      .empty-feed h4 {
-        margin: 0;
-        color: var(--text-primary);
-        font-weight: 700;
-        font-size: 1rem;
-      }
-      .empty-feed p,
       .loading-box p {
         margin: 0;
         color: rgba(255, 255, 255, 0.45);
