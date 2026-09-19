@@ -8,6 +8,8 @@ import {
 import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facade';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { getExerciseIcon } from '@core/utils/exercise-detail.utils';
+import { ExerciseDetailComponent } from '../components/exercise-detail/exercise-detail.component';
 import { addIcons } from 'ionicons';
 
 const MUSCLE_GROUPS = [
@@ -34,6 +36,7 @@ const MUSCLE_GROUPS = [
     IonInfiniteScrollContent,
     DrawerComponent,
     IconComponent,
+    ExerciseDetailComponent,
   ],
   template: `
     <!-- Top Modal Header -->
@@ -169,262 +172,44 @@ const MUSCLE_GROUPS = [
       (closed)="closeDetail()"
     >
       @if (selectedDetail(); as exercise) {
-        <div class="flex flex-col gap-6 pb-8">
-          <!-- Hero Images or Placeholder -->
-          @if (exercise.images && exercise.images.length > 0) {
-            <div
-              class="rounded-xl overflow-hidden flex relative min-h-[160px]"
-              style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
-            >
-              @for (img of exercise.images; track img) {
-                <div class="flex-1 w-1/2 relative bg-white flex items-center justify-center">
-                  <ion-spinner color="primary" class="absolute z-0"></ion-spinner>
-                  <img
-                    [src]="img"
-                    alt="Ejecución de {{ exercise.name_es }}"
-                    class="w-full h-full object-cover relative z-10 transition-opacity duration-300 opacity-0"
-                    (load)="$event.target.classList.remove('opacity-0')"
-                    loading="lazy"
-                  />
-                </div>
-              }
-            </div>
-          } @else {
-            <div
-              class="rounded-xl p-6 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden"
-              style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
-            >
-              <app-icon
-                [name]="getIconName(exercise.muscle, exercise.category)"
-                [size]="64"
-                class="z-10 filter drop-shadow-lg text-primary"
-              ></app-icon>
-              <div
-                class="absolute inset-0 opacity-10 pointer-events-none"
-                style="background: radial-gradient(circle at center, var(--color-primary), transparent 70%);"
-              ></div>
-            </div>
-          }
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 gap-4">
-            <div
-              class="p-4 flex flex-col gap-1 rounded-xl"
-              style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
-            >
-              <span
-                class="text-xs font-semibold uppercase tracking-wider"
-                style="color: var(--text-muted)"
-                >Músculo</span
-              >
-              <span
-                class="text-base font-bold capitalize flex items-center gap-2"
-                style="color: var(--color-primary)"
-              >
-                <app-icon name="activity" [size]="16" /> {{ exercise.muscle }}
-              </span>
-            </div>
-
-            <div
-              class="p-4 flex flex-col gap-1 rounded-xl"
-              style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
-            >
-              <span
-                class="text-xs font-semibold uppercase tracking-wider"
-                style="color: var(--text-muted)"
-                >Equipo</span
-              >
-              <span
-                class="text-base font-bold capitalize flex items-center gap-2"
-                style="color: var(--text-primary)"
-              >
-                <app-icon name="dumbbell" [size]="16" /> {{ exercise.equipment }}
-              </span>
-            </div>
-
-            <div
-              class="p-4 flex flex-col gap-1 col-span-2 rounded-xl"
-              style="background: var(--color-tertiary-tint, rgba(168, 85, 247, 0.08)); border: 1px solid var(--color-tertiary-tint, rgba(168, 85, 247, 0.2));"
-            >
-              <span
-                class="text-xs font-semibold uppercase tracking-wider"
-                style="color: var(--color-tertiary, #c084fc)"
-                >Categoría</span
-              >
-              <span
-                class="text-base font-bold capitalize flex items-center gap-2"
-                style="color: var(--color-tertiary, #c084fc)"
-              >
-                <app-icon name="tag" [size]="16" /> {{ exercise.category }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Instructions / Step-by-Step Guide -->
-          <div class="flex flex-col gap-4 mt-2">
-            @let steps = getInstructions(exercise.instructions_es || exercise.instructions_en);
-
-            <div
-              class="flex items-center justify-between pb-1 border-b"
-              style="border-color: var(--border-subtle)"
-            >
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style="background: var(--color-primary-tint); color: var(--color-primary)"
-                >
-                  <app-icon name="list-checks" [size]="18"></app-icon>
-                </div>
-                <div>
-                  <h3 class="text-sm font-bold m-0" style="color: var(--text-primary)">
-                    Guía de Ejecución
-                  </h3>
-                  <span class="text-[11px]" style="color: var(--text-muted)"
-                    >Instrucciones paso a paso del Coach</span
-                  >
-                </div>
-              </div>
-              @if (steps.length > 0) {
-                <span
-                  class="text-xs font-semibold px-2.5 py-1 rounded-full"
-                  style="background: var(--bg-elevated); color: var(--color-primary); border: 1px solid var(--border-subtle)"
-                >
-                  {{ steps.length }} pasos
-                </span>
-              }
-            </div>
-
-            <div class="flex flex-col gap-3">
-              @if (isEnglish(exercise.instructions_es, exercise.instructions_en)) {
-                <div
-                  class="p-3 rounded-xl flex items-center gap-3"
-                  style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.25); color: var(--color-warning, #eab308);"
-                >
-                  <app-icon name="alert-triangle" [size]="18" />
-                  <span class="text-xs font-semibold leading-snug"
-                    >Instrucción en idioma original (pendiente de traducción).</span
-                  >
-                </div>
-              }
-
-              @if (steps.length > 0) {
-                <!-- Connected Stepper / Timeline -->
-                <div class="relative pl-6 flex flex-col gap-3.5 my-1">
-                  <!-- Vertical timeline track line -->
-                  <div
-                    class="absolute left-2.5 top-3 bottom-3 w-0.5 rounded-full opacity-60"
-                    style="background: linear-gradient(to bottom, var(--color-primary), var(--border-subtle))"
-                  ></div>
-
-                  @for (step of steps; track $index) {
-                    @let phase = getStepPhase($index, steps.length);
-                    <div class="relative flex items-start gap-3">
-                      <!-- Stepper Node Dot -->
-                      <div
-                        class="absolute -left-6 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 z-10 shadow-sm"
-                        [style.background]="
-                          $first
-                            ? 'var(--color-primary)'
-                            : $last
-                              ? 'var(--state-success)'
-                              : 'var(--bg-surface)'
-                        "
-                        [style.color]="$first || $last ? '#000' : 'var(--text-primary)'"
-                        [style.border]="
-                          $first || $last ? 'none' : '1.5px solid var(--color-primary)'
-                        "
-                      >
-                        {{ $index + 1 }}
-                      </div>
-
-                      <!-- Step Card -->
-                      <div
-                        class="p-3.5 rounded-xl flex-1 flex flex-col gap-1.5 transition-all shadow-sm"
-                        style="background: var(--bg-elevated); border: 1px solid var(--border-subtle)"
-                      >
-                        <div class="flex items-center gap-1.5">
-                          <span
-                            class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
-                            [style.background]="
-                              $first
-                                ? 'var(--color-primary-tint)'
-                                : $last
-                                  ? 'rgba(16, 185, 129, 0.15)'
-                                  : 'rgba(255,255,255,0.05)'
-                            "
-                            [style.color]="
-                              $first
-                                ? 'var(--color-primary)'
-                                : $last
-                                  ? 'var(--state-success)'
-                                  : 'var(--text-muted)'
-                            "
-                          >
-                            {{ phase.label }}
-                          </span>
-                        </div>
-                        <p
-                          class="text-xs sm:text-sm leading-relaxed m-0 font-normal"
-                          style="color: var(--text-primary)"
-                        >
-                          {{ step }}
-                        </p>
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                <!-- Coach Pro-Tip Callout -->
-                <div
-                  class="p-3.5 rounded-xl flex items-start gap-3 mt-1"
-                  style="background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.06); border: 1px dashed var(--color-primary)"
-                >
-                  <div
-                    class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                    style="background: var(--color-primary-tint); color: var(--color-primary)"
-                  >
-                    <app-icon name="info" [size]="16"></app-icon>
-                  </div>
-                  <div class="flex flex-col gap-0.5">
-                    <span
-                      class="text-xs font-bold uppercase tracking-wider"
-                      style="color: var(--color-primary)"
-                      >Consejo de Técnica</span
-                    >
-                    <span class="text-xs leading-relaxed" style="color: var(--text-secondary)">
-                      Controlá el tempo en la bajada (fase excéntrica) y evitá usar el impulso o
-                      balanceo para maximizar la activación muscular.
-                    </span>
-                  </div>
-                </div>
-              } @else {
-                <div
-                  class="p-6 flex flex-col items-center justify-center text-center gap-3 rounded-xl"
-                  style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
-                >
-                  <app-icon name="info" [size]="24" color="var(--text-muted)" />
-                  <p class="text-sm m-0" style="color: var(--text-muted)">
-                    No hay instrucciones detalladas para este ejercicio.
-                  </p>
-                </div>
-              }
-            </div>
-          </div>
-
+        <app-exercise-detail [exercise]="exercise">
           <button
-            class="w-full mt-4 py-3 rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
-            style="background: var(--color-primary); color: #000; border: none; box-shadow: 0 4px 14px rgba(var(--color-primary-rgb, 59, 130, 246), 0.4);"
+            type="button"
+            class="detail-select-btn"
+            data-llm-action="seleccionar-ejercicio"
             (click)="selectExercise(exercise)"
           >
-            <app-icon name="check" [size]="20"></app-icon>
+            <app-icon name="check" [size]="20" [ariaHidden]="true" />
             Seleccionar Ejercicio
           </button>
-        </div>
+        </app-exercise-detail>
       }
     </app-drawer>
   `,
   styles: [
     `
+      /* Tinta sobre ember (7.0:1). Iba en negro puro con una sombra azul
+         de una variable que no existe (spec 0007). */
+      .detail-select-btn {
+        width: 100%;
+        min-height: var(--target-min);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        border: none;
+        border-radius: var(--radius-lg);
+        background: var(--ds-brand);
+        color: var(--color-primary-text);
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .detail-select-btn:active {
+        background: var(--color-primary-hover);
+        transform: scale(0.98);
+      }
+
       :host {
         display: flex;
         flex-direction: column;
@@ -785,29 +570,9 @@ export class ExerciseSelectorComponent implements OnInit {
     this.selectedDetail.set(null);
   }
 
+  /** Lo usan las miniaturas de la lista. La lógica vive en exercise-detail.utils. */
   getIconName(muscle: string, category: string): string {
-    const m = (muscle || '').toLowerCase();
-    const c = (category || '').toLowerCase();
-    if (m.includes('pecho') || m.includes('chest')) return 'shield-check';
-    if (m.includes('espalda') || m.includes('back')) return 'layers';
-    if (
-      m.includes('pierna') ||
-      m.includes('cuádriceps') ||
-      m.includes('quad') ||
-      m.includes('isquio') ||
-      m.includes('femoral') ||
-      m.includes('hamstring') ||
-      m.includes('pantorrilla') ||
-      m.includes('calves')
-    )
-      return 'activity';
-    if (m.includes('hombro') || m.includes('shoulder') || m.includes('deltoid')) return 'dumbbell';
-    if (m.includes('bíceps') || m.includes('bicep')) return 'activity';
-    if (m.includes('tríceps') || m.includes('tricep')) return 'activity';
-    if (m.includes('abdom') || m.includes('core')) return 'circle';
-    if (m.includes('glúteo') || m.includes('glute')) return 'circle';
-    if (c.includes('cardio')) return 'activity';
-    return 'dumbbell';
+    return getExerciseIcon(muscle, category);
   }
 
   getIconStyle(muscle: string): string {
@@ -834,33 +599,5 @@ export class ExerciseSelectorComponent implements OnInit {
 
     // Default (e.g. Cardio or others)
     return 'background: rgba(161, 161, 170, 0.1); border: 1px solid rgba(161, 161, 170, 0.2); color: #a1a1aa;'; // Zinc/Gray
-  }
-
-  getInstructions(text: string | undefined): string[] {
-    if (!text) return [];
-    // Normalize literal \n, /n, \\n, and standard newlines
-    const normalized = text
-      .replace(/\\n/g, '\n')
-      .replace(/\/n/g, '\n')
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n');
-
-    return normalized
-      .split('\n')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .map((s) => s.replace(/^(\d+[\.\)]|\-|\*|Paso\s*\d+:?)\s*/i, ''));
-  }
-
-  getStepPhase(index: number, total: number): { label: string } {
-    if (index === 0) return { label: 'Posición Inicial' };
-    if (index === total - 1) return { label: 'Finalización' };
-    return { label: `Paso ${index + 1}` };
-  }
-
-  isEnglish(es: string | undefined, en: string | undefined): boolean {
-    if (!es) return true;
-    if (es.trim() === en?.trim()) return true;
-    return false;
   }
 }

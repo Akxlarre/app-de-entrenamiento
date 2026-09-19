@@ -62,14 +62,14 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
                 <app-icon [name]="icon()!" [size]="18" />
               </div>
             }
-            <h2 [id]="titleId" class="m-0 text-lg font-semibold text-text-primary">
+            <h2 [id]="titleId" class="drawer-title">
               {{ title() }}
             </h2>
           </div>
           <button
             appPressFeedback
             (click)="close()"
-            class="btn-ghost w-8 h-8 rounded-full"
+            class="btn-ghost drawer-close"
             aria-label="Cerrar panel"
             data-llm-action="cerrar-drawer"
           >
@@ -78,7 +78,13 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
         </header>
 
         <!-- Body -->
-        <div class="flex-1 bg-surface" [class.overflow-y-auto]="!noPadding()" [class.overflow-hidden]="noPadding()" [class.px-6]="!noPadding()" [class.py-6]="!noPadding()">
+        <div
+          class="flex-1 bg-surface"
+          [class.overflow-y-auto]="!noPadding()"
+          [class.overflow-hidden]="noPadding()"
+          [class.px-6]="!noPadding()"
+          [class.py-6]="!noPadding()"
+        >
           <ng-content></ng-content>
         </div>
 
@@ -94,6 +100,28 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
       </div>
     }
   `,
+  styles: [
+    `
+      /* Anton deja de leerse bajo 28px; medía 24 (spec 0007). El balance
+         reparte los nombres largos de ejercicio en líneas parejas. */
+      .drawer-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: var(--font-display-floor);
+        line-height: 1.1;
+        text-wrap: balance;
+        color: var(--text-primary);
+      }
+
+      /* Medía 32px, bajo el piso de 44. */
+      .drawer-close {
+        width: var(--target-min);
+        height: var(--target-min);
+        flex-shrink: 0;
+        border-radius: var(--radius-full);
+      }
+    `,
+  ],
   host: {
     // Si necesitas manejar escape key:
     '(window:keydown.escape)': 'closeOnEscape($event)',
