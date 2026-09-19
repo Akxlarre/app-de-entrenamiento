@@ -69,7 +69,7 @@ import { Router } from '@angular/router';
       <button
         class="coach-fab"
         [class.above-session]="workoutFacade.activeSession() !== null && !isWorkoutRoute()"
-        [class.is-hidden]="coachFacade.isDrawerOpen()"
+        [class.is-hidden]="coachFacade.isDrawerOpen() || isCoachRoute()"
         (click)="coachFacade.toggleDrawer()"
         aria-label="Consultar a tu Coach IA"
       >
@@ -308,6 +308,15 @@ export class TabsLayoutComponent {
       map(() => this.router.url.includes('/workouts/active')),
     ),
     { initialValue: this.router.url.includes('/workouts/active') },
+  );
+
+  /** En la vista del Coach el FAB sobra (abre el mismo chat) y tapaba Enviar. */
+  isCoachRoute = toSignal(
+    this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd),
+      map(() => this.router.url.startsWith('/app/coach')),
+    ),
+    { initialValue: this.router.url.startsWith('/app/coach') },
   );
 
   /** Reloj de pared. Un cronómetro necesita tick real; no es polling de datos. */
