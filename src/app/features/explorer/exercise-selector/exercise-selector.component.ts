@@ -8,7 +8,6 @@ import {
 import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facade';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
-import { getExerciseIcon } from '@core/utils/exercise-detail.utils';
 import { ExerciseDetailComponent } from '../components/exercise-detail/exercise-detail.component';
 import { addIcons } from 'ionicons';
 
@@ -29,6 +28,8 @@ const MUSCLE_GROUPS = [
   selector: 'app-exercise-selector',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // Tier 2 también desde la sesión activa: acá se busca, no se registra.
+  host: { class: 'tier-trabajo' },
   imports: [
     IonContent,
     IonSpinner,
@@ -48,8 +49,13 @@ const MUSCLE_GROUPS = [
           <h2 class="modal-title">Seleccionar Ejercicio</h2>
           <span class="modal-subtitle">Catálogo de ejercicios</span>
         </div>
-        <button class="close-pill-btn" (click)="close.emit()" aria-label="Cerrar modal">
-          <app-icon name="x" [size]="20" />
+        <button
+          type="button"
+          class="close-pill-btn"
+          (click)="close.emit()"
+          aria-label="Cerrar modal"
+        >
+          <app-icon name="x" [size]="20" [ariaHidden]="true" />
         </button>
       </div>
 
@@ -65,8 +71,14 @@ const MUSCLE_GROUPS = [
           (input)="onSearchInput($event)"
         />
         @if (searchQuery()) {
-          <button class="clear-search-btn" (click)="clearSearch(searchInput)">
-            <app-icon name="x-circle" [size]="18" />
+          <button
+            type="button"
+            class="clear-search-btn"
+            aria-label="Borrar búsqueda"
+            data-llm-action="limpiar-busqueda"
+            (click)="clearSearch(searchInput)"
+          >
+            <app-icon name="x-circle" [size]="18" [ariaHidden]="true" />
           </button>
         }
       </div>
@@ -118,39 +130,29 @@ const MUSCLE_GROUPS = [
       } @else {
         <div class="exercise-card-list">
           @for (exercise of facade.exercises().slice(0, displayLimit()); track exercise.id) {
+            <!-- Sin miniatura, como el Catálogo (AC-05 de 0004): el ícono
+                 se repetía entre grupos y lo que distinguía era un color
+                 por músculo, con rojo de error y verde de éxito. -->
             <div class="exercise-row-card">
-              <div
-                class="flex-1 min-w-0 flex items-center gap-3"
-                (click)="selectExercise(exercise)"
-              >
-                <div class="exercise-thumb" [style]="getIconStyle(exercise.muscle)">
-                  <app-icon
-                    [name]="getIconName(exercise.muscle, exercise.category)"
-                    [size]="24"
-                  ></app-icon>
-                </div>
-
-                <div class="exercise-details min-w-0">
-                  <h3 class="exercise-name capitalize truncate">
-                    {{ exercise.name_es || exercise.name_en }}
-                  </h3>
-                  <p
-                    class="exercise-meta m-0 text-xs flex items-center gap-1.5 capitalize truncate"
-                  >
-                    <span class="text-primary font-semibold shrink-0">{{ exercise.muscle }}</span>
-                    <span class="text-muted shrink-0">·</span>
-                    <span class="text-muted truncate">{{ exercise.equipment }}</span>
-                    <span class="text-muted shrink-0">·</span>
-                    <span class="text-secondary shrink-0">{{ exercise.category }}</span>
-                  </p>
-                </div>
+              <div class="exercise-details" (click)="selectExercise(exercise)">
+                <h3 class="exercise-name">
+                  {{ exercise.name_es || exercise.name_en }}
+                </h3>
+                <p class="exercise-meta">
+                  <span class="meta-muscle">{{ exercise.muscle }}</span>
+                  <span class="meta-fixed">·</span>
+                  <span class="meta-equipment">{{ exercise.equipment }}</span>
+                  <span class="meta-fixed">·</span>
+                  <span class="meta-fixed">{{ exercise.category }}</span>
+                </p>
               </div>
               <button
-                class="w-10 h-10 flex items-center justify-center shrink-0 cursor-pointer transition-all active:scale-90"
-                style="border-radius: 50%; background: rgba(255,255,255,0.06); border: none;"
+                type="button"
+                class="info-btn"
+                [attr.aria-label]="'Detalle de ' + (exercise.name_es || exercise.name_en)"
                 (click)="openDetail(exercise); $event.stopPropagation()"
               >
-                <app-icon name="info" [size]="18" style="color: var(--text-muted);"></app-icon>
+                <app-icon name="info" [size]="18" [ariaHidden]="true" />
               </button>
             </div>
           }
@@ -214,265 +216,282 @@ const MUSCLE_GROUPS = [
         display: flex;
         flex-direction: column;
         height: 100%;
-        background: #0d0d11;
         color: var(--text-primary);
-        font-family: var(--font-body, system-ui, sans-serif);
+        font-family: var(--font-body);
       }
 
-      /* === MODAL HEADER === */
+      /* === ENCABEZADO DEL MODAL === */
       .selector-modal-header {
-        background: #111116;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-        padding: 0.75rem 1rem 0 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        padding: var(--space-3) var(--space-4) 0;
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        gap: var(--space-3);
         flex-shrink: 0;
       }
 
       .modal-handle {
         width: 36px;
         height: 4px;
-        border-radius: 2px;
-        background: rgba(255, 255, 255, 0.2);
-        margin: 0 auto 0.25rem auto;
+        border-radius: var(--radius-full);
+        background: var(--border-strong);
+        margin: 0 auto var(--space-1);
       }
 
       .header-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: var(--space-3);
       }
 
       .header-titles {
         display: flex;
         flex-direction: column;
+        min-width: 0;
       }
 
+      /* Iba a 20px y en peso 800: debajo del piso de Anton, y con un
+         peso que no tiene, así que el navegador la engordaba a mano. */
       .modal-title {
         font-family: var(--font-display);
-        font-size: 1.25rem;
-        font-weight: 800;
+        font-size: var(--font-display-floor);
+        font-weight: var(--font-regular);
+        line-height: 1.1;
+        letter-spacing: 0.005em;
         color: var(--text-primary);
         margin: 0;
-        letter-spacing: -0.02em;
+        text-wrap: balance;
       }
 
       .modal-subtitle {
-        font-size: 0.75rem;
-        color: #71717a;
-        margin-top: 0.1rem;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        margin-top: var(--space-1);
       }
 
+      /* Medía 32px. */
       .close-pill-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        width: var(--target-min);
+        height: var(--target-min);
+        flex-shrink: 0;
+        border-radius: var(--radius-full);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #a1a1aa;
+        color: var(--text-secondary);
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease;
       }
       .close-pill-btn:active {
         transform: scale(0.92);
-        background: rgba(255, 255, 255, 0.15);
+        background: var(--bg-elevated);
         color: var(--text-primary);
       }
 
-      /* === SEARCH BOX === */
+      /* === BUSCADOR === */
       .search-box {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        height: 44px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        gap: var(--space-2);
+        min-height: var(--target-min);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
         border-radius: 12px;
-        padding: 0 0.85rem;
-        transition: all 0.2s ease;
+        padding-left: var(--space-3);
+        transition: border-color 0.2s ease;
       }
+      /* El foco iba en el azul de la marca anterior. */
       .search-box:focus-within {
-        background: rgba(59, 130, 246, 0.04);
         border-color: var(--ds-brand);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        box-shadow: var(--shadow-focus);
       }
       .search-icon {
         color: var(--text-muted);
         flex-shrink: 0;
       }
+      /* 16px: con menos, iOS hace zoom al enfocar el campo. */
       .native-search-input {
         flex: 1;
+        min-width: 0;
+        min-height: var(--target-min);
         background: transparent;
         border: none;
         outline: none;
         color: var(--text-primary);
-        font-size: 0.9rem;
+        font-size: 1rem;
       }
       .native-search-input::placeholder {
-        color: #71717a;
+        color: var(--text-muted);
       }
       .clear-search-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--target-min);
+        height: var(--target-min);
+        flex-shrink: 0;
         background: transparent;
         border: none;
-        color: #71717a;
+        color: var(--text-muted);
         padding: 0;
-        display: flex;
         cursor: pointer;
       }
 
-      /* === CHIPS SCROLLBAR === */
+      /* === CHIPS: los mismos valores que el Catálogo (0004) === */
       .chips-container {
         display: flex;
-        gap: 0.5rem;
+        gap: var(--space-2);
         overflow-x: auto;
         scrollbar-width: none;
-        padding-bottom: 0.5rem;
+        padding-bottom: var(--space-2);
       }
       .chips-container::-webkit-scrollbar {
         display: none;
       }
 
+      /* Medían 30px de alto y 12.8px de texto. */
       .chip-pill {
+        min-height: var(--tier-target, var(--target-min));
+        flex-shrink: 0;
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
         padding: 0.45rem 0.85rem;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        color: #a1a1aa;
-        font-size: 0.8rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-full);
+        color: var(--text-secondary);
+        font-size: var(--text-xs);
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: transform 0.15s ease;
       }
       .chip-pill:active {
         transform: scale(0.96);
       }
+      /* Tinta sobre ember (7.0:1), sin el resplandor azul. */
       .chip-pill.chip-active {
         background: var(--ds-brand);
         border-color: var(--ds-brand);
-        color: var(--text-primary);
-        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+        color: var(--color-primary-text);
       }
       .chip-icon {
-        font-size: 0.95rem;
+        font-size: var(--text-sm);
       }
 
       .meta-status-bar {
         display: flex;
         align-items: center;
-        padding-bottom: 0.5rem;
+        padding-bottom: var(--space-2);
       }
+      /* Medía 11.5px. */
       .count-label {
-        font-size: 0.72rem;
+        font-size: var(--text-xs);
         font-weight: 700;
-        color: #71717a;
+        color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
 
-      /* === CONTENT LIST === */
+      /* === LISTA === */
       .modal-scroll-content {
-        --background: #09090c;
+        --background: var(--bg-base);
       }
 
       .exercise-card-list {
-        padding: 0.75rem 1rem;
+        padding: var(--space-2);
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-1);
       }
 
+      /* Fila como la del Catálogo: sin tarjeta ni borde, porque se
+         repite decenas de veces (regla de densidad). */
       .exercise-row-card {
         display: flex;
         align-items: center;
-        gap: 0.85rem;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 14px;
-        padding: 0.75rem 0.85rem;
+        gap: var(--space-2);
+        border-radius: 12px;
+        padding: var(--space-2) var(--space-1) var(--space-2) var(--space-3);
         cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .exercise-row-card:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
+        transition: transform 0.15s ease;
       }
       .exercise-row-card:active {
         transform: scale(0.98);
-        background: rgba(59, 130, 246, 0.08);
-        border-color: rgba(59, 130, 246, 0.3);
-      }
-
-      .exercise-thumb {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        flex-shrink: 0;
+        background: var(--bg-surface);
       }
 
       .exercise-details {
         flex: 1;
         min-width: 0;
+        min-height: var(--target-min);
         display: flex;
         flex-direction: column;
-        gap: 0.2rem;
+        justify-content: center;
+        gap: var(--space-1);
       }
 
       .exercise-name {
-        font-size: 0.92rem;
-        font-weight: 700;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        font-weight: 600;
         color: var(--text-primary);
         margin: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         letter-spacing: -0.01em;
+        text-transform: capitalize;
       }
 
-      .exercise-badges-row {
+      .exercise-meta {
+        margin: 0;
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-        font-size: 0.75rem;
-        color: #71717a;
-      }
-
-      .badge-muscle {
-        color: var(--color-primary-hover);
-        font-weight: 600;
-      }
-
-      .badge-dot {
-        color: #52525b;
-      }
-
-      .badge-equip {
-        color: #a1a1aa;
-      }
-
-      .exercise-category-tag {
-        padding: 0.25rem 0.55rem;
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: #a1a1aa;
+        gap: 0.3rem;
+        min-width: 0;
+        font-size: var(--text-xs);
+        color: var(--text-muted);
+        white-space: nowrap;
         text-transform: capitalize;
+      }
+      .meta-muscle {
         flex-shrink: 0;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+      .meta-fixed {
+        flex-shrink: 0;
+      }
+      .meta-equipment {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Medía 40px, con un blanco al 6% escrito en línea. */
+      .info-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--target-min);
+        height: var(--target-min);
+        flex-shrink: 0;
+        border-radius: var(--radius-full);
+        background: var(--bg-surface);
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      .info-btn:active {
+        transform: scale(0.9);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
       }
 
       .loading-state,
@@ -484,6 +503,7 @@ const MUSCLE_GROUPS = [
         padding: 3rem 1.5rem;
         text-align: center;
         gap: 0.75rem;
+        color: var(--text-muted);
       }
       .empty-state h4 {
         margin: 0;
@@ -494,7 +514,7 @@ const MUSCLE_GROUPS = [
       .empty-state p,
       .loading-state p {
         margin: 0;
-        color: #71717a;
+        color: var(--text-muted);
         font-size: 0.85rem;
         max-width: 260px;
       }
@@ -568,36 +588,5 @@ export class ExerciseSelectorComponent implements OnInit {
 
   closeDetail() {
     this.selectedDetail.set(null);
-  }
-
-  /** Lo usan las miniaturas de la lista. La lógica vive en exercise-detail.utils. */
-  getIconName(muscle: string, category: string): string {
-    return getExerciseIcon(muscle, category);
-  }
-
-  getIconStyle(muscle: string): string {
-    const m = (muscle || '').toLowerCase();
-    if (m.includes('pecho') || m.includes('chest'))
-      return 'background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--state-error);'; // Red
-    if (m.includes('espalda') || m.includes('back'))
-      return 'background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--state-success);'; // Emerald
-    if (m.includes('pierna') || m.includes('quad') || m.includes('femoral') || m.includes('isquio'))
-      return 'background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: var(--ds-brand);'; // Blue
-    if (m.includes('hombro') || m.includes('shoulder'))
-      return 'background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;'; // Orange
-    if (
-      m.includes('bíceps') ||
-      m.includes('tríceps') ||
-      m.includes('bicep') ||
-      m.includes('tricep')
-    )
-      return 'background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); color: #8b5cf6;'; // Violet
-    if (m.includes('abdom') || m.includes('core'))
-      return 'background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); color: #eab308;'; // Yellow
-    if (m.includes('glúteo') || m.includes('glute'))
-      return 'background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); color: #ec4899;'; // Pink
-
-    // Default (e.g. Cardio or others)
-    return 'background: rgba(161, 161, 170, 0.1); border: 1px solid rgba(161, 161, 170, 0.2); color: #a1a1aa;'; // Zinc/Gray
   }
 }
