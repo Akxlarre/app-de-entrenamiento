@@ -82,11 +82,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
                 Comienza una sesión en blanco y registra tus ejercicios sobre la marcha.
               </p>
             </div>
-            <button
-              class="start-btn"
-              (click)="workoutFacade.startAdhocWorkout()"
-              [disabled]="workoutFacade.activeSession() !== null"
-            >
+            <button class="start-btn" (click)="workoutFacade.startAdhocWorkout()">
               <app-icon name="play" [size]="20" />
               <span>Iniciar Sesión Libre</span>
             </button>
@@ -129,7 +125,6 @@ import { RoutineWithExercises } from '@core/models/routine.model';
                       next.session.routine
                     )
                   "
-                  [disabled]="workoutFacade.activeSession() !== null"
                 >
                   <app-icon name="play" [size]="20" [ariaHidden]="true" />
                   <span>Iniciar Sesión Prescrita</span>
@@ -733,10 +728,6 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       }
       .start-card .start-btn:active:not(:disabled) {
         background: var(--bone-pressed, #ffffff);
-      }
-      .start-btn:disabled {
-        opacity: var(--input-disabled-opacity);
-        cursor: not-allowed;
       }
 
       /* === KPI GRID === */
