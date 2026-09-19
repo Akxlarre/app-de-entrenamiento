@@ -112,19 +112,25 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
         flex-shrink: 0;
       }
 
+      /* Por ser h2 heredaba Anton, y a 18px queda bajo su piso de 28:
+         cuerpo en negrita, como h3–h6. */
       .modal__title {
         margin: 0;
-        font-size: var(--text-lg, 1.125rem);
-        font-weight: 600;
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
       }
 
+      /* Medía 32px. Lee el piso del tier donde se abre: 56 en la
+         sesión activa, 44 en el resto. */
       .modal__close {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
+        flex-shrink: 0;
+        width: var(--tier-target, var(--target-min));
+        height: var(--tier-target, var(--target-min));
         padding: 0;
         border: none;
         border-radius: 9999px;
