@@ -29,6 +29,7 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { SessionDetailComponent } from '../components/session-detail/session-detail.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-workout-history',
@@ -50,9 +51,10 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
     IonTitle,
     IconComponent,
     SessionDetailComponent,
+    EmptyStateComponent,
   ],
   template: `
-    <ion-content class="history-page" [fullscreen]="true">
+    <ion-content class="history-page tier-trabajo" [fullscreen]="true">
       <app-header title="Historial Completo" [showBack]="true" (backClicked)="goBack()">
       </app-header>
 
@@ -69,18 +71,11 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
               <p>Cargando historial...</p>
             </div>
           } @else if (workoutFacade.history().length === 0) {
-            <div class="empty-feed">
-              <app-icon name="clipboard-list" [size]="40" class="empty-icon" />
-              <h4>Aún no has registrado sesiones</h4>
-            </div>
+            <app-empty-state icon="clipboard-list" message="Aún no has registrado sesiones" />
           } @else {
             <div class="feed-list">
               @for (item of workoutFacade.history(); track item.id) {
-                <div
-                  class="workout-card history-card"
-                  (click)="viewDetails(item.id)"
-                  style="cursor: pointer;"
-                >
+                <div class="workout-card history-card" (click)="viewDetails(item.id)">
                   <div class="card-top">
                     <div class="card-date-box">
                       <app-icon name="calendar" [size]="14" />
@@ -149,14 +144,9 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
   `,
   styles: [
     `
-      .back-btn {
-        --color: var(--ds-brand);
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
-      .history-page {
-        --background: var(--ion-background-color, #0a0a0a);
-      }
+      /* Tier 2 (spec 0013). Tarjeta, contador y etiquetas con los valores
+         de "Historial Reciente" de Entrenar: es la misma información.
+         El fondo lo pinta la regla global de ion-content (fix-028). */
       .page-container {
         padding: 1rem;
         padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px));
@@ -176,21 +166,24 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
         align-items: center;
         gap: 0.5rem;
       }
+      /* Iba en Anton a 16.8px, debajo de su piso de 28. */
       .section-title {
-        font-family: var(--font-display);
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-family: var(--font-body);
+        font-size: var(--text-lg);
+        font-weight: var(--font-bold);
         color: var(--text-primary);
         margin: 0;
-        letter-spacing: -0.01em;
       }
+      /* Medía 12px. */
       .badge-count {
-        background: rgba(255, 255, 255, 0.08);
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 12px;
+        background: var(--bg-subtle);
+        color: var(--text-secondary);
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+        font-size: var(--text-xs);
+        font-weight: var(--font-bold);
+        padding: 2px var(--space-2);
+        border-radius: var(--radius-full);
       }
       .feed-list {
         display: flex;
@@ -198,18 +191,19 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
         gap: 0.75rem;
       }
       .workout-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--bg-surface);
+        border: var(--border-tier3) solid var(--border-subtle);
         border-radius: 16px;
         padding: 1.15rem;
         display: flex;
         flex-direction: column;
         gap: 0.85rem;
+        cursor: pointer;
         transition: all 0.15s ease;
       }
       .workout-card:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        border-color: var(--border-default);
       }
       .card-top {
         display: flex;
@@ -221,7 +215,7 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--text-primary);
         font-weight: 600;
         text-transform: capitalize;
       }
@@ -232,49 +226,55 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
         display: flex;
         align-items: center;
         gap: 0.3rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 500;
       }
       .card-stats {
         display: flex;
-        gap: 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
       }
       .stat-pill {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--bg-elevated);
         padding: 0.4rem 0.75rem;
         border-radius: 8px;
         display: flex;
         align-items: baseline;
         gap: 0.35rem;
       }
+      /* Cifras de ancho fijo: se comparan entre tarjetas. */
       .stat-num {
-        font-weight: 800;
+        font-family: var(--font-data);
+        font-variant-numeric: tabular-nums;
+        font-weight: var(--font-bold);
         color: var(--text-primary);
-        font-size: 0.95rem;
+        font-size: var(--text-base);
       }
+      /* Medía 11.5px. */
       .stat-unit {
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 0.72rem;
-        font-weight: 600;
+        color: var(--text-muted);
+        font-size: var(--text-xs);
+        font-weight: var(--font-semibold);
       }
       .exercise-tags {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.4rem;
+        gap: var(--space-1) 6px;
       }
+      /* Neutras, como en Entrenar: iban en el azul de la marca anterior
+         y a 11.5px. */
       .ex-tag {
-        background: rgba(59, 130, 246, 0.08);
-        color: #93c5fd;
-        border: 1px solid rgba(59, 130, 246, 0.15);
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        border: var(--border-tier3) solid var(--border-subtle);
         border-radius: 6px;
-        font-size: 0.72rem;
-        padding: 2px 7px;
-        font-weight: 500;
+        font-size: var(--text-xs);
+        padding: 2px var(--space-2);
+        font-weight: var(--font-medium);
       }
-      .loading-box,
-      .empty-feed {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.06);
+      .loading-box {
+        background: var(--bg-surface);
+        border: var(--border-tier3) dashed var(--border-subtle);
         border-radius: 16px;
         padding: 2.5rem 1.5rem;
         text-align: center;
@@ -282,15 +282,6 @@ import { SessionDetailComponent } from '../components/session-detail/session-det
         flex-direction: column;
         align-items: center;
         gap: 0.6rem;
-      }
-      .empty-icon {
-        margin-bottom: 0.2rem;
-      }
-      .empty-feed h4 {
-        margin: 0;
-        color: var(--text-primary);
-        font-weight: 700;
-        font-size: 1rem;
       }
       .safe-bottom {
         height: 2.5rem;
