@@ -12,19 +12,22 @@ import {
   selector: 'app-workout-timer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <span
-      class="timer-display font-display text-4xl font-bold tracking-tight text-[var(--ion-color-primary)]"
-    >
-      {{ formattedTime() }}
-    </span>
-  `,
+  // El cronómetro es lo único de Tier 3 que puede moverse (_tiers.scss).
+  host: { class: 'tier-cronometro' },
+  template: ` <span class="timer-display">{{ formattedTime() }}</span> `,
   styles: [
     `
       :host {
         display: inline-block;
       }
+      /* Iba en Anton: Tier 3 la prohíbe, y en un número que cambia
+         cada segundo las cifras de ancho fijo evitan que tiemble. */
       .timer-display {
+        font-family: var(--font-data);
+        font-size: var(--text-4xl);
+        font-weight: var(--font-semibold);
+        letter-spacing: 0.02em;
+        color: var(--ds-brand);
         font-variant-numeric: tabular-nums;
       }
     `,
