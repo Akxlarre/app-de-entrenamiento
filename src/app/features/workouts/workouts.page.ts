@@ -573,8 +573,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.75rem;
       }
       .routine-card {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
         border-radius: 14px;
         padding: 0.9rem;
         display: flex;
@@ -585,7 +585,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       }
       .routine-card:active {
         transform: scale(0.98);
-        background: rgba(255, 255, 255, 0.07);
+        background: var(--bg-elevated);
       }
       .routine-card-top {
         display: flex;
@@ -645,12 +645,12 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         align-items: center;
       }
       .routine-summary {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.5);
+        font-size: var(--text-xs);
+        color: var(--text-muted);
         margin: 0;
       }
       .start-badge {
-        font-size: 0.72rem;
+        font-size: var(--text-xs);
         font-weight: 700;
         color: var(--ds-brand);
       }
@@ -666,14 +666,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         cursor: pointer;
       }
       .modal-btn-cancel {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary, #fff);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
       }
       .modal-btn-danger {
-        background: rgba(239, 68, 68, 0.15);
+        background: var(--state-error-bg);
         color: var(--state-error);
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        border: 1px solid var(--state-error-border);
       }
 
       /* === HISTORY SECTION === */
@@ -819,8 +819,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.75rem;
       }
       .workout-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 16px;
         padding: 1.15rem;
         display: flex;
@@ -829,8 +829,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         transition: all 0.15s ease;
       }
       .workout-card:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        border-color: var(--border-default);
       }
       .card-top {
         display: flex;
@@ -842,7 +842,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        color: rgba(255, 255, 255, 0.85);
+        color: var(--text-primary);
         font-weight: 600;
         text-transform: capitalize;
       }
@@ -853,7 +853,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         display: flex;
         align-items: center;
         gap: 0.3rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-weight: 500;
       }
 
@@ -863,7 +863,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         gap: 0.5rem 0.75rem;
       }
       .stat-pill {
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--bg-elevated);
         padding: 0.4rem 0.75rem;
         border-radius: 8px;
         display: flex;
@@ -888,8 +888,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
       /* === LOADING STATE === */
       .loading-box {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px dashed rgba(255, 255, 255, 0.06);
+        background: var(--bg-surface);
+        border: 1px dashed var(--border-subtle);
         border-radius: 16px;
         padding: 2.5rem 1.5rem;
         text-align: center;
@@ -900,7 +900,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
       }
       .loading-box p {
         margin: 0;
-        color: rgba(255, 255, 255, 0.45);
+        color: var(--text-muted);
         font-size: 0.82rem;
         line-height: 1.4;
         max-width: 300px;
