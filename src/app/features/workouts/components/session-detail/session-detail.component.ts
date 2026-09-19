@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { WorkoutHistoryItem } from '@core/facades/workout.facade';
+import { nombreTipoSerie } from '@core/utils/set-type.utils';
 
-const TIPOS_DE_SERIE: Record<string, { letra: string; nombre: string }> = {
-  warmup: { letra: 'W', nombre: 'Calentamiento' },
-  dropset: { letra: 'D', nombre: 'Drop set' },
-  failure: { letra: 'F', nombre: 'Al fallo' },
+/** Letra de cada tipo especial en el historial; la serie normal no lleva. */
+const LETRAS_TIPO_SERIE: Record<string, string> = {
+  warmup: 'W',
+  dropset: 'D',
+  failure: 'F',
 };
 
 /**
@@ -275,6 +277,7 @@ export class SessionDetailComponent {
 
   /** Letra y nombre completo del tipo de serie; null para una serie normal. */
   tipoSerie(tipo: string): { letra: string; nombre: string } | null {
-    return TIPOS_DE_SERIE[tipo] ?? null;
+    const letra = LETRAS_TIPO_SERIE[tipo];
+    return letra ? { letra, nombre: nombreTipoSerie(tipo) } : null;
   }
 }
