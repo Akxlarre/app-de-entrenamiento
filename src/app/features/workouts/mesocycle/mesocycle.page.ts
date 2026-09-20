@@ -5,6 +5,8 @@ import {
   OnInit,
   computed,
   signal,
+  AfterViewInit,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -17,10 +19,13 @@ import {
   NavController,
   ActionSheetController,
 } from '@ionic/angular';
+import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
+import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
 import { WorkoutFacade } from '@core/facades/workout.facade';
 import { MesoTimelineComponent } from './components/meso-timeline.component';
 import { WeekDetailComponent } from './components/week-detail.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 
 @Component({
@@ -37,25 +42,18 @@ import { IconComponent } from '@shared/components/icon/icon.component';
     MesoTimelineComponent,
     WeekDetailComponent,
     IconComponent,
+    AppHeaderComponent,
+    EmptyStateComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="goBack()">
-            <app-icon name="arrow-left"></app-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-title>Mesocycle Manager</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-header title="Mesocycle Manager" (back)="goBack()"></app-header>
 
-    <ion-content>
+    <ion-content class="tier-trabajo">
       @if (mesocycle(); as plan) {
         <div class="bento-grid">
           <!-- Header Info -->
-          <div class="bento-wide card-accent">
+          <div data-anim="bloque" class="bento-wide card-accent">
             <div class="plan-header">
               <div>
                 <h1 class="plan-title">{{ plan.name }}</h1>
@@ -71,7 +69,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
 
           <!-- Timeline -->
-          <div class="bento-wide card">
+          <div data-anim="bloque" class="bento-wide card">
             <app-meso-timeline
               [weeks]="plan.weeks || []"
               [currentWeekNumber]="plan.current_week"
@@ -82,7 +80,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
 
           <!-- Week Detail -->
-          <div class="bento-wide card no-padding-bottom">
+          <div data-anim="bloque" class="bento-wide card no-padding-bottom">
             @if (selectedWeek()) {
               <div class="week-header-info">
                 <h2>Semana {{ selectedWeek()?.week_number }}</h2>
@@ -107,17 +105,15 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
         </div>
       } @else {
-        <div class="empty-state">
-          <app-icon name="folder-open" [size]="48"></app-icon>
-          <h2>No tienes un plan activo</h2>
-          <p>
-            Puedes construir tu propio plan manualmente o pedirle al Coach AI que genere uno para
-            ti.
-          </p>
-          <div class="empty-actions">
-            <button class="btn-primary" (click)="goToCreatePlan()">Crear Plan Manualmente</button>
-            <button class="btn-secondary" (click)="goBack()">Volver</button>
-          </div>
+        <app-empty-state
+          icon="folder-open"
+          message="No tienes un plan activo"
+          subtitle="Puedes construir tu propio plan manualmente o pedirle al Coach AI que genere uno para ti."
+          actionLabel="Crear Plan Manualmente"
+          (action)="goToCreatePlan()"
+        ></app-empty-state>
+        <div class="flex justify-center mt-4">
+          <button class="btn-secondary" (click)="goBack()">Volver</button>
         </div>
       }
     </ion-content>
@@ -247,7 +243,13 @@ import { IconComponent } from '@shared/components/icon/icon.component';
     `,
   ],
 })
-export class MesocyclePage implements OnInit {
+export class MesocyclePage implements OnInit, AfterViewInit {
+  private gsap = inject(GsapAnimationsService);
+  private el = inject(ElementRef);
+
+  ngAfterViewInit() {
+    this.gsap.animateTierEnter(this.el.nativeElement);
+  }
   private navCtrl = inject(NavController);
   private facade = inject(MesocycleFacade);
   private actionSheetCtrl = inject(ActionSheetController);
@@ -327,6 +329,7 @@ export class MesocyclePage implements OnInit {
     await actionSheet.present();
   }
 }
+
 
 
 
