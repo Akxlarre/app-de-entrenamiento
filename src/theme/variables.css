@@ -24,6 +24,11 @@
   --ion-tab-bar-background: var(--bg-surface);
   --ion-tab-bar-background-focused: var(--bg-elevated);
   --ion-card-background: var(--bg-surface);
+
+  /* ion-content fija font-family: var(--ion-font-family) en su :host,
+     y Ionic la deja en Roboto (md) o en la del sistema (iOS): sin esto,
+     casi todo el texto de la app salía en Roboto (fix-037). */
+  --ion-font-family: var(--font-body);
 }
 
 /* Colores con nombre de Ionic (color="primary", "danger"...) en la paleta
