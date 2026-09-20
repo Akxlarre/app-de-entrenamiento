@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+﻿import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -19,7 +19,7 @@ import { MesocycleFacade } from '@core/facades/mesocycle.facade';
 import { RoutineFacade } from '@core/facades/routine.facade';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
-import { ModalComponent, ModalFooterDirective } from '@shared/components/modal/modal.component';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 import { RoutineEditorPage } from '../../routines/routine-editor.page';
 
 @Component({
@@ -35,14 +35,13 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
     IonTitle,
     IonContent,
     IonInput,
-    IonSelect,
-    IonSelectOption,
+    
+    
     IonModal,
     IonToggle,
     IconComponent,
     EmptyStateComponent,
     ModalComponent,
-    ModalFooterDirective,
     RoutineEditorPage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -596,6 +595,7 @@ export class MesocycleBuilderPage {
     }
   }
 }
+
 
 
 
