@@ -864,6 +864,21 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         font-size: var(--text-xs);
         font-weight: var(--font-semibold);
       }
+      /* No tenían estilos: con más de un ejercicio los nombres salían
+         pegados ("Press de bancaRemo con barra"). Como en Historial. */
+      .card-exercises {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1) 6px;
+      }
+      .exercise-chip {
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        border: var(--border-tier3) solid var(--border-subtle);
+        border-radius: 6px;
+        font-size: var(--text-xs);
+        padding: 2px var(--space-2);
+      }
 
       /* === LOADING STATE === */
       .loading-box {
