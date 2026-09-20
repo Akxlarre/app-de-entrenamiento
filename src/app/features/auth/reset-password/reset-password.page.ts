@@ -54,7 +54,7 @@ const PASSWORD_MIN_LENGTH = 8;
 
       <!-- Glass card -->
       <div
-        class="w-full max-w-[390px] rounded-2xl border border-subtle border bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
+        class="w-full max-w-[390px] rounded-2xl border border-subtle bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
       >
         <div class="mb-6 text-center">
           <h2 class="m-0 text-xl tracking-tight text-primary" style="font-family: var(--font-body); font-weight: 800;">Nueva contraseña</h2>
@@ -114,7 +114,7 @@ const PASSWORD_MIN_LENGTH = 8;
               <input
                 id="password"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle border px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="password"
                 name="password"
@@ -133,7 +133,7 @@ const PASSWORD_MIN_LENGTH = 8;
               <input
                 id="confirm"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle border px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="confirm"
                 name="confirm"
@@ -159,7 +159,7 @@ const PASSWORD_MIN_LENGTH = 8;
         }
 
         <!-- Footer -->
-        <div class="mt-6 flex items-center justify-center border-t border-subtle border pt-5">
+        <div class="mt-6 flex items-center justify-center border-t border-subtle pt-5">
           <button
             class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-[var(--text-floor,13px)] font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
             (click)="goToLogin()"
@@ -246,4 +246,5 @@ export class ResetPasswordPage implements OnInit, AfterViewInit {
     return null;
   }
 }
+
 

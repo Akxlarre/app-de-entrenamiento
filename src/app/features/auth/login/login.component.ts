@@ -100,7 +100,7 @@ function sanitizeAuthError(rawMessage: string): string {
 
       <!-- Auth Glass Card -->
       <div
-        class="w-full max-w-[390px] rounded-2xl border border-subtle border bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
+        class="w-full max-w-[390px] rounded-2xl border border-subtle bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
       >
         <div class="mb-6 text-center">
           <h2 class="m-0 text-xl tracking-tight text-primary" style="font-family: var(--font-body); font-weight: 800;">
@@ -163,7 +163,7 @@ function sanitizeAuthError(rawMessage: string): string {
             <input
               id="email"
               type="email"
-              class="h-12 w-full rounded-xl bg-elevated border border-subtle border px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+              class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
               placeholder="tu@correo.com"
               [(ngModel)]="email"
               name="email"
@@ -183,7 +183,7 @@ function sanitizeAuthError(rawMessage: string): string {
               <input
                 id="password"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle border px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="password"
                 name="password"
@@ -204,7 +204,7 @@ function sanitizeAuthError(rawMessage: string): string {
               <input
                 id="displayName"
                 type="text"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle border px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="Tu nombre"
                 [(ngModel)]="displayName"
                 name="displayName"
@@ -242,7 +242,7 @@ function sanitizeAuthError(rawMessage: string): string {
 
         <!-- Footer links -->
         <div
-          class="mt-6 flex items-center justify-center gap-2.5 text-[var(--text-floor,13px)] text-muted border-t border-subtle border pt-5"
+          class="mt-6 flex items-center justify-center gap-2.5 text-[var(--text-floor,13px)] text-muted border-t border-subtle pt-5"
         >
           @switch (mode()) {
             @case ('login') {
@@ -404,4 +404,5 @@ export class LoginComponent implements AfterViewInit {
     return null;
   }
 }
+
 
