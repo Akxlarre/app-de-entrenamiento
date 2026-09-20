@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, ElementRef } from '@angular/core';
+﻿import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthFacade } from '@core/facades/auth.facade';
@@ -404,5 +404,4 @@ export class LoginComponent implements AfterViewInit {
     return null;
   }
 }
-
 
