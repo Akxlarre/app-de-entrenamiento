@@ -62,7 +62,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 4px;
       }
 
-      .week-node {
+      .week-node { min-height: var(--target-min, 44px); min-width: var(--target-min, 44px);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -97,7 +97,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .node-label {
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 600;
         color: var(--text-muted, var(--text-secondary));
       }
@@ -155,4 +155,6 @@ export class MesoTimelineComponent {
 
   selectWeek = output<string>();
 }
+
+
 

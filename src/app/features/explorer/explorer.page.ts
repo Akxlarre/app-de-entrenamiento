@@ -26,6 +26,7 @@ import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facad
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { ExerciseDetailComponent } from './components/exercise-detail/exercise-detail.component';
+import { TranslateExercisePipe } from '@shared/pipes/translate-exercise.pipe';
 
 const MUSCLE_GROUPS = [
   { label: 'Todos', value: '', icon: 'zap' },
@@ -58,6 +59,7 @@ const MUSCLE_GROUPS = [
     IconComponent,
     EmptyStateComponent,
     ExerciseDetailComponent,
+    TranslateExercisePipe,
   ],
   template: `
     <ion-content class="explorer-content tier-trabajo" [fullscreen]="true">
@@ -130,9 +132,9 @@ const MUSCLE_GROUPS = [
               <ion-label>
                 <h2 class="exercise-name">{{ exercise.name_es || exercise.name_en }}</h2>
                 <p class="exercise-meta capitalize">
-                  <span class="exercise-muscle">{{ exercise.muscle }}</span> ·
-                  <span>{{ exercise.equipment }}</span> ·
-                  <span>{{ exercise.category }}</span>
+                  <span class="exercise-muscle">{{ exercise.muscle | translateExercise }}</span> ·
+                  <span>{{ exercise.equipment | translateExercise }}</span> ·
+                  <span>{{ exercise.category | translateExercise }}</span>
                 </p>
               </ion-label>
               <app-icon
@@ -279,7 +281,7 @@ const MUSCLE_GROUPS = [
       }
 
       .exercise-meta {
-        font-size: var(--text-xs) !important;
+        font-size: var(--text-xs);
         display: flex;
         align-items: center;
         gap: 0.3rem;

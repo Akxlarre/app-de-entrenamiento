@@ -151,10 +151,10 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         padding: 2px 6px;
         border-radius: 4px;
         font-weight: 700;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         text-transform: uppercase;
       }
-      .settings-btn {
+      .settings-btn { min-width: var(--target-min, 44px); min-height: var(--target-min, 44px);
         background: var(--bg-elevated);
         border: none;
         color: var(--text-primary);
@@ -188,7 +188,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
       .focus-notes {
@@ -223,7 +223,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .empty-state p {
         margin-bottom: 1.5rem;
       }
-      .btn-primary {
+      .btn-primary { min-height: var(--target-min, 44px);
         background: var(--color-primary, var(--ds-brand));
         color: var(--text-primary);
         border: none;
@@ -236,7 +236,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 1rem;
         margin-top: 1rem;
       }
-      .btn-secondary {
+      .btn-secondary { min-height: var(--target-min, 44px);
         background: var(--border-subtle);
         color: var(--text-primary);
         border: none;
@@ -327,4 +327,6 @@ export class MesocyclePage implements OnInit {
     await actionSheet.present();
   }
 }
+
+
 

@@ -411,23 +411,7 @@
    ESTILOS BASE
    ============================================================ */
 
-/* Solo h1 y h2 llevan la tipografía de impacto: por defecto renderizan
-   por encima de --font-display-floor. h3 y menores caen debajo de ese
-   piso, así que usan la de cuerpo en peso alto. */
-h1,
-h2 {
-  font-family: var(--font-display);
-  font-weight: var(--font-regular);
-  letter-spacing: 0.005em;
-}
 
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-body);
-  font-weight: var(--font-bold);
-}
 
 body {
   font-family: var(--font-body);

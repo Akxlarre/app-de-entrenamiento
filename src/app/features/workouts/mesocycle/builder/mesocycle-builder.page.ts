@@ -326,7 +326,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         color: var(--text-primary);
       }
       .step span {
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 600;
       }
       .step-line {
@@ -350,8 +350,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         color: var(--text-muted);
         margin-bottom: 0.5rem;
       }
-      .custom-input,
-      .custom-select {
+      .custom-input, .custom-select { font-size: 16px; min-height: var(--target-min, 44px);
         background: var(--bg-surface);
         border-radius: 8px;
         padding: 0.5rem 1rem;
@@ -365,7 +364,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         gap: 1rem;
         margin-bottom: 1.5rem;
       }
-      .session-item {
+      .session-item { min-height: var(--target-min, 44px);
         background: var(--bg-surface);
         border: 1px solid var(--bg-elevated);
         border-radius: 12px;
@@ -382,7 +381,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
 
@@ -391,7 +390,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         flex-direction: column;
         gap: 1rem;
       }
-      .progression-card {
+      .progression-card { min-height: var(--target-min, 44px);
         background: var(--bg-surface);
         border: 1px solid var(--bg-elevated);
         border-radius: 12px;
@@ -419,7 +418,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         line-height: 1.4;
       }
 
-      .btn-primary {
+      .btn-primary { min-height: var(--target-min, 44px);
         background: var(--color-primary, var(--ds-brand));
         color: var(--text-primary);
         border: none;
@@ -432,7 +431,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .btn-primary:disabled {
         opacity: 0.5;
       }
-      .btn-secondary {
+      .btn-secondary { min-height: var(--target-min, 44px);
         background: var(--bg-elevated);
         color: var(--text-primary);
         border: 1px dashed var(--border-subtle);
@@ -441,7 +440,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         font-weight: 600;
         width: 100%;
       }
-      .btn-outline {
+      .btn-outline { min-height: var(--target-min, 44px);
         background: transparent;
         color: var(--text-primary);
         border: 1px solid var(--border-subtle);
@@ -459,7 +458,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .w-full {
         width: 100%;
       }
-      .icon-btn {
+      .icon-btn { min-width: var(--target-min, 44px); min-height: var(--target-min, 44px); display: flex; align-items: center; justify-content: center;
         background: transparent;
         border: none;
         display: flex;
@@ -556,4 +555,6 @@ export class MesocycleBuilderPage {
     }
   }
 }
+
+
 

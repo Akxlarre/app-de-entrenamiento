@@ -142,7 +142,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         color: var(--ds-brand);
         padding: 3px 8px;
         border-radius: 6px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
       .routine-name {
@@ -158,7 +158,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .status-badge {
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 4px;
@@ -205,7 +205,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .target-header {
         display: flex;
         justify-content: space-between;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
         color: rgba(255, 255, 255, 0.4);
         padding-bottom: 0.5rem;
@@ -240,7 +240,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
       }
       .set-num {
         font-weight: 700;
@@ -322,4 +322,6 @@ export class WeekDetailComponent {
     return result;
   }
 }
+
+
 

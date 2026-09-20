@@ -9,6 +9,7 @@ import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facad
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { ExerciseDetailComponent } from '../components/exercise-detail/exercise-detail.component';
+import { TranslateExercisePipe } from '@shared/pipes/translate-exercise.pipe';
 import { addIcons } from 'ionicons';
 
 const MUSCLE_GROUPS = [
@@ -38,6 +39,7 @@ const MUSCLE_GROUPS = [
     DrawerComponent,
     IconComponent,
     ExerciseDetailComponent,
+    TranslateExercisePipe,
   ],
   template: `
     <!-- Top Modal Header -->
@@ -139,11 +141,11 @@ const MUSCLE_GROUPS = [
                   {{ exercise.name_es || exercise.name_en }}
                 </h3>
                 <p class="exercise-meta">
-                  <span class="meta-muscle">{{ exercise.muscle }}</span>
+                  <span class="meta-muscle">{{ exercise.muscle | translateExercise }}</span>
                   <span class="meta-fixed">·</span>
-                  <span class="meta-equipment">{{ exercise.equipment }}</span>
+                  <span class="meta-equipment">{{ exercise.equipment | translateExercise }}</span>
                   <span class="meta-fixed">·</span>
-                  <span class="meta-fixed">{{ exercise.category }}</span>
+                  <span class="meta-fixed">{{ exercise.category | translateExercise }}</span>
                 </p>
               </div>
               <button
