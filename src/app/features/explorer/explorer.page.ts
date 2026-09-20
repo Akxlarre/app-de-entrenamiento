@@ -32,13 +32,16 @@ const MUSCLE_GROUPS = [
   { label: 'Todos', value: '', icon: 'zap' },
   { label: 'Pecho', value: 'Pecho', icon: 'shield-check' },
   { label: 'Espalda', value: 'Espalda', icon: 'layers' },
-  { label: 'Piernas', value: 'Pierna', icon: 'activity' },
   { label: 'Hombros', value: 'Hombro', icon: 'dumbbell' },
   { label: 'Bíceps', value: 'Bíceps', icon: 'activity' },
   { label: 'Tríceps', value: 'Tríceps', icon: 'activity' },
-  { label: 'Abdomen', value: 'Abdom', icon: 'target' },
+  { label: 'Cuádriceps', value: 'Cuádriceps', icon: 'activity' },
+  { label: 'Isquios', value: 'Isquiotibiales', icon: 'activity' },
   { label: 'Glúteos', value: 'Glúteo', icon: 'circle' },
-  { label: 'Cardio', value: 'Cardio', icon: 'activity' },
+  { label: 'Pantorrillas', value: 'Pantorrilla', icon: 'activity' },
+  { label: 'Abdomen', value: 'Abdominal', icon: 'target' },
+  { label: 'Dorsales', value: 'Dorsale', icon: 'layers' },
+  { label: 'Trapecios', value: 'Trapecio', icon: 'activity' },
 ];
 
 @Component({

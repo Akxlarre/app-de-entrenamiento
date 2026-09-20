@@ -632,7 +632,7 @@ body {
     position: absolute;
     left: 0;
     top: 50%;
-    transform: translateY(-50%);
+    margin-top: -4px;
     width: 8px;
     height: 8px;
     border-radius: var(--radius-full);

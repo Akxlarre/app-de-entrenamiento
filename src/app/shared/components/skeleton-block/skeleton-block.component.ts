@@ -17,16 +17,33 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
   template: `
     <div
       #block
-      class="relative overflow-hidden rounded-md bg-subtle"
-      [class.!rounded-full]="variant() === 'circle'"
-      [class.!rounded-sm]="variant() === 'text'"
+      class="skeleton-block"
+      [class.skeleton-circle]="variant() === 'circle'"
+      [class.skeleton-text]="variant() === 'text'"
       [style.width]="width()"
       [style.height]="variant() === 'text' ? '1em' : height()"
-      [style.background-color]="'var(--bg-subtle)'"
       aria-hidden="true"
     ></div>
   `,
-  styles: [],
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      .skeleton-block {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background: var(--bg-elevated, rgba(255, 255, 255, 0.06));
+      }
+      .skeleton-text {
+        border-radius: 4px;
+      }
+      .skeleton-circle {
+        border-radius: 9999px;
+      }
+    `,
+  ],
 })
 export class SkeletonBlockComponent implements OnDestroy {
   readonly variant = input<'rect' | 'circle' | 'text'>('rect');

@@ -20,16 +20,30 @@ import { SkeletonBlockComponent } from '../skeleton-block/skeleton-block.compone
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SkeletonBlockComponent],
   template: `
-    <div class="card card-tinted flex flex-col gap-2 h-full" aria-busy="true" aria-label="Cargando métrica">
+    <div class="skeleton-kpi" aria-busy="true" aria-label="Cargando métrica">
       <!-- kpi-label placeholder -->
-      <app-skeleton-block variant="text" width="55%" height="12px" />
+      <app-skeleton-block variant="text" width="55%" height="14px" />
 
       <!-- kpi-value placeholder -->
-      <app-skeleton-block width="70%" height="44px" />
+      <app-skeleton-block width="70%" height="40px" />
 
       <!-- trend placeholder -->
       <app-skeleton-block variant="text" width="40%" height="14px" />
     </div>
   `,
+  styles: [
+    `
+      .skeleton-kpi {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        min-height: 120px;
+      }
+    `,
+  ],
 })
 export class KpiCardSkeletonComponent {}

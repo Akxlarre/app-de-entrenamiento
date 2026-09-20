@@ -46,6 +46,7 @@ export interface HistorySet {
 export interface HistoryExerciseDetail {
   name: string;
   sets: HistorySet[];
+  feedback?: WorkoutExerciseFeedback;
 }
 
 export interface WorkoutHistoryItem {
@@ -685,7 +686,7 @@ export class WorkoutFacade {
           workout_id: session.id,
           exercise_id: ex.exercise_id,
           user_id: userData.user.id,
-          category: ex.feedback.category,
+          categories: ex.feedback.categories || [],
           rating: ex.feedback.rating || null,
           tags: ex.feedback.tags || [],
           notes: ex.feedback.notes || null,
@@ -857,6 +858,17 @@ export class WorkoutFacade {
             energy_level,
             session_rpe,
             notes
+          ),
+          workout_exercise_feedback (
+            exercise_id,
+            categories,
+            rating,
+            tags,
+            notes,
+            exercises (
+              name_es,
+              name_en
+            )
           )
         `,
         )
@@ -895,10 +907,25 @@ export class WorkoutFacade {
 
           const detailed_exercises: HistoryExerciseDetail[] = Array.from(
             groupedExercises.entries(),
-          ).map(([name, sets]) => ({
-            name,
-            sets: sets.sort((a, b) => a.set_number - b.set_number),
-          }));
+          ).map(([name, sets]) => {
+            // Find feedback for this exercise
+            const fb = (w.workout_exercise_feedback || []).find((f: any) => {
+              const fName = f.exercises?.name_es || f.exercises?.name_en || 'Ejercicio Desconocido';
+              return fName === name;
+            });
+
+            return {
+              name,
+              sets: sets.sort((a, b) => a.set_number - b.set_number),
+              feedback: fb ? {
+                exercise_id: fb.exercise_id,
+                categories: fb.categories,
+                rating: fb.rating,
+                tags: fb.tags,
+                notes: fb.notes
+              } : undefined
+            };
+          });
 
           let duration = 0;
           if (w.start_time && w.end_time) {

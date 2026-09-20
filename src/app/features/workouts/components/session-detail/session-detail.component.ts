@@ -10,6 +10,8 @@ const LETRAS_TIPO_SERIE: Record<string, string> = {
   failure: 'F',
 };
 
+import { IconComponent } from '@shared/components/icon/icon.component';
+
 /**
  * Detalle de una sesión pasada. Lo usan Entrenar e Historial, que antes
  * tenían cada uno su copia escrita con estilos en línea (spec 0008).
@@ -17,7 +19,7 @@ const LETRAS_TIPO_SERIE: Record<string, string> = {
 @Component({
   selector: 'app-session-detail',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, TitleCasePipe],
+  imports: [DatePipe, DecimalPipe, TitleCasePipe, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sd">
@@ -107,6 +109,28 @@ const LETRAS_TIPO_SERIE: Record<string, string> = {
                   </div>
                 }
               </div>
+              @if (ex.feedback) {
+                <div class="sd-feedback">
+                  <div class="sd-feedback-header">
+                    <span class="sd-label" style="display: flex; align-items: center; gap: 4px;">
+                      <app-icon name="message-circle" [size]="14"></app-icon> Feedback
+                    </span>
+                    @if (ex.feedback.rating) {
+                      <span class="sd-feedback-rating">★ {{ ex.feedback.rating }}/5</span>
+                    }
+                  </div>
+                  @if (ex.feedback.categories?.length) {
+                    <div class="sd-feedback-tags">
+                      @for (cat of ex.feedback.categories; track cat) {
+                        <span class="sd-feedback-tag">{{ translateCategory(cat) }}</span>
+                      }
+                    </div>
+                  }
+                  @if (ex.feedback.notes) {
+                    <div class="sd-text sd-notes" style="margin-top: 8px;">{{ ex.feedback.notes }}</div>
+                  }
+                </div>
+              }
             </div>
           }
           @if (workout().detailed_exercises.length === 0) {
@@ -269,6 +293,38 @@ const LETRAS_TIPO_SERIE: Record<string, string> = {
         font-size: var(--text-sm);
         color: var(--text-muted);
       }
+      .sd-feedback {
+        margin: var(--space-2) var(--space-4) var(--space-4);
+        padding: var(--space-3);
+        background: var(--bg-base);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+      }
+      .sd-feedback-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--space-2);
+      }
+      .sd-feedback-rating {
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--ds-brand);
+      }
+      .sd-feedback-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+      }
+      .sd-feedback-tag {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: var(--radius-full);
+        background: var(--bg-subtle);
+        color: var(--text-secondary);
+        font-weight: 600;
+        border: 1px solid var(--border-subtle);
+      }
     `,
   ],
 })
@@ -279,5 +335,16 @@ export class SessionDetailComponent {
   tipoSerie(tipo: string): { letra: string; nombre: string } | null {
     const letra = LETRAS_TIPO_SERIE[tipo];
     return letra ? { letra, nombre: nombreTipoSerie(tipo) } : null;
+  }
+
+  translateCategory(cat: string): string {
+    const map: Record<string, string> = {
+      technique: 'Técnica',
+      pain: 'Molestia Física',
+      equipment: 'Equipo',
+      intensity: 'Intensidad',
+      other: 'Otro'
+    };
+    return map[cat] || cat;
   }
 }

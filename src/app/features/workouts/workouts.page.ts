@@ -96,14 +96,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         <!-- Sección: Plan Estructurado (Mesociclo) -->
         <div class="plan-section" data-anim="bloque">
           @if (mesoFacade.isLoading()) {
-            <div class="plan-card">
-              <div class="plan-card__head" style="margin-bottom: 8px;">
+            <div class="plan-card" style="pointer-events: none;">
+              <div class="plan-card__head" style="margin-bottom: 12px;">
                 <div class="plan-card__id">
-                  <app-skeleton-block variant="text" width="90px" height="12px" />
-                  <app-skeleton-block variant="text" width="160px" height="24px" style="margin-top: 4px;" />
+                  <app-skeleton-block variant="text" width="100px" height="12px" />
+                  <app-skeleton-block variant="text" width="180px" height="22px" style="margin-top: 6px;" />
                 </div>
               </div>
-              <app-skeleton-block variant="text" width="60%" height="16px" style="margin-bottom: 24px;" />
+              <app-skeleton-block variant="text" width="55%" height="14px" style="margin-bottom: 16px;" />
               <app-skeleton-block variant="rect" width="100%" height="48px" style="border-radius: 999px;" />
             </div>
           } @else if (mesoFacade.activeMesocycle(); as meso) {
@@ -184,18 +184,14 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
           @if (routineFacade.isLoading() && routineFacade.routines().length === 0) {
             <div class="routines-grid">
-              <div class="routine-card" style="pointer-events: none;">
-                <div class="routine-card-top">
-                  <app-skeleton-block variant="text" width="60%" height="16px" />
+              @for (i of [1, 2, 3]; track i) {
+                <div class="routine-card" style="pointer-events: none;">
+                  <div class="routine-card-top">
+                    <app-skeleton-block variant="text" [width]="i === 1 ? '65%' : i === 2 ? '50%' : '55%'" height="16px" />
+                  </div>
+                  <app-skeleton-block variant="text" [width]="i === 1 ? '80%' : i === 2 ? '70%' : '60%'" height="13px" style="margin-top: 10px;" />
                 </div>
-                <app-skeleton-block variant="text" width="80%" height="14px" style="margin-top: 8px;" />
-              </div>
-              <div class="routine-card" style="pointer-events: none;">
-                <div class="routine-card-top">
-                  <app-skeleton-block variant="text" width="50%" height="16px" />
-                </div>
-                <app-skeleton-block variant="text" width="70%" height="14px" style="margin-top: 8px;" />
-              </div>
+              }
             </div>
           } @else if (routineFacade.routines().length === 0) {
             <app-empty-state

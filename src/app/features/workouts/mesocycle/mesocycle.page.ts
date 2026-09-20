@@ -17,10 +17,7 @@ import {
   IonTitle,
   IonContent,
   NavController,
-  ActionSheetController,
 } from '@ionic/angular';
-import { addIcons } from 'ionicons';
-import { trash, close } from 'ionicons/icons';
 import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
@@ -29,6 +26,7 @@ import { MesoTimelineComponent } from './components/meso-timeline.component';
 import { WeekDetailComponent } from './components/week-detail.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-mesocycle',
@@ -41,10 +39,11 @@ import { IconComponent } from '@shared/components/icon/icon.component';
     IconComponent,
     AppHeaderComponent,
     EmptyStateComponent,
+    ModalComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-header title="Mesocycle Manager" (back)="goBack()"></app-header>
+    <app-header title="Mesocycle Manager" [showBack]="true" (backClicked)="goBack()"></app-header>
 
     <ion-content class="tier-trabajo">
       @if (mesocycle(); as plan) {
@@ -77,7 +76,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
 
           <!-- Week Detail -->
-          <div data-anim="bloque" class="bento-wide card no-padding-bottom">
+          <div data-anim="bloque" class="bento-wide card" style="padding-bottom: 0.5rem; margin-bottom: 1rem;">
             @if (selectedWeek()) {
               <div class="week-header-info">
                 <h2>Semana {{ selectedWeek()?.week_number }}</h2>
@@ -113,6 +112,17 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           <button class="btn-secondary" (click)="goBack()">Volver</button>
         </div>
       }
+
+      <app-modal [isOpen]="isSettingsModalOpen()" title="Opciones del Plan" (closed)="isSettingsModalOpen.set(false)">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 1rem;">
+          <button 
+            class="btn-secondary" 
+            style="background: color-mix(in srgb, var(--state-error) 10%, transparent); border-color: color-mix(in srgb, var(--state-error) 30%, transparent); color: var(--state-error); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" 
+            (click)="deletePlan()">
+            <app-icon name="trash-2" [size]="18"></app-icon> Eliminar Plan
+          </button>
+        </div>
+      </app-modal>
     </ion-content>
   `,
   styles: [
@@ -241,26 +251,19 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   ],
 })
 export class MesocyclePage implements OnInit, AfterViewInit {
-  constructor() {
-    addIcons({ trash, close });
-  }
-
   private gsap = inject(GsapAnimationsService);
   private el = inject(ElementRef);
-
-  ngAfterViewInit() {
-    this.gsap.animateTierEnter(this.el.nativeElement);
-  }
-
   private navCtrl = inject(NavController);
   private facade = inject(MesocycleFacade);
-  private actionSheetCtrl = inject(ActionSheetController);
   workoutFacade = inject(WorkoutFacade);
 
   mesocycle = this.facade.activeMesocycle;
 
   // State for selected week in timeline
   selectedWeekId = signal<string | null>(null);
+  
+  // Settings modal
+  isSettingsModalOpen = signal<boolean>(false);
 
   selectedWeek = computed(() => {
     const id = this.selectedWeekId();
@@ -280,6 +283,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         }
       }
     });
+  }
+  
+  ngAfterViewInit() {
+    this.gsap.animateTierEnter(this.el.nativeElement);
   }
 
   onSelectWeek(weekId: string) {
@@ -302,33 +309,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.workoutFacade.startWorkoutFromMesocycleSession(session, session.routine);
   }
 
-  async openSettings() {
+  openSettings() {
+    this.isSettingsModalOpen.set(true);
+  }
+
+  async deletePlan() {
     const plan = this.mesocycle();
     if (!plan) return;
 
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Opciones del Plan',
-      buttons: [
-        {
-          text: 'Eliminar Plan',
-          role: 'destructive',
-          icon: 'trash',
-          handler: async () => {
-            const result = await this.facade.deleteMesocycle(plan.id);
-            if (!result.success) {
-              alert('Error al eliminar el plan');
-            }
-          },
-        },
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-          icon: 'close',
-        },
-      ],
-    });
-
-    await actionSheet.present();
+    this.isSettingsModalOpen.set(false);
+    const result = await this.facade.deleteMesocycle(plan.id);
+    if (!result.success) {
+      alert('Error al eliminar el plan');
+    }
   }
 }
 

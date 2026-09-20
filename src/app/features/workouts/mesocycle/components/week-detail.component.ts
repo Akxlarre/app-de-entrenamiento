@@ -113,15 +113,15 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .session-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.2s ease;
       }
       .session-card.is-expanded {
         border-color: transparent;
-        background: rgba(255, 255, 255, 0.04);
+        background: var(--bg-elevated);
       }
 
       .session-header {
@@ -171,7 +171,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .chevron-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         transition: transform 0.2s ease;
       }
 
@@ -194,7 +194,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .target-table {
-        background: rgba(0, 0, 0, 0.25);
+        background: var(--bg-base);
         border-radius: 8px;
         padding: 0.75rem;
         display: flex;
@@ -207,9 +207,9 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         justify-content: space-between;
         font-size: var(--text-floor, 13px);
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid var(--border-subtle);
       }
       .target-row {
         display: flex;
@@ -233,8 +233,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 0.5rem;
       }
       .set-pill {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
         border-radius: 6px;
         padding: 4px 8px;
         display: flex;
@@ -244,26 +244,26 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
       .set-num {
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         margin-right: 2px;
       }
       .val {
         font-weight: 600;
-        color: #e2e8f0;
+        color: var(--text-primary);
       }
       .val.rir {
-        color: #f87171;
+        color: var(--state-error);
       }
       .no-targets {
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-style: italic;
         margin-top: 0.75rem;
       }
       .empty-state {
         padding: 1.5rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-size: 0.9rem;
       }
     `,
