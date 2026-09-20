@@ -30,6 +30,7 @@ import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { SessionDetailComponent } from '../components/session-detail/session-detail.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skeleton-block.component';
 
 @Component({
   selector: 'app-workout-history',
@@ -52,6 +53,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.
     IconComponent,
     SessionDetailComponent,
     EmptyStateComponent,
+    SkeletonBlockComponent,
   ],
   template: `
     <ion-content class="history-page tier-trabajo" [fullscreen]="true">
@@ -66,9 +68,24 @@ import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.
           </div>
 
           @if (workoutFacade.isLoadingHistory() && workoutFacade.history().length === 0) {
-            <div class="loading-box">
-              <ion-spinner color="primary"></ion-spinner>
-              <p>Cargando historial...</p>
+            <div class="feed-list">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="workout-card history-card" style="pointer-events: none;">
+                  <div class="card-top">
+                    <app-skeleton-block variant="text" [width]="i === 1 ? '45%' : i === 2 ? '35%' : '40%'" height="16px" />
+                    <app-skeleton-block variant="text" width="22%" height="14px" />
+                  </div>
+                  <div class="card-stats" style="margin-top: 8px;">
+                    <app-skeleton-block variant="text" width="65px" height="24px" style="border-radius: 99px;" />
+                    <app-skeleton-block variant="text" width="65px" height="24px" style="border-radius: 99px;" />
+                  </div>
+                  <div class="exercise-tags" style="margin-top: 12px;">
+                    <app-skeleton-block variant="text" [width]="i === 1 ? '75px' : '85px'" height="20px" style="border-radius: 6px;" />
+                    <app-skeleton-block variant="text" [width]="i === 2 ? '95px' : '105px'" height="20px" style="border-radius: 6px;" />
+                    <app-skeleton-block variant="text" [width]="i === 3 ? '80px' : '90px'" height="20px" style="border-radius: 6px;" />
+                  </div>
+                </div>
+              }
             </div>
           } @else if (workoutFacade.history().length === 0) {
             <app-empty-state icon="clipboard-list" message="Aún no has registrado sesiones" />
@@ -303,14 +320,20 @@ export class HistoryPage implements OnInit, AfterViewInit {
     return this.workoutFacade.history().find((w) => w.id === id) || null;
   });
 
+  private hasAnimated = false;
+
   constructor() {
     addIcons({ chevronBackOutline, closeOutline });
 
     effect(() => {
-      if (this.workoutFacade.history().length > 0) {
+      const history = this.workoutFacade.history();
+      if (history.length > 0 && !this.hasAnimated) {
+        this.hasAnimated = true;
         setTimeout(() => {
           const cards = document.querySelectorAll('.history-card');
-          this.gsap.staggerListItems(cards as any);
+          if (cards.length) {
+            this.gsap.staggerListItems(cards as any);
+          }
         }, 50);
       }
     });
@@ -337,3 +360,4 @@ export class HistoryPage implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {}
 }
+

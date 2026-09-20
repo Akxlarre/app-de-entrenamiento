@@ -5,6 +5,8 @@ import {
   OnInit,
   computed,
   signal,
+  AfterViewInit,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -15,47 +17,39 @@ import {
   IonTitle,
   IonContent,
   NavController,
-  ActionSheetController,
 } from '@ionic/angular';
+import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
+import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
 import { WorkoutFacade } from '@core/facades/workout.facade';
 import { MesoTimelineComponent } from './components/meso-timeline.component';
 import { WeekDetailComponent } from './components/week-detail.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-mesocycle',
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonButton,
-    IonTitle,
     IonContent,
     MesoTimelineComponent,
     WeekDetailComponent,
     IconComponent,
+    AppHeaderComponent,
+    EmptyStateComponent,
+    ModalComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button (click)="goBack()">
-            <app-icon name="arrow-left"></app-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-title>Mesocycle Manager</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-header title="Mesocycle Manager" [showBack]="true" (backClicked)="goBack()"></app-header>
 
-    <ion-content>
+    <ion-content class="tier-trabajo">
       @if (mesocycle(); as plan) {
         <div class="bento-grid">
           <!-- Header Info -->
-          <div class="bento-wide card-accent">
+          <div data-anim="bloque" class="bento-wide card-accent">
             <div class="plan-header">
               <div>
                 <h1 class="plan-title">{{ plan.name }}</h1>
@@ -71,7 +65,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
 
           <!-- Timeline -->
-          <div class="bento-wide card">
+          <div data-anim="bloque" class="bento-wide card">
             <app-meso-timeline
               [weeks]="plan.weeks || []"
               [currentWeekNumber]="plan.current_week"
@@ -82,7 +76,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
 
           <!-- Week Detail -->
-          <div class="bento-wide card no-padding-bottom">
+          <div data-anim="bloque" class="bento-wide card" style="padding-bottom: 0.5rem; margin-bottom: 1rem;">
             @if (selectedWeek()) {
               <div class="week-header-info">
                 <h2>Semana {{ selectedWeek()?.week_number }}</h2>
@@ -107,19 +101,28 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           </div>
         </div>
       } @else {
-        <div class="empty-state">
-          <app-icon name="folder-open" [size]="48"></app-icon>
-          <h2>No tienes un plan activo</h2>
-          <p>
-            Puedes construir tu propio plan manualmente o pedirle al Coach AI que genere uno para
-            ti.
-          </p>
-          <div class="empty-actions">
-            <button class="btn-primary" (click)="goToCreatePlan()">Crear Plan Manualmente</button>
-            <button class="btn-secondary" (click)="goBack()">Volver</button>
-          </div>
+        <app-empty-state
+          icon="folder-open"
+          message="No tienes un plan activo"
+          subtitle="Puedes construir tu propio plan manualmente o pedirle al Coach AI que genere uno para ti."
+          actionLabel="Crear Plan Manualmente"
+          (action)="goToCreatePlan()"
+        ></app-empty-state>
+        <div class="flex justify-center mt-4">
+          <button class="btn-secondary" (click)="goBack()">Volver</button>
         </div>
       }
+
+      <app-modal [isOpen]="isSettingsModalOpen()" title="Opciones del Plan" (closed)="isSettingsModalOpen.set(false)">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 1rem;">
+          <button 
+            class="btn-secondary" 
+            style="background: color-mix(in srgb, var(--state-error) 10%, transparent); border-color: color-mix(in srgb, var(--state-error) 30%, transparent); color: var(--state-error); display: flex; align-items: center; justify-content: center; gap: 0.5rem;" 
+            (click)="deletePlan()">
+            <app-icon name="trash-2" [size]="18"></app-icon> Eliminar Plan
+          </button>
+        </div>
+      </app-modal>
     </ion-content>
   `,
   styles: [
@@ -133,31 +136,31 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .plan-title {
         font-size: 1.25rem;
         font-weight: 800;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         letter-spacing: -0.02em;
       }
       .plan-subtitle {
         font-size: 0.85rem;
-        color: var(--text-muted, rgba(255, 255, 255, 0.6));
+        color: var(--text-muted, var(--text-muted));
         margin: 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
       .status-badge {
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
         padding: 2px 6px;
         border-radius: 4px;
         font-weight: 700;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         text-transform: uppercase;
       }
-      .settings-btn {
-        background: rgba(255, 255, 255, 0.05);
+      .settings-btn { min-width: var(--target-min, 44px); min-height: var(--target-min, 44px);
+        background: var(--bg-elevated);
         border: none;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -184,17 +187,17 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         color: var(--text-primary);
       }
       .deload-badge {
-        background: rgba(59, 130, 246, 0.2);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
       .focus-notes {
         padding: 0 1rem;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         margin-bottom: 1rem;
         font-style: italic;
       }
@@ -202,7 +205,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .empty-selection {
         padding: 2rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
       }
 
       .empty-state {
@@ -213,7 +216,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         height: 100%;
         padding: 2rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
       }
       .empty-state h2 {
         color: var(--text-primary);
@@ -223,7 +226,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .empty-state p {
         margin-bottom: 1.5rem;
       }
-      .btn-primary {
+      .btn-primary { min-height: var(--target-min, 44px);
         background: var(--color-primary, var(--ds-brand));
         color: var(--text-primary);
         border: none;
@@ -236,8 +239,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 1rem;
         margin-top: 1rem;
       }
-      .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
+      .btn-secondary { min-height: var(--target-min, 44px);
+        background: var(--border-subtle);
         color: var(--text-primary);
         border: none;
         padding: 0.75rem 1.5rem;
@@ -247,16 +250,20 @@ import { IconComponent } from '@shared/components/icon/icon.component';
     `,
   ],
 })
-export class MesocyclePage implements OnInit {
+export class MesocyclePage implements OnInit, AfterViewInit {
+  private gsap = inject(GsapAnimationsService);
+  private el = inject(ElementRef);
   private navCtrl = inject(NavController);
   private facade = inject(MesocycleFacade);
-  private actionSheetCtrl = inject(ActionSheetController);
   workoutFacade = inject(WorkoutFacade);
 
   mesocycle = this.facade.activeMesocycle;
 
   // State for selected week in timeline
   selectedWeekId = signal<string | null>(null);
+  
+  // Settings modal
+  isSettingsModalOpen = signal<boolean>(false);
 
   selectedWeek = computed(() => {
     const id = this.selectedWeekId();
@@ -276,6 +283,10 @@ export class MesocyclePage implements OnInit {
         }
       }
     });
+  }
+  
+  ngAfterViewInit() {
+    this.gsap.animateTierEnter(this.el.nativeElement);
   }
 
   onSelectWeek(weekId: string) {
@@ -298,32 +309,22 @@ export class MesocyclePage implements OnInit {
     this.workoutFacade.startWorkoutFromMesocycleSession(session, session.routine);
   }
 
-  async openSettings() {
+  openSettings() {
+    this.isSettingsModalOpen.set(true);
+  }
+
+  async deletePlan() {
     const plan = this.mesocycle();
     if (!plan) return;
 
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Opciones del Plan',
-      buttons: [
-        {
-          text: 'Eliminar Plan',
-          role: 'destructive',
-          icon: 'trash',
-          handler: async () => {
-            const result = await this.facade.deleteMesocycle(plan.id);
-            if (!result.success) {
-              alert('Error al eliminar el plan');
-            }
-          },
-        },
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-          icon: 'close',
-        },
-      ],
-    });
-
-    await actionSheet.present();
+    this.isSettingsModalOpen.set(false);
+    const result = await this.facade.deleteMesocycle(plan.id);
+    if (!result.success) {
+      alert('Error al eliminar el plan');
+    }
   }
 }
+
+
+
+

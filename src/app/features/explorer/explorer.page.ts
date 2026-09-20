@@ -26,18 +26,22 @@ import { ExerciseFacade, ExerciseDefinition } from '@core/facades/exercise.facad
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { ExerciseDetailComponent } from './components/exercise-detail/exercise-detail.component';
+import { TranslateExercisePipe } from '@shared/pipes/translate-exercise.pipe';
 
 const MUSCLE_GROUPS = [
   { label: 'Todos', value: '', icon: 'zap' },
   { label: 'Pecho', value: 'Pecho', icon: 'shield-check' },
   { label: 'Espalda', value: 'Espalda', icon: 'layers' },
-  { label: 'Piernas', value: 'Pierna', icon: 'activity' },
   { label: 'Hombros', value: 'Hombro', icon: 'dumbbell' },
   { label: 'Bíceps', value: 'Bíceps', icon: 'activity' },
   { label: 'Tríceps', value: 'Tríceps', icon: 'activity' },
-  { label: 'Abdomen', value: 'Abdom', icon: 'target' },
+  { label: 'Cuádriceps', value: 'Cuádriceps', icon: 'activity' },
+  { label: 'Isquios', value: 'Isquiotibiales', icon: 'activity' },
   { label: 'Glúteos', value: 'Glúteo', icon: 'circle' },
-  { label: 'Cardio', value: 'Cardio', icon: 'activity' },
+  { label: 'Pantorrillas', value: 'Pantorrilla', icon: 'activity' },
+  { label: 'Abdomen', value: 'Abdominal', icon: 'target' },
+  { label: 'Dorsales', value: 'Dorsale', icon: 'layers' },
+  { label: 'Trapecios', value: 'Trapecio', icon: 'activity' },
 ];
 
 @Component({
@@ -58,6 +62,7 @@ const MUSCLE_GROUPS = [
     IconComponent,
     EmptyStateComponent,
     ExerciseDetailComponent,
+    TranslateExercisePipe,
   ],
   template: `
     <ion-content class="explorer-content tier-trabajo" [fullscreen]="true">
@@ -130,9 +135,9 @@ const MUSCLE_GROUPS = [
               <ion-label>
                 <h2 class="exercise-name">{{ exercise.name_es || exercise.name_en }}</h2>
                 <p class="exercise-meta capitalize">
-                  <span class="exercise-muscle">{{ exercise.muscle }}</span> ·
-                  <span>{{ exercise.equipment }}</span> ·
-                  <span>{{ exercise.category }}</span>
+                  <span class="exercise-muscle">{{ exercise.muscle | translateExercise }}</span> ·
+                  <span>{{ exercise.equipment | translateExercise }}</span> ·
+                  <span>{{ exercise.category | translateExercise }}</span>
                 </p>
               </ion-label>
               <app-icon
@@ -279,7 +284,7 @@ const MUSCLE_GROUPS = [
       }
 
       .exercise-meta {
-        font-size: var(--text-xs) !important;
+        font-size: var(--text-xs);
         display: flex;
         align-items: center;
         gap: 0.3rem;

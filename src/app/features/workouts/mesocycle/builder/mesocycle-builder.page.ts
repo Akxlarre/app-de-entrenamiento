@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+﻿import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -9,8 +9,8 @@ import {
   IonTitle,
   IonContent,
   IonInput,
-  IonSelect,
-  IonSelectOption,
+  
+  
   NavController,
   IonModal,
   IonToggle,
@@ -18,6 +18,8 @@ import {
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
 import { RoutineFacade } from '@core/facades/routine.facade';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { ModalComponent } from '@shared/components/modal/modal.component';
 import { RoutineEditorPage } from '../../routines/routine-editor.page';
 
 @Component({
@@ -33,11 +35,13 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
     IonTitle,
     IonContent,
     IonInput,
-    IonSelect,
-    IonSelectOption,
+    
+    
     IonModal,
     IonToggle,
     IconComponent,
+    EmptyStateComponent,
+    ModalComponent,
     RoutineEditorPage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -120,30 +124,32 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
             <p class="text-muted">Agrega las rutinas que vas a realizar cada semana.</p>
 
             @if (routineFacade.routines().length === 0) {
-              <div class="alert-box">
-                <app-icon name="alert-circle" [size]="20"></app-icon>
-                <span>No tienes rutinas creadas. Ve a la pestaña de Rutinas primero.</span>
+              <div style="padding: 1rem 0;">
+                <app-empty-state icon="clipboard-list" message="Aún no tienes rutinas. Crea la primera para armar tu plan."></app-empty-state>
+                <div class="nav-buttons" style="margin-top: 1rem;">
+                  <button class="btn-primary w-full" (click)="isRoutineModalOpen.set(true)">
+                    + Crear Primera Rutina
+                  </button>
+                </div>
               </div>
             } @else {
               <div class="sessions-list">
                 @for (s of selectedSessions(); track $index) {
-                  <div class="session-item">
+                  <div class="session-item" (click)="openRoutineSelector($index)" style="cursor: pointer; padding-bottom: 1.25rem;">
                     <div class="session-header">
                       <span class="day-badge">Día {{ s.day_number }}</span>
-                      <button class="icon-btn text-danger" (click)="removeSession($index)">
+                      <button class="icon-btn text-danger" (click)="removeSession($index); $event.stopPropagation()">
                         <app-icon name="trash-2" [size]="14"></app-icon>
                       </button>
                     </div>
-                    <ion-select
-                      [(ngModel)]="s.routine_id"
-                      interface="action-sheet"
-                      placeholder="Selecciona una Rutina"
-                      class="custom-select"
-                    >
-                      @for (r of routineFacade.routines(); track r.id) {
-                        <ion-select-option [value]="r.id">{{ r.name }}</ion-select-option>
+                    <div style="font-size: var(--text-base); color: var(--text-primary); font-family: var(--font-body); font-weight: var(--font-semibold); display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                      @if (s.routine_id) {
+                         <span>{{ getRoutineName(s.routine_id) }}</span>
+                      } @else {
+                         <span class="text-muted" style="font-weight: 500;">Selecciona una rutina...</span>
                       }
-                    </ion-select>
+                      <app-icon name="chevron-down" [size]="16" class="text-muted"></app-icon>
+                    </div>
                   </div>
                 }
               </div>
@@ -263,10 +269,23 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
             [isInline]="true"
             (routineCreated)="onRoutineCreated($event)"
             (cancelInline)="isRoutineModalOpen.set(false)"
+            style="height: 100%; display: block;"
           >
           </app-routine-editor>
         </ng-template>
       </ion-modal>
+
+      <!-- Routine Selector Modal -->
+      <app-modal [isOpen]="isSelectModalOpen()" title="Seleccionar Rutina" (closed)="isSelectModalOpen.set(false)">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 1rem;">
+          @for (r of routineFacade.routines(); track r.id) {
+            <button class="btn-secondary" style="text-align: left; padding: 1rem; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;" (click)="selectRoutineForActiveSession(r.id)">
+              <span style="font-weight: 600; color: var(--text-primary); font-size: var(--text-base);">{{ r.name }}</span>
+              <app-icon name="chevron-right" [size]="16" class="text-muted"></app-icon>
+            </button>
+          }
+        </div>
+      </app-modal>
     </ion-content>
   `,
   styles: [
@@ -278,7 +297,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         color: var(--text-primary);
       }
       .text-muted {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         font-size: 0.85rem;
         margin-bottom: 1.5rem;
       }
@@ -309,7 +328,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -317,22 +336,22 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         font-size: 0.9rem;
       }
       .step.active .step-num {
-        background: rgba(59, 130, 246, 0.2);
+        background: var(--bg-elevated);
         border: 2px solid var(--ds-brand);
-        color: var(--color-primary-hover);
+        color: var(--ds-brand);
       }
       .step.completed .step-num {
         background: var(--state-success);
         color: var(--text-primary);
       }
       .step span {
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 600;
       }
       .step-line {
         flex: 1;
         height: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         margin: 0 1rem;
         margin-bottom: 20px;
       }
@@ -347,16 +366,15 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         display: block;
         font-size: 0.85rem;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-muted);
         margin-bottom: 0.5rem;
       }
-      .custom-input,
-      .custom-select {
-        background: rgba(0, 0, 0, 0.2);
+      .custom-input, .custom-select { font-size: 16px; min-height: var(--target-min, 44px);
+        background: var(--bg-surface);
         border-radius: 8px;
         padding: 0.5rem 1rem;
         color: var(--text-primary);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--bg-elevated);
       }
 
       .sessions-list {
@@ -365,9 +383,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         gap: 1rem;
         margin-bottom: 1.5rem;
       }
-      .session-item {
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+      .session-item { min-height: var(--target-min, 44px);
+        background: var(--bg-surface);
+        border: 1px solid var(--bg-elevated);
         border-radius: 12px;
         padding: 1rem;
       }
@@ -378,11 +396,11 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         margin-bottom: 0.75rem;
       }
       .day-badge {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
 
@@ -391,9 +409,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         flex-direction: column;
         gap: 1rem;
       }
-      .progression-card {
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+      .progression-card { min-height: var(--target-min, 44px);
+        background: var(--bg-surface);
+        border: 1px solid var(--bg-elevated);
         border-radius: 12px;
         padding: 1.25rem;
         transition: all 0.2s;
@@ -401,7 +419,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       }
       .progression-card.active {
         border-color: var(--state-success);
-        background: rgba(16, 185, 129, 0.05);
+        background: color-mix(in srgb, var(--state-success) 5%, transparent);
       }
       .progression-card.disabled {
         opacity: 0.5;
@@ -415,11 +433,11 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .progression-card p {
         margin: 0;
         font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         line-height: 1.4;
       }
 
-      .btn-primary {
+      .btn-primary { min-height: var(--target-min, 44px);
         background: var(--color-primary, var(--ds-brand));
         color: var(--text-primary);
         border: none;
@@ -432,19 +450,19 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .btn-primary:disabled {
         opacity: 0.5;
       }
-      .btn-secondary {
-        background: rgba(255, 255, 255, 0.05);
+      .btn-secondary { min-height: var(--target-min, 44px);
+        background: var(--bg-elevated);
         color: var(--text-primary);
-        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border: 1px dashed var(--border-subtle);
         padding: 0.8rem;
         border-radius: 8px;
         font-weight: 600;
         width: 100%;
       }
-      .btn-outline {
+      .btn-outline { min-height: var(--target-min, 44px);
         background: transparent;
-        color: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
         padding: 0.8rem 1.5rem;
         border-radius: 8px;
         font-weight: 600;
@@ -459,7 +477,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .w-full {
         width: 100%;
       }
-      .icon-btn {
+      .icon-btn { min-width: var(--target-min, 44px); min-height: var(--target-min, 44px); display: flex; align-items: center; justify-content: center;
         background: transparent;
         border: none;
         display: flex;
@@ -485,6 +503,27 @@ export class MesocycleBuilderPage {
   isSubmitting = signal<boolean>(false);
 
   isRoutineModalOpen = signal<boolean>(false);
+  isSelectModalOpen = signal<boolean>(false);
+  activeSessionIndex = signal<number | null>(null);
+
+  getRoutineName(id: string): string {
+    return this.routineFacade.routines().find(r => r.id === id)?.name || 'Rutina Desconocida';
+  }
+
+  openRoutineSelector(index: number) {
+    this.activeSessionIndex.set(index);
+    this.isSelectModalOpen.set(true);
+  }
+
+  selectRoutineForActiveSession(routineId: string) {
+    const idx = this.activeSessionIndex();
+    if (idx !== null) {
+      const sessions = [...this.selectedSessions()];
+      sessions[idx].routine_id = routineId;
+      this.selectedSessions.set(sessions);
+    }
+    this.isSelectModalOpen.set(false);
+  }
 
   selectedSessions = signal<{ day_number: number; routine_id: string }[]>([
     { day_number: 1, routine_id: '' },
@@ -556,3 +595,7 @@ export class MesocycleBuilderPage {
     }
   }
 }
+
+
+
+

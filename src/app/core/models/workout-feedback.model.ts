@@ -16,7 +16,7 @@ export interface WorkoutExerciseFeedback {
   workout_id?: string; // Can be added later if generated client-side
   exercise_id: string;
   user_id?: string;
-  category: FeedbackCategory;
+  categories: FeedbackCategory[];
   rating?: number; // 1-5
   tags?: string[];
   notes?: string;

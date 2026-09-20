@@ -102,7 +102,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .section-title {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--text-muted, rgba(255, 255, 255, 0.6));
+        color: var(--text-muted, var(--text-muted));
         margin-bottom: 1rem;
       }
 
@@ -113,15 +113,15 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .session-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
         border-radius: 12px;
         overflow: hidden;
         transition: all 0.2s ease;
       }
       .session-card.is-expanded {
-        border-color: rgba(59, 130, 246, 0.3);
-        background: rgba(255, 255, 255, 0.04);
+        border-color: transparent;
+        background: var(--bg-elevated);
       }
 
       .session-header {
@@ -138,17 +138,17 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 0.75rem;
       }
       .day-badge {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 3px 8px;
         border-radius: 6px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
       }
       .routine-name {
         font-weight: 600;
         font-size: 0.95rem;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
       }
 
       .header-right {
@@ -158,20 +158,20 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       }
 
       .status-badge {
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.5);
+        background: var(--border-subtle);
+        color: var(--text-secondary);
       }
       .status-badge.completed {
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
       }
 
       .chevron-icon {
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         transition: transform 0.2s ease;
       }
 
@@ -179,7 +179,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
         border: none;
         border-radius: 50%;
@@ -190,11 +190,11 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 
       .session-targets {
         padding: 0 1rem 1rem 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid var(--bg-elevated);
       }
 
       .target-table {
-        background: rgba(0, 0, 0, 0.25);
+        background: var(--bg-base);
         border-radius: 8px;
         padding: 0.75rem;
         display: flex;
@@ -205,18 +205,18 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .target-header {
         display: flex;
         justify-content: space-between;
-        font-size: 0.7rem;
+        font-size: var(--text-floor, 13px);
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         padding-bottom: 0.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid var(--border-subtle);
       }
       .target-row {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        border-bottom: 1px dashed var(--bg-elevated);
       }
       .target-row:last-child {
         border-bottom: none;
@@ -233,37 +233,37 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 0.5rem;
       }
       .set-pill {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
         border-radius: 6px;
         padding: 4px 8px;
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 0.75rem;
+        font-size: var(--text-floor, 13px);
       }
       .set-num {
         font-weight: 700;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         margin-right: 2px;
       }
       .val {
         font-weight: 600;
-        color: #e2e8f0;
+        color: var(--text-primary);
       }
       .val.rir {
-        color: #f87171;
+        color: var(--state-error);
       }
       .no-targets {
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-style: italic;
         margin-top: 0.75rem;
       }
       .empty-state {
         padding: 1.5rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.4);
+        color: var(--text-muted);
         font-size: 0.9rem;
       }
     `,
@@ -322,3 +322,6 @@ export class WeekDetailComponent {
     return result;
   }
 }
+
+
+

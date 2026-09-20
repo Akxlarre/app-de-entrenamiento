@@ -1,6 +1,6 @@
 import "./chunk-EGSMBJJY.js";
 
-// ../../node_modules/gsap/Observer.js
+// node_modules/gsap/Observer.js
 function _defineProperties(target, props) {
   for (var i = 0; i < props.length; i++) {
     var descriptor = props[i];
@@ -168,7 +168,7 @@ var _getVelocityProp = function _getVelocityProp2(value, minTimeRefresh, useDelt
   };
 };
 var _getEvent = function _getEvent2(e, preventDefault) {
-  preventDefault && !e._gsapAllow && e.preventDefault();
+  preventDefault && !e._gsapAllow && e.cancelable !== false && e.preventDefault();
   return e.changedTouches ? e.changedTouches[0] : e;
 };
 var _getAbsoluteMax = function _getAbsoluteMax2(a) {
@@ -196,9 +196,9 @@ var _initCore = function _initCore2(core) {
     setTimeout(function() {
       return _startup = 0;
     }, 500);
-    _setScrollTrigger();
     _coreInitted = 1;
   }
+  ScrollTrigger || _setScrollTrigger();
   return _coreInitted;
 };
 _horizontal.op = _vertical;
@@ -468,7 +468,7 @@ var Observer = (function() {
   }]);
   return Observer2;
 })();
-Observer.version = "3.14.2";
+Observer.version = "3.15.0";
 Observer.create = function(vars) {
   return new Observer(vars);
 };
@@ -483,7 +483,7 @@ Observer.getById = function(id) {
 };
 _getGSAP() && gsap.registerPlugin(Observer);
 
-// ../../node_modules/gsap/ScrollTrigger.js
+// node_modules/gsap/ScrollTrigger.js
 var gsap2;
 var _coreInitted2;
 var _win2;
@@ -604,11 +604,11 @@ var _isObject = function _isObject2(value) {
 var _endAnimation = function _endAnimation2(animation, reversed, pause) {
   return animation && animation.progress(reversed ? 0 : 1) && pause && animation.pause();
 };
-var _callback = function _callback2(self, func) {
+var _callback = function _callback2(self, func, extraParam) {
   if (self.enabled) {
     var result = self._ctx ? self._ctx.add(function() {
-      return func(self);
-    }) : func(self);
+      return func(self, extraParam);
+    }) : func(self, extraParam);
     result && result.totalTime && (self.callbackAnimation = result);
   }
 };
@@ -629,7 +629,7 @@ var _Width = "Width";
 var _Height = "Height";
 var _px = "px";
 var _getComputedStyle = function _getComputedStyle2(element) {
-  return _win2.getComputedStyle(element);
+  return _win2.getComputedStyle(element.nodeType === Node.DOCUMENT_NODE ? element.scrollingElement : element);
 };
 var _makePositionable = function _makePositionable2(element) {
   var position = _getComputedStyle(element).position;
@@ -653,7 +653,7 @@ var _getBounds = function _getBounds2(element, withoutTransforms) {
     scale: 1,
     skewX: 0,
     skewY: 0
-  }).progress(1), bounds = element.getBoundingClientRect();
+  }).progress(1), bounds = element.getBoundingClientRect ? element.getBoundingClientRect() : element.scrollingElement.getBoundingClientRect();
   tween && tween.progress(0).kill();
   return bounds;
 };
@@ -768,7 +768,7 @@ var _offsetToPx = function _offsetToPx2(value, size) {
 };
 var _createMarker = function _createMarker2(type, name, container, direction, _ref4, offset, matchWidthEl, containerAnimation) {
   var startColor = _ref4.startColor, endColor = _ref4.endColor, fontSize = _ref4.fontSize, indent = _ref4.indent, fontWeight = _ref4.fontWeight;
-  var e = _doc2.createElement("div"), useFixedPosition = _isViewport3(container) || _getProxyProp(container, "pinType") === "fixed", isScroller = type.indexOf("scroller") !== -1, parent = useFixedPosition ? _body2 : container, isStart = type.indexOf("start") !== -1, color = isStart ? startColor : endColor, css = "border-color:" + color + ";font-size:" + fontSize + ";color:" + color + ";font-weight:" + fontWeight + ";pointer-events:none;white-space:nowrap;font-family:sans-serif,Arial;z-index:1000;padding:4px 8px;border-width:0;border-style:solid;";
+  var e = _doc2.createElement("div"), useFixedPosition = _isViewport3(container) || _getProxyProp(container, "pinType") === "fixed", isScroller = type.indexOf("scroller") !== -1, parent = useFixedPosition ? _body2 : container.tagName === "IFRAME" ? container.contentDocument.body : container, isStart = type.indexOf("start") !== -1, color = isStart ? startColor : endColor, css = "border-color:" + color + ";font-size:" + fontSize + ";color:" + color + ";font-weight:" + fontWeight + ";pointer-events:none;white-space:nowrap;font-family:sans-serif,Arial;z-index:1000;padding:4px 8px;border-width:0;border-style:solid;";
   css += "position:" + ((isScroller || containerAnimation) && useFixedPosition ? "fixed;" : "absolute;");
   (isScroller || containerAnimation || !useFixedPosition) && (css += (direction === _vertical ? _right : _bottom) + ":" + (offset + parseFloat(indent)) + "px;");
   matchWidthEl && (css += "box-sizing:border-box;text-align:left;width:" + matchWidthEl.offsetWidth + "px;");
@@ -1293,7 +1293,7 @@ var ScrollTrigger2 = (function() {
               data: _abs(endScroll - scroll),
               // record the distance so that if another snap tween occurs (conflict) we can prioritize the closest snap.
               onInterrupt: function onInterrupt() {
-                return snapDelayedCall.restart(true) && _onInterrupt && _onInterrupt(self);
+                return snapDelayedCall.restart(true) && _onInterrupt && _callback(self, _onInterrupt);
               },
               onComplete: function onComplete() {
                 self.update();
@@ -1303,10 +1303,10 @@ var ScrollTrigger2 = (function() {
                 }
                 snap1 = snap2 = animation && !isToggle ? animation.totalProgress() : self.progress;
                 onSnapComplete && onSnapComplete(self);
-                _onComplete && _onComplete(self);
+                _onComplete && _callback(self, _onComplete);
               }
             }, scroll, change1 * change, endScroll - scroll - change1 * change);
-            onStart && onStart(self, tweenTo.tween);
+            onStart && _callback(self, onStart, tweenTo.tween);
           }
         } else if (self.isActive && lastSnap !== scroll) {
           snapDelayedCall.restart(true);
@@ -2000,6 +2000,12 @@ var ScrollTrigger2 = (function() {
           _wheelListener(_removeListener3, _scrollers[i], _scrollers[i + 1]);
           _wheelListener(_removeListener3, _scrollers[i], _scrollers[i + 2]);
         }
+      } else if (_doc2) {
+        var onLoad = function onLoad2() {
+          ScrollTrigger3.enable();
+          _doc2.removeEventListener("DOMContentLoaded", onLoad2);
+        };
+        _doc2.addEventListener("DOMContentLoaded", onLoad);
       }
     }
   };
@@ -2050,7 +2056,7 @@ var ScrollTrigger2 = (function() {
   };
   return ScrollTrigger3;
 })();
-ScrollTrigger2.version = "3.14.2";
+ScrollTrigger2.version = "3.15.0";
 ScrollTrigger2.saveStyles = function(targets) {
   return targets ? _toArray(targets).forEach(function(target) {
     if (target && target.style) {

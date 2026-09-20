@@ -438,29 +438,29 @@ import {
           <div class="category-grid">
             <button
               class="category-btn"
-              [class.selected]="data.feedback.category === 'technique'"
-              (click)="data.feedback.category = 'technique'"
+              [class.selected]="data.feedback.categories.includes('technique')"
+              (click)="toggleCategory(data, 'technique')"
             >
               Técnica
             </button>
             <button
               class="category-btn"
-              [class.selected]="data.feedback.category === 'pain'"
-              (click)="data.feedback.category = 'pain'"
+              [class.selected]="data.feedback.categories.includes('pain')"
+              (click)="toggleCategory(data, 'pain')"
             >
               Molestia Física
             </button>
             <button
               class="category-btn"
-              [class.selected]="data.feedback.category === 'equipment'"
-              (click)="data.feedback.category = 'equipment'"
+              [class.selected]="data.feedback.categories.includes('equipment')"
+              (click)="toggleCategory(data, 'equipment')"
             >
               Equipo
             </button>
             <button
               class="category-btn"
-              [class.selected]="data.feedback.category === 'intensity'"
-              (click)="data.feedback.category = 'intensity'"
+              [class.selected]="data.feedback.categories.includes('intensity')"
+              (click)="toggleCategory(data, 'intensity')"
             >
               Intensidad
             </button>
@@ -1264,12 +1264,24 @@ export class ActiveWorkoutPage {
       ? { ...existingFeedback }
       : {
           exercise_id: exId,
-          category: 'technique' as FeedbackCategory,
+          categories: ['technique'] as FeedbackCategory[],
           rating: 3,
           tags: [],
           notes: '',
         };
     this.exerciseFeedbackData.set({ id: exId, name: exName, feedback });
+  }
+
+  toggleCategory(data: { feedback: WorkoutExerciseFeedback }, cat: FeedbackCategory) {
+    const idx = data.feedback.categories.indexOf(cat);
+    if (idx > -1) {
+      // Don't let them unselect the last category
+      if (data.feedback.categories.length > 1) {
+        data.feedback.categories.splice(idx, 1);
+      }
+    } else {
+      data.feedback.categories.push(cat);
+    }
   }
 
   saveExerciseFeedback() {

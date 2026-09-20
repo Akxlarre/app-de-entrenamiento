@@ -8,6 +8,7 @@ import {
   isUntranslated,
   parseInstructions,
 } from '@core/utils/exercise-detail.utils';
+import { TranslateExercisePipe } from '@shared/pipes/translate-exercise.pipe';
 
 /**
  * Detalle de un ejercicio: fotos, datos y guía paso a paso. Lo usan el
@@ -18,7 +19,7 @@ import {
 @Component({
   selector: 'app-exercise-detail',
   standalone: true,
-  imports: [IonSpinner, IconComponent],
+  imports: [IonSpinner, IconComponent, TranslateExercisePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="detail">

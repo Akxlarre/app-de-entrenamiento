@@ -32,6 +32,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skeleton-block.component';
 import { SessionDetailComponent } from './components/session-detail/session-detail.component';
 import { RoutineWithExercises } from '@core/models/routine.model';
 
@@ -55,7 +56,8 @@ import { RoutineWithExercises } from '@core/models/routine.model';
     IonButton,
     IconComponent,
     ModalComponent,
-    EmptyStateComponent,
+    EmptyStateComponent, SkeletonBlockComponent,
+    SkeletonBlockComponent,
     SessionDetailComponent,
   ],
   template: `
@@ -93,7 +95,18 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
         <!-- Sección: Plan Estructurado (Mesociclo) -->
         <div class="plan-section" data-anim="bloque">
-          @if (mesoFacade.activeMesocycle(); as meso) {
+          @if (mesoFacade.isLoading()) {
+            <div class="plan-card" style="pointer-events: none;">
+              <div class="plan-card__head" style="margin-bottom: 12px;">
+                <div class="plan-card__id">
+                  <app-skeleton-block variant="text" width="100px" height="12px" />
+                  <app-skeleton-block variant="text" width="180px" height="22px" style="margin-top: 6px;" />
+                </div>
+              </div>
+              <app-skeleton-block variant="text" width="55%" height="14px" style="margin-bottom: 16px;" />
+              <app-skeleton-block variant="rect" width="100%" height="48px" style="border-radius: 999px;" />
+            </div>
+          } @else if (mesoFacade.activeMesocycle(); as meso) {
             <div class="plan-card" [class.is-running]="hasPlannedSessionRunning()">
               <div class="plan-card__head">
                 <div class="plan-card__id">
@@ -170,9 +183,15 @@ import { RoutineWithExercises } from '@core/models/routine.model';
           </div>
 
           @if (routineFacade.isLoading() && routineFacade.routines().length === 0) {
-            <div class="loading-box">
-              <ion-spinner color="primary"></ion-spinner>
-              <p>Cargando rutinas...</p>
+            <div class="routines-grid">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="routine-card" style="pointer-events: none;">
+                  <div class="routine-card-top">
+                    <app-skeleton-block variant="text" [width]="i === 1 ? '65%' : i === 2 ? '50%' : '55%'" height="16px" />
+                  </div>
+                  <app-skeleton-block variant="text" [width]="i === 1 ? '80%' : i === 2 ? '70%' : '60%'" height="13px" style="margin-top: 10px;" />
+                </div>
+              }
             </div>
           } @else if (routineFacade.routines().length === 0) {
             <app-empty-state
@@ -1021,3 +1040,5 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
     this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-ceremonia'));
   }
 }
+
+
