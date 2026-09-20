@@ -72,17 +72,17 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
               @for (i of [1, 2, 3]; track i) {
                 <div class="workout-card history-card" style="pointer-events: none;">
                   <div class="card-top">
-                    <skeleton-block variant="text" width="40%" height="16px" />
-                    <skeleton-block variant="text" width="20%" height="16px" />
+                    <app-skeleton-block variant="text" width="40%" height="16px" />
+                    <app-skeleton-block variant="text" width="20%" height="16px" />
                   </div>
                   <div class="card-stats">
-                    <skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
-                    <skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
+                    <app-skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
+                    <app-skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
                   </div>
                   <div class="exercise-tags" style="margin-top: 12px;">
-                    <skeleton-block variant="text" width="80px" height="20px" style="border-radius: 4px;" />
-                    <skeleton-block variant="text" width="100px" height="20px" style="border-radius: 4px;" />
-                    <skeleton-block variant="text" width="90px" height="20px" style="border-radius: 4px;" />
+                    <app-skeleton-block variant="text" width="80px" height="20px" style="border-radius: 4px;" />
+                    <app-skeleton-block variant="text" width="100px" height="20px" style="border-radius: 4px;" />
+                    <app-skeleton-block variant="text" width="90px" height="20px" style="border-radius: 4px;" />
                   </div>
                 </div>
               }
@@ -360,3 +360,4 @@ export class HistoryPage implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {}
 }
+

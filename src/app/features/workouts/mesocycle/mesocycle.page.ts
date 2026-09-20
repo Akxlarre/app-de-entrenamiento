@@ -44,7 +44,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-header title="Mesocycle Manager" [showBack]="true" (backClicked)="goBack()"></app-header>
+    <app-header title="Mesocycle Manager" (back)="goBack()"></app-header>
 
     <ion-content class="tier-trabajo">
       @if (mesocycle(); as plan) {

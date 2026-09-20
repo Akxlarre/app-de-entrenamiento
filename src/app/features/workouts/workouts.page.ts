@@ -99,12 +99,12 @@ import { RoutineWithExercises } from '@core/models/routine.model';
             <div class="plan-card">
               <div class="plan-card__head" style="margin-bottom: 8px;">
                 <div class="plan-card__id">
-                  <skeleton-block variant="text" width="90px" height="12px" />
-                  <skeleton-block variant="text" width="160px" height="24px" style="margin-top: 4px;" />
+                  <app-skeleton-block variant="text" width="90px" height="12px" />
+                  <app-skeleton-block variant="text" width="160px" height="24px" style="margin-top: 4px;" />
                 </div>
               </div>
-              <skeleton-block variant="text" width="60%" height="16px" style="margin-bottom: 24px;" />
-              <skeleton-block variant="rect" width="100%" height="48px" style="border-radius: 999px;" />
+              <app-skeleton-block variant="text" width="60%" height="16px" style="margin-bottom: 24px;" />
+              <app-skeleton-block variant="rect" width="100%" height="48px" style="border-radius: 999px;" />
             </div>
           } @else if (mesoFacade.activeMesocycle(); as meso) {
             <div class="plan-card" [class.is-running]="hasPlannedSessionRunning()">
@@ -186,15 +186,15 @@ import { RoutineWithExercises } from '@core/models/routine.model';
             <div class="routines-grid">
               <div class="routine-card" style="pointer-events: none;">
                 <div class="routine-card-top">
-                  <skeleton-block variant="text" width="60%" height="16px" />
+                  <app-skeleton-block variant="text" width="60%" height="16px" />
                 </div>
-                <skeleton-block variant="text" width="80%" height="14px" style="margin-top: 8px;" />
+                <app-skeleton-block variant="text" width="80%" height="14px" style="margin-top: 8px;" />
               </div>
               <div class="routine-card" style="pointer-events: none;">
                 <div class="routine-card-top">
-                  <skeleton-block variant="text" width="50%" height="16px" />
+                  <app-skeleton-block variant="text" width="50%" height="16px" />
                 </div>
-                <skeleton-block variant="text" width="70%" height="14px" style="margin-top: 8px;" />
+                <app-skeleton-block variant="text" width="70%" height="14px" style="margin-top: 8px;" />
               </div>
             </div>
           } @else if (routineFacade.routines().length === 0) {
@@ -1044,4 +1044,5 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
     this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-ceremonia'));
   }
 }
+
 
