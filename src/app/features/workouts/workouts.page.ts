@@ -32,6 +32,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skeleton-block.component';
 import { SessionDetailComponent } from './components/session-detail/session-detail.component';
 import { RoutineWithExercises } from '@core/models/routine.model';
 
@@ -56,6 +57,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
     IconComponent,
     ModalComponent,
     EmptyStateComponent,
+    SkeletonBlockComponent,
     SessionDetailComponent,
   ],
   template: `
@@ -93,7 +95,18 @@ import { RoutineWithExercises } from '@core/models/routine.model';
 
         <!-- Sección: Plan Estructurado (Mesociclo) -->
         <div class="plan-section" data-anim="bloque">
-          @if (mesoFacade.activeMesocycle(); as meso) {
+          @if (mesoFacade.isLoading()) {
+            <div class="plan-card">
+              <div class="plan-card__head" style="margin-bottom: 8px;">
+                <div class="plan-card__id">
+                  <skeleton-block variant="text" width="90px" height="12px" />
+                  <skeleton-block variant="text" width="160px" height="24px" style="margin-top: 4px;" />
+                </div>
+              </div>
+              <skeleton-block variant="text" width="60%" height="16px" style="margin-bottom: 24px;" />
+              <skeleton-block variant="rect" width="100%" height="48px" style="border-radius: 999px;" />
+            </div>
+          } @else if (mesoFacade.activeMesocycle(); as meso) {
             <div class="plan-card" [class.is-running]="hasPlannedSessionRunning()">
               <div class="plan-card__head">
                 <div class="plan-card__id">
@@ -170,9 +183,19 @@ import { RoutineWithExercises } from '@core/models/routine.model';
           </div>
 
           @if (routineFacade.isLoading() && routineFacade.routines().length === 0) {
-            <div class="loading-box">
-              <ion-spinner color="primary"></ion-spinner>
-              <p>Cargando rutinas...</p>
+            <div class="routines-grid">
+              <div class="routine-card" style="pointer-events: none;">
+                <div class="routine-card-top">
+                  <skeleton-block variant="text" width="60%" height="16px" />
+                </div>
+                <skeleton-block variant="text" width="80%" height="14px" style="margin-top: 8px;" />
+              </div>
+              <div class="routine-card" style="pointer-events: none;">
+                <div class="routine-card-top">
+                  <skeleton-block variant="text" width="50%" height="16px" />
+                </div>
+                <skeleton-block variant="text" width="70%" height="14px" style="margin-top: 8px;" />
+              </div>
             </div>
           } @else if (routineFacade.routines().length === 0) {
             <app-empty-state

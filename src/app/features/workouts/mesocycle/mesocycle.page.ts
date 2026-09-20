@@ -19,6 +19,8 @@ import {
   NavController,
   ActionSheetController,
 } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { trash, close } from 'ionicons/icons';
 import { AppHeaderComponent } from '@shared/components/app-header/app-header.component';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
@@ -33,11 +35,6 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonButton,
-    IonTitle,
     IonContent,
     MesoTimelineComponent,
     WeekDetailComponent,
@@ -47,7 +44,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <app-header title="Mesocycle Manager" (back)="goBack()"></app-header>
+    <app-header title="Mesocycle Manager" [showBack]="true" (backClicked)="goBack()"></app-header>
 
     <ion-content class="tier-trabajo">
       @if (mesocycle(); as plan) {
@@ -244,12 +241,17 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   ],
 })
 export class MesocyclePage implements OnInit, AfterViewInit {
+  constructor() {
+    addIcons({ trash, close });
+  }
+
   private gsap = inject(GsapAnimationsService);
   private el = inject(ElementRef);
 
   ngAfterViewInit() {
     this.gsap.animateTierEnter(this.el.nativeElement);
   }
+
   private navCtrl = inject(NavController);
   private facade = inject(MesocycleFacade);
   private actionSheetCtrl = inject(ActionSheetController);

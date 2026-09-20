@@ -52,6 +52,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.
     IconComponent,
     SessionDetailComponent,
     EmptyStateComponent,
+    SkeletonBlockComponent,
   ],
   template: `
     <ion-content class="history-page tier-trabajo" [fullscreen]="true">
@@ -303,14 +304,20 @@ export class HistoryPage implements OnInit, AfterViewInit {
     return this.workoutFacade.history().find((w) => w.id === id) || null;
   });
 
+  private hasAnimated = false;
+
   constructor() {
     addIcons({ chevronBackOutline, closeOutline });
 
     effect(() => {
-      if (this.workoutFacade.history().length > 0) {
+      const history = this.workoutFacade.history();
+      if (history.length > 0 && !this.hasAnimated) {
+        this.hasAnimated = true;
         setTimeout(() => {
           const cards = document.querySelectorAll('.history-card');
-          this.gsap.staggerListItems(cards as any);
+          if (cards.length) {
+            this.gsap.staggerListItems(cards as any);
+          }
         }, 50);
       }
     });
