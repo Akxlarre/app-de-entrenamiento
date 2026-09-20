@@ -9,8 +9,8 @@ import {
   IonTitle,
   IonContent,
   IonInput,
-  IonSelect,
-  IonSelectOption,
+  
+  
   NavController,
   IonModal,
   IonToggle,
@@ -18,6 +18,8 @@ import {
 import { MesocycleFacade } from '@core/facades/mesocycle.facade';
 import { RoutineFacade } from '@core/facades/routine.facade';
 import { IconComponent } from '@shared/components/icon/icon.component';
+import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { ModalComponent, ModalFooterDirective } from '@shared/components/modal/modal.component';
 import { RoutineEditorPage } from '../../routines/routine-editor.page';
 
 @Component({
@@ -38,6 +40,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
     IonModal,
     IonToggle,
     IconComponent,
+    EmptyStateComponent,
+    ModalComponent,
+    ModalFooterDirective,
     RoutineEditorPage,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -120,30 +125,32 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
             <p class="text-muted">Agrega las rutinas que vas a realizar cada semana.</p>
 
             @if (routineFacade.routines().length === 0) {
-              <div class="alert-box">
-                <app-icon name="alert-circle" [size]="20"></app-icon>
-                <span>No tienes rutinas creadas. Ve a la pestaña de Rutinas primero.</span>
+              <div style="padding: 1rem 0;">
+                <app-empty-state icon="clipboard-list" message="Aún no tienes rutinas. Crea la primera para armar tu plan."></app-empty-state>
+                <div class="nav-buttons" style="margin-top: 1rem;">
+                  <button class="btn-primary w-full" (click)="isRoutineModalOpen.set(true)">
+                    + Crear Primera Rutina
+                  </button>
+                </div>
               </div>
             } @else {
               <div class="sessions-list">
                 @for (s of selectedSessions(); track $index) {
-                  <div class="session-item">
+                  <div class="session-item" (click)="openRoutineSelector($index)" style="cursor: pointer; padding-bottom: 1.25rem;">
                     <div class="session-header">
                       <span class="day-badge">Día {{ s.day_number }}</span>
-                      <button class="icon-btn text-danger" (click)="removeSession($index)">
+                      <button class="icon-btn text-danger" (click)="removeSession($index); $event.stopPropagation()">
                         <app-icon name="trash-2" [size]="14"></app-icon>
                       </button>
                     </div>
-                    <ion-select
-                      [(ngModel)]="s.routine_id"
-                      interface="action-sheet"
-                      placeholder="Selecciona una Rutina"
-                      class="custom-select"
-                    >
-                      @for (r of routineFacade.routines(); track r.id) {
-                        <ion-select-option [value]="r.id">{{ r.name }}</ion-select-option>
+                    <div style="font-size: var(--text-base); color: var(--text-primary); font-family: var(--font-body); font-weight: var(--font-semibold); display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                      @if (s.routine_id) {
+                         <span>{{ getRoutineName(s.routine_id) }}</span>
+                      } @else {
+                         <span class="text-muted" style="font-weight: 500;">Selecciona una rutina...</span>
                       }
-                    </ion-select>
+                      <app-icon name="chevron-down" [size]="16" class="text-muted"></app-icon>
+                    </div>
                   </div>
                 }
               </div>
@@ -263,10 +270,23 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
             [isInline]="true"
             (routineCreated)="onRoutineCreated($event)"
             (cancelInline)="isRoutineModalOpen.set(false)"
+            style="height: 100%; display: block;"
           >
           </app-routine-editor>
         </ng-template>
       </ion-modal>
+
+      <!-- Routine Selector Modal -->
+      <app-modal [isOpen]="isSelectModalOpen()" title="Seleccionar Rutina" (closed)="isSelectModalOpen.set(false)">
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-bottom: 1rem;">
+          @for (r of routineFacade.routines(); track r.id) {
+            <button class="btn-secondary" style="text-align: left; padding: 1rem; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;" (click)="selectRoutineForActiveSession(r.id)">
+              <span style="font-weight: 600; color: var(--text-primary); font-size: var(--text-base);">{{ r.name }}</span>
+              <app-icon name="chevron-right" [size]="16" class="text-muted"></app-icon>
+            </button>
+          }
+        </div>
+      </app-modal>
     </ion-content>
   `,
   styles: [
@@ -484,6 +504,27 @@ export class MesocycleBuilderPage {
   isSubmitting = signal<boolean>(false);
 
   isRoutineModalOpen = signal<boolean>(false);
+  isSelectModalOpen = signal<boolean>(false);
+  activeSessionIndex = signal<number | null>(null);
+
+  getRoutineName(id: string): string {
+    return this.routineFacade.routines().find(r => r.id === id)?.name || 'Rutina Desconocida';
+  }
+
+  openRoutineSelector(index: number) {
+    this.activeSessionIndex.set(index);
+    this.isSelectModalOpen.set(true);
+  }
+
+  selectRoutineForActiveSession(routineId: string) {
+    const idx = this.activeSessionIndex();
+    if (idx !== null) {
+      const sessions = [...this.selectedSessions()];
+      sessions[idx].routine_id = routineId;
+      this.selectedSessions.set(sessions);
+    }
+    this.isSelectModalOpen.set(false);
+  }
 
   selectedSessions = signal<{ day_number: number; routine_id: string }[]>([
     { day_number: 1, routine_id: '' },
