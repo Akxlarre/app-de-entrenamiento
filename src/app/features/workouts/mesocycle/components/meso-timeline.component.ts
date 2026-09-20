@@ -87,32 +87,32 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg-elevated);
+        border: 2px solid var(--border-subtle);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
         transition: all 0.3s ease;
       }
 
       .node-label {
         font-size: 0.7rem;
         font-weight: 600;
-        color: var(--text-muted, rgba(255, 255, 255, 0.5));
+        color: var(--text-muted, var(--text-secondary));
       }
 
       .week-node.is-past .node-circle {
-        background: rgba(16, 185, 129, 0.1);
+        background: color-mix(in srgb, var(--state-success) 10%, transparent);
         border-color: var(--state-success);
         color: var(--state-success);
       }
 
       .week-node.is-current .node-circle {
-        background: rgba(59, 130, 246, 0.15);
+        background: var(--bg-elevated);
         border-color: var(--ds-brand);
         color: var(--ds-brand);
-        box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 12px transparent;
       }
       .week-node.is-current .node-label {
         color: var(--ds-brand);
@@ -133,7 +133,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .timeline-connector {
         height: 2px;
         width: 32px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         margin-bottom: 20px;
         border-radius: 2px;
       }
@@ -155,3 +155,4 @@ export class MesoTimelineComponent {
 
   selectWeek = output<string>();
 }
+

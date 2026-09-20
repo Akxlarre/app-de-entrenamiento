@@ -133,20 +133,20 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .plan-title {
         font-size: 1.25rem;
         font-weight: 800;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         margin: 0 0 0.5rem 0;
         letter-spacing: -0.02em;
       }
       .plan-subtitle {
         font-size: 0.85rem;
-        color: var(--text-muted, rgba(255, 255, 255, 0.6));
+        color: var(--text-muted, var(--text-muted));
         margin: 0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
       }
       .status-badge {
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
         padding: 2px 6px;
         border-radius: 4px;
@@ -155,9 +155,9 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         text-transform: uppercase;
       }
       .settings-btn {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-elevated);
         border: none;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -184,8 +184,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         color: var(--text-primary);
       }
       .deload-badge {
-        background: rgba(59, 130, 246, 0.2);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 0.7rem;
@@ -194,7 +194,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .focus-notes {
         padding: 0 1rem;
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         margin-bottom: 1rem;
         font-style: italic;
       }
@@ -202,7 +202,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .empty-selection {
         padding: 2rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
       }
 
       .empty-state {
@@ -213,7 +213,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         height: 100%;
         padding: 2rem;
         text-align: center;
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--text-secondary);
       }
       .empty-state h2 {
         color: var(--text-primary);
@@ -237,7 +237,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         margin-top: 1rem;
       }
       .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         color: var(--text-primary);
         border: none;
         padding: 0.75rem 1.5rem;
@@ -327,3 +327,4 @@ export class MesocyclePage implements OnInit {
     await actionSheet.present();
   }
 }
+

@@ -102,7 +102,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .section-title {
         font-size: 1rem;
         font-weight: 600;
-        color: var(--text-muted, rgba(255, 255, 255, 0.6));
+        color: var(--text-muted, var(--text-muted));
         margin-bottom: 1rem;
       }
 
@@ -120,7 +120,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         transition: all 0.2s ease;
       }
       .session-card.is-expanded {
-        border-color: rgba(59, 130, 246, 0.3);
+        border-color: transparent;
         background: rgba(255, 255, 255, 0.04);
       }
 
@@ -138,8 +138,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         gap: 0.75rem;
       }
       .day-badge {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 3px 8px;
         border-radius: 6px;
         font-size: 0.75rem;
@@ -148,7 +148,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .routine-name {
         font-weight: 600;
         font-size: 0.95rem;
-        color: var(--text-primary, #fff);
+        color: var(--text-primary);
       }
 
       .header-right {
@@ -162,11 +162,11 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         font-weight: 700;
         padding: 2px 8px;
         border-radius: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.5);
+        background: var(--border-subtle);
+        color: var(--text-secondary);
       }
       .status-badge.completed {
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
       }
 
@@ -179,7 +179,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(16, 185, 129, 0.15);
+        background: color-mix(in srgb, var(--state-success) 15%, transparent);
         color: var(--state-success);
         border: none;
         border-radius: 50%;
@@ -190,7 +190,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 
       .session-targets {
         padding: 0 1rem 1rem 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid var(--bg-elevated);
       }
 
       .target-table {
@@ -216,7 +216,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
         flex-direction: column;
         gap: 0.5rem;
         padding-bottom: 0.5rem;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        border-bottom: 1px dashed var(--bg-elevated);
       }
       .target-row:last-child {
         border-bottom: none;
@@ -322,3 +322,4 @@ export class WeekDetailComponent {
     return result;
   }
 }
+

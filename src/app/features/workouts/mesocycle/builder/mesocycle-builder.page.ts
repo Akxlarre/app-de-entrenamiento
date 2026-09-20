@@ -278,7 +278,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         color: var(--text-primary);
       }
       .text-muted {
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         font-size: 0.85rem;
         margin-bottom: 1.5rem;
       }
@@ -309,7 +309,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -317,9 +317,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         font-size: 0.9rem;
       }
       .step.active .step-num {
-        background: rgba(59, 130, 246, 0.2);
+        background: var(--bg-elevated);
         border: 2px solid var(--ds-brand);
-        color: var(--color-primary-hover);
+        color: var(--ds-brand);
       }
       .step.completed .step-num {
         background: var(--state-success);
@@ -332,7 +332,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .step-line {
         flex: 1;
         height: 2px;
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-subtle);
         margin: 0 1rem;
         margin-bottom: 20px;
       }
@@ -347,16 +347,16 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         display: block;
         font-size: 0.85rem;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--text-muted);
         margin-bottom: 0.5rem;
       }
       .custom-input,
       .custom-select {
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--bg-surface);
         border-radius: 8px;
         padding: 0.5rem 1rem;
         color: var(--text-primary);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--bg-elevated);
       }
 
       .sessions-list {
@@ -366,8 +366,8 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         margin-bottom: 1.5rem;
       }
       .session-item {
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--bg-surface);
+        border: 1px solid var(--bg-elevated);
         border-radius: 12px;
         padding: 1rem;
       }
@@ -378,8 +378,8 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         margin-bottom: 0.75rem;
       }
       .day-badge {
-        background: rgba(59, 130, 246, 0.15);
-        color: var(--color-primary-hover);
+        background: var(--bg-elevated);
+        color: var(--ds-brand);
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 0.75rem;
@@ -392,8 +392,8 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         gap: 1rem;
       }
       .progression-card {
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: var(--bg-surface);
+        border: 1px solid var(--bg-elevated);
         border-radius: 12px;
         padding: 1.25rem;
         transition: all 0.2s;
@@ -401,7 +401,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       }
       .progression-card.active {
         border-color: var(--state-success);
-        background: rgba(16, 185, 129, 0.05);
+        background: color-mix(in srgb, var(--state-success) 5%, transparent);
       }
       .progression-card.disabled {
         opacity: 0.5;
@@ -415,7 +415,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       .progression-card p {
         margin: 0;
         font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.6);
+        color: var(--text-muted);
         line-height: 1.4;
       }
 
@@ -433,9 +433,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
         opacity: 0.5;
       }
       .btn-secondary {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--bg-elevated);
         color: var(--text-primary);
-        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border: 1px dashed var(--border-subtle);
         padding: 0.8rem;
         border-radius: 8px;
         font-weight: 600;
@@ -443,8 +443,8 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
       }
       .btn-outline {
         background: transparent;
-        color: rgba(255, 255, 255, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
         padding: 0.8rem 1.5rem;
         border-radius: 8px;
         font-weight: 600;
@@ -556,3 +556,4 @@ export class MesocycleBuilderPage {
     }
   }
 }
+
