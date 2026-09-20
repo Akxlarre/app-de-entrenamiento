@@ -56,7 +56,7 @@ import { RoutineWithExercises } from '@core/models/routine.model';
     IonButton,
     IconComponent,
     ModalComponent,
-    EmptyStateComponent,
+    EmptyStateComponent, SkeletonBlockComponent,
     SkeletonBlockComponent,
     SessionDetailComponent,
   ],
@@ -1044,3 +1044,4 @@ export class WorkoutsPage implements OnInit, AfterViewInit {
     this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-ceremonia'));
   }
 }
+

@@ -30,6 +30,7 @@ import { DrawerComponent } from '@shared/components/drawer/drawer.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { SessionDetailComponent } from '../components/session-detail/session-detail.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
+import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skeleton-block.component';
 
 @Component({
   selector: 'app-workout-history',
@@ -67,9 +68,24 @@ import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.
           </div>
 
           @if (workoutFacade.isLoadingHistory() && workoutFacade.history().length === 0) {
-            <div class="loading-box">
-              <ion-spinner color="primary"></ion-spinner>
-              <p>Cargando historial...</p>
+            <div class="feed-list">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="workout-card history-card" style="pointer-events: none;">
+                  <div class="card-top">
+                    <skeleton-block variant="text" width="40%" height="16px" />
+                    <skeleton-block variant="text" width="20%" height="16px" />
+                  </div>
+                  <div class="card-stats">
+                    <skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
+                    <skeleton-block variant="text" width="60px" height="24px" style="border-radius: 99px;" />
+                  </div>
+                  <div class="exercise-tags" style="margin-top: 12px;">
+                    <skeleton-block variant="text" width="80px" height="20px" style="border-radius: 4px;" />
+                    <skeleton-block variant="text" width="100px" height="20px" style="border-radius: 4px;" />
+                    <skeleton-block variant="text" width="90px" height="20px" style="border-radius: 4px;" />
+                  </div>
+                </div>
+              }
             </div>
           } @else if (workoutFacade.history().length === 0) {
             <app-empty-state icon="clipboard-list" message="Aún no has registrado sesiones" />
