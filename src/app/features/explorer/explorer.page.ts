@@ -265,24 +265,15 @@ const MUSCLE_GROUPS = [
         --background: var(--bg-surface);
       }
 
-      .exercise-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        margin-right: 12px;
-        flex-shrink: 0;
-        transition: all 0.2s ease;
-      }
-
+      /* Sin font-family propia heredaba la regla global de h1,h2: los
+         nombres salían en Anton a 16px, con el piso de esa fuente en 28.
+         Misma declaración que el nombre en el selector de ejercicios. */
       .exercise-name {
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-        color: var(--text-primary) !important;
-        margin-bottom: 4px !important;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 4px;
         letter-spacing: -0.01em;
         text-transform: capitalize;
       }
