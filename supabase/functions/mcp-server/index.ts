@@ -337,8 +337,82 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     };
   }
 
+  if (toolName === 'obtener_mesociclo_activo') {
+    const { data: meso, error: mesoErr } = await supabase
+      .from('mesocycles')
+      .select(
+        `
+        id, name, duration_weeks, current_week, status, created_at,
+        weeks:mesocycle_weeks (
+          id, week_number, is_deload, focus_notes,
+          sessions:mesocycle_sessions (
+            id, day_number, status,
+            routine:routines (id, name),
+            targets:mesocycle_session_targets (
+              set_number, target_weight, target_reps, target_rir,
+              exercises (id, name_es, name_en)
+            )
+          )
+        )
+      `,
+      )
+      .eq('user_id', authenticatedUserId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (mesoErr) throw new Error(mesoErr.message);
+
+    if (!meso) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              { active_mesocycle: null, message: 'El usuario no tiene ningún mesociclo activo.' },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    }
+
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ active_mesocycle: meso }, null, 2) }],
+    };
+  }
+
   if (toolName === 'crear_mesociclo_completo') {
     const { name, duration_weeks, weekly_sessions } = args;
+
+    // Validación previa: sin esto, violar UNIQUE(week_id, day_number) o mandar
+    // un routine_id nulo devuelve un error crudo de Postgres que el modelo no
+    // sabe corregir. Estos mensajes sí son accionables.
+    if (!Array.isArray(weekly_sessions) || weekly_sessions.length === 0) {
+      throw new Error(
+        'weekly_sessions debe ser un array con al menos una sesión. Describe UNA semana tipo; se repite sola en todas las semanas.',
+      );
+    }
+    if (!Number.isInteger(duration_weeks) || duration_weeks < 1) {
+      throw new Error('duration_weeks debe ser un entero mayor o igual a 1.');
+    }
+    const dayNumbers = weekly_sessions.map((s: any) => s?.day_number);
+    if (dayNumbers.some((d: any) => !Number.isInteger(d) || d < 1 || d > 7)) {
+      throw new Error('Cada sesión necesita un day_number entero entre 1 (lunes) y 7 (domingo).');
+    }
+    if (new Set(dayNumbers).size !== dayNumbers.length) {
+      throw new Error(
+        'Hay day_number repetidos en weekly_sessions. Cada día de la semana puede aparecer una sola vez.',
+      );
+    }
+    if (weekly_sessions.some((s: any) => !s?.routine_id)) {
+      throw new Error(
+        'Cada sesión necesita un routine_id real del usuario. Llama a obtener_mis_rutinas para conseguirlos.',
+      );
+    }
+
     const mesocycleId = crypto.randomUUID();
 
     // 1. Insertar Mesociclo
@@ -598,19 +672,29 @@ function createSecureMcpServer(authenticatedUserId: string) {
       },
       {
         name: 'guardar_recuerdo',
-        description: 'Guarda un hecho importante o preferencia del usuario a largo plazo para futuras sesiones.',
+        description:
+          'Guarda un hecho importante o preferencia del usuario a largo plazo para futuras sesiones.',
         inputSchema: {
           type: 'object',
           properties: {
-            category: { type: 'string', description: "Categoría del recuerdo: 'injury', 'preference', 'goal', 'limitation' u 'other'." },
-            content: { type: 'string', description: "Hecho concreto. Ejemplo: 'Le duele la rodilla al hacer sentadilla pesada'." },
+            category: {
+              type: 'string',
+              description:
+                "Categoría del recuerdo: 'injury', 'preference', 'goal', 'limitation' u 'other'.",
+            },
+            content: {
+              type: 'string',
+              description:
+                "Hecho concreto. Ejemplo: 'Le duele la rodilla al hacer sentadilla pesada'.",
+            },
           },
           required: ['category', 'content'],
         },
       },
       {
         name: 'eliminar_recuerdo',
-        description: 'Elimina un recuerdo del usuario, por ejemplo, si reporta que ya se curó de una lesión.',
+        description:
+          'Elimina un recuerdo del usuario, por ejemplo, si reporta que ya se curó de una lesión.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -748,11 +832,49 @@ function createSecureMcpServer(authenticatedUserId: string) {
             weekly_sessions: {
               type: 'array',
               description:
-                "Las sesiones semanales que se repetirán, por ejemplo, [ { day_number: 1, routine_id: '...', targets: [{ exercise_id, set_number, target_weight, target_reps, target_rir }] } ]",
+                'Patrón semanal de entrenamiento que se repite cada semana del mesociclo.',
+              items: {
+                type: 'object',
+                properties: {
+                  day_number: {
+                    type: 'number',
+                    description: 'Día de la semana (1=lunes … 7=domingo). Único dentro del patrón.',
+                  },
+                  routine_id: {
+                    type: 'string',
+                    description: 'UUID real de una rutina del usuario (obtener_mis_rutinas).',
+                  },
+                  targets: {
+                    type: 'array',
+                    description: 'Objetivos por serie para esa sesión.',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        exercise_id: { type: 'string', description: 'UUID del ejercicio' },
+                        set_number: { type: 'number', description: 'Número de serie, desde 1' },
+                        target_weight: { type: 'number', description: 'Peso objetivo en kg' },
+                        target_reps: {
+                          type: 'string',
+                          description: 'Reps objetivo como TEXTO. Ej: "8-10" o "12".',
+                        },
+                        target_rir: { type: 'number', description: 'RIR objetivo' },
+                      },
+                      required: ['exercise_id', 'set_number'],
+                    },
+                  },
+                },
+                required: ['day_number', 'routine_id'],
+              },
             },
           },
           required: ['name', 'duration_weeks', 'weekly_sessions'],
         },
+      },
+      {
+        name: 'obtener_mesociclo_activo',
+        description:
+          'Obtiene el mesociclo (plan periodizado) ACTIVO del usuario con sus semanas, sesiones y objetivos. Devuelve null si no hay ninguno.',
+        inputSchema: { type: 'object', properties: {} },
       },
     ],
   }));

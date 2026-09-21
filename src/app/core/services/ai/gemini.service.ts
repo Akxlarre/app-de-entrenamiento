@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { McpClientService } from './mcp-client.service';
+import { McpClientService, McpToolDefinition } from './mcp-client.service';
 import { environment } from '../../../../environments/environment';
 
 export interface ChatMessage {
@@ -27,6 +27,14 @@ export class GeminiService {
 
   // API Key de Gemini (Google AI Studio)
   private apiKey = environment.geminiApiKey || '';
+
+  /**
+   * Tope de rondas de herramientas por mensaje. Sin él, un modelo que insiste
+   * en pedir tools deja el bucle girando y quemando cuota indefinidamente.
+   * 8 alcanza de sobra para el flujo más largo (mesociclo activo → rutinas →
+   * buscar ejercicios → progresión → crear).
+   */
+  private static readonly MAX_TOOL_ITERATIONS = 8;
 
   // Declaración de Tools en formato OpenAI-compatible (Gemini v1beta)
   private toolsDeclaration = [
@@ -115,12 +123,20 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'guardar_recuerdo',
-        description: 'Guarda un hecho importante o preferencia del usuario a largo plazo para futuras sesiones (lesiones, gustos, limitaciones).',
+        description:
+          'Guarda un hecho importante o preferencia del usuario a largo plazo para futuras sesiones (lesiones, gustos, limitaciones).',
         parameters: {
           type: 'object',
           properties: {
-            category: { type: 'string', description: "Categoría: 'injury', 'preference', 'goal', 'limitation' u 'other'." },
-            content: { type: 'string', description: "Hecho concreto. Ejemplo: 'Le duele la rodilla al hacer sentadilla pesada'." },
+            category: {
+              type: 'string',
+              description: "Categoría: 'injury', 'preference', 'goal', 'limitation' u 'other'.",
+            },
+            content: {
+              type: 'string',
+              description:
+                "Hecho concreto. Ejemplo: 'Le duele la rodilla al hacer sentadilla pesada'.",
+            },
           },
           required: ['category', 'content'],
         },
@@ -130,7 +146,8 @@ export class GeminiService {
       type: 'function',
       function: {
         name: 'eliminar_recuerdo',
-        description: 'Elimina un recuerdo del usuario, por ejemplo, si reporta que ya se curó de una lesión.',
+        description:
+          'Elimina un recuerdo del usuario, por ejemplo, si reporta que ya se curó de una lesión.',
         parameters: {
           type: 'object',
           properties: {
@@ -223,13 +240,104 @@ export class GeminiService {
         },
       },
     },
+    {
+      type: 'function',
+      function: {
+        name: 'obtener_mesociclo_activo',
+        description:
+          'Obtiene el mesociclo (plan de periodización) ACTIVO del usuario con sus semanas, sesiones y objetivos. Devuelve null si no tiene ninguno. Úsala SIEMPRE antes de crear un mesociclo nuevo, porque crear uno mientras hay otro activo hace que el anterior deje de mostrarse en la app.',
+        parameters: { type: 'object', properties: {} },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'crear_mesociclo_completo',
+        description:
+          'Crea un plan de entrenamiento periodizado (mesociclo) de varias semanas: genera las semanas, las sesiones de cada semana y los objetivos de peso/reps/RIR por serie. Es LA herramienta para cualquier pedido de "periodización", "plan", "bloque", "mesociclo" o "planificame las próximas semanas". REQUIERE llamar antes a obtener_mis_rutinas para conseguir los routine_id reales, y a obtener_mesociclo_activo para no pisar un plan existente.',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Nombre del mesociclo. Ej: "Bloque de Hipertrofia - Otoño"',
+            },
+            duration_weeks: {
+              type: 'number',
+              description:
+                'Duración total en semanas (típico 4 a 8). La última semana se marca automáticamente como deload.',
+            },
+            weekly_sessions: {
+              type: 'array',
+              description:
+                'Patrón semanal de entrenamiento que se repite cada semana del mesociclo.',
+              items: {
+                type: 'object',
+                properties: {
+                  day_number: {
+                    type: 'number',
+                    description:
+                      'Día de la semana (1=lunes … 7=domingo). NO repitas el mismo día dentro del patrón: cada día debe ser único.',
+                  },
+                  routine_id: {
+                    type: 'string',
+                    description:
+                      'UUID real de una rutina del usuario, obtenido con obtener_mis_rutinas. Es obligatorio y no puede inventarse.',
+                  },
+                  targets: {
+                    type: 'array',
+                    description:
+                      'Objetivos por serie para esa sesión. Opcional, pero es lo que da valor al plan.',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        exercise_id: {
+                          type: 'string',
+                          description:
+                            'UUID del ejercicio, presente en la rutina elegida o buscado con buscar_ejercicios.',
+                        },
+                        set_number: {
+                          type: 'number',
+                          description: 'Número de serie, empezando en 1.',
+                        },
+                        target_weight: {
+                          type: 'number',
+                          description: 'Peso objetivo en kg.',
+                        },
+                        target_reps: {
+                          type: 'string',
+                          description:
+                            'Repeticiones objetivo como TEXTO. Admite rangos. Ej: "8-10" o "12".',
+                        },
+                        target_rir: {
+                          type: 'number',
+                          description: 'RIR objetivo (repeticiones en reserva). Ej: 2.',
+                        },
+                      },
+                      required: ['exercise_id', 'set_number'],
+                    },
+                  },
+                },
+                required: ['day_number', 'routine_id'],
+              },
+            },
+          },
+          required: ['name', 'duration_weeks', 'weekly_sessions'],
+        },
+      },
+    },
   ];
 
   /**
    * Genera respuesta utilizando Gemini API + bucle de Function Calling con el MCP Server
    * Utiliza Streaming (SSE) para emitir texto y estados progresivamente a la UI.
    */
-  async *generateResponseStream(history: ChatMessage[], prompt: string, imageBase64?: string, userMemories: string = ''): AsyncGenerator<ChatStreamEvent, void, unknown> {
+  async *generateResponseStream(
+    history: ChatMessage[],
+    prompt: string,
+    imageBase64?: string,
+    userMemories: string = '',
+  ): AsyncGenerator<ChatStreamEvent, void, unknown> {
     const nowIso = new Date().toISOString();
     const nowTimeStr = new Date().toLocaleTimeString('es-ES', {
       hour: '2-digit',
@@ -237,7 +345,9 @@ export class GeminiService {
       second: '2-digit',
     });
 
-    const memorySection = userMemories ? `\n🧠 MEMORIA A LARGO PLAZO DEL USUARIO:\n${userMemories}\n` : '';
+    const memorySection = userMemories
+      ? `\n🧠 MEMORIA A LARGO PLAZO DEL USUARIO:\n${userMemories}\n`
+      : '';
 
     // Formato de mensajes OpenAI-compatible (Gemini) con System Prompt de Alto Rendimiento
     const messages: any[] = [
@@ -275,6 +385,21 @@ ${memorySection}
 7. MEMORIA A LARGO PLAZO:
    - Si el usuario menciona una nueva lesión, preferencia o limitación que debes recordar permanentemente, usa 'guardar_recuerdo'.
    - Si el usuario menciona que ya no tiene una lesión o preferencia, usa 'eliminar_recuerdo' pasándole el ID exacto que verás en la sección MEMORIA A LARGO PLAZO.
+8. PERIODIZACIÓN Y PLANES DE VARIAS SEMANAS (MESOCICLOS):
+   - Si el usuario pide una "periodización", un "plan", un "bloque", un "mesociclo", o "planificame las próximas semanas", eso se materializa SIEMPRE con 'crear_mesociclo_completo'. NO respondas con un plan escrito en texto sin crearlo: el usuario espera verlo en su app.
+   - Flujo obligatorio, en este orden:
+     a) Llama a 'obtener_mesociclo_activo'. Si ya hay uno activo, AVISA al usuario que crear otro hará que el actual deje de mostrarse, y pide confirmación explícita antes de continuar.
+     b) Llama a 'obtener_mis_rutinas' para conseguir los 'routine_id' REALES. Nunca inventes un UUID: cada sesión del plan debe apuntar a una rutina que el usuario ya tenga.
+     c) Si al usuario le faltan rutinas para el plan que querés armar, creálas primero con 'crear_rutina' (que a su vez requiere 'buscar_ejercicios').
+     d) Opcionalmente revisa 'analizar_progresion_ejercicio' o 'analizar_volumen_muscular' para calibrar los pesos iniciales con datos reales en vez de estimar a ciegas.
+     e) Llama a 'crear_mesociclo_completo'. El patrón 'weekly_sessions' describe UNA semana y se repite automáticamente en todas: no repitas el patrón por cada semana.
+   - Reglas de datos duras (si las violás, el guardado falla):
+     * 'day_number' va de 1 (lunes) a 7 (domingo) y NO puede repetirse dentro del patrón semanal.
+     * 'routine_id' es obligatorio en cada sesión.
+     * 'target_reps' es TEXTO: usá "8-10" para rangos o "12" para un número fijo.
+   - La última semana se marca sola como deload: no agregues una semana extra para eso, pero sí explicáselo al usuario.
+   - Aplicá sobrecarga progresiva real entre semanas a través de los 'targets' (subir peso, subir reps o bajar RIR), y contale al usuario qué criterio usaste.
+   - Al terminar, confirmá que el plan quedó guardado y que puede verlo en la pantalla de Entrenar.
 
 🎯 FILOSOFÍA DE ANÁLISIS Y TONO:
 - Tono: Profesional, directo, motivador pero riguroso (ideal para leer entre descansos sin perder tiempo).
@@ -297,8 +422,8 @@ ${memorySection}
             role: 'user',
             content: [
               { type: 'text', text: m.text },
-              { type: 'image_url', image_url: { url: m.imageBase64 } }
-            ]
+              { type: 'image_url', image_url: { url: m.imageBase64 } },
+            ],
           };
         }
         return {
@@ -313,8 +438,8 @@ ${memorySection}
         role: 'user',
         content: [
           { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: imageBase64 } }
-        ]
+          { type: 'image_url', image_url: { url: imageBase64 } },
+        ],
       });
     } else {
       messages.push({ role: 'user', content: prompt });
@@ -328,9 +453,10 @@ ${memorySection}
 
     try {
       let requiresMoreTools = true;
-      const hasImage = !!imageBase64 || history.some(m => !!m.imageBase64);
+      let toolIterations = 0;
+      const hasImage = !!imageBase64 || history.some((m) => !!m.imageBase64);
       let currentModel = hasImage ? 'gemini-3.5-flash' : 'gemini-3.1-flash-lite';
-      
+
       while (requiresMoreTools) {
         let body: any = {
           model: currentModel,
@@ -345,8 +471,13 @@ ${memorySection}
         try {
           res = await this.postWithRetry(url, body, headers);
         } catch (err: any) {
-          if ((err?.status === 429 || err?.status === 403 || err?.status === 503) && currentModel !== 'gemini-3.1-flash-lite') {
-            console.warn(`[Gemini API] Error ${err?.status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`);
+          if (
+            (err?.status === 429 || err?.status === 403 || err?.status === 503) &&
+            currentModel !== 'gemini-3.1-flash-lite'
+          ) {
+            console.warn(
+              `[Gemini API] Error ${err?.status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`,
+            );
             currentModel = 'gemini-3.1-flash-lite';
             body.model = currentModel;
             res = await this.postWithRetry(url, body, headers);
@@ -356,23 +487,26 @@ ${memorySection}
         }
 
         const responseMessage = res?.choices?.[0]?.message;
+        const wantsTools = !!responseMessage?.tool_calls?.length;
+        const budgetLeft = toolIterations < GeminiService.MAX_TOOL_ITERATIONS;
 
-        if (responseMessage?.tool_calls && responseMessage.tool_calls.length > 0) {
+        if (wantsTools && budgetLeft) {
+          toolIterations++;
           messages.push(responseMessage); // Guardamos la intención
 
           for (const toolCall of responseMessage.tool_calls) {
             const toolName = toolCall.function.name;
             const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
-            
+
             yield { type: 'tool_start', toolName };
-            
+
             let toolResultText: string;
             try {
               toolResultText = await this.mcpClient.callTool(toolName, toolArgs);
             } catch (toolErr: any) {
               toolResultText = this.extractToolErrorMessage(toolErr);
             }
-            
+
             yield { type: 'tool_end', toolName };
 
             messages.push({
@@ -385,10 +519,22 @@ ${memorySection}
           // Ya no requiere tools, pasamos a procesar el stream final de texto
           requiresMoreTools = false;
 
+          if (wantsTools) {
+            // Se agotó el presupuesto de herramientas. NO empujamos
+            // responseMessage: un assistant con tool_calls sin sus respuestas
+            // role:tool es un historial inválido para la API. Cerramos sin
+            // herramientas para forzar una respuesta redactada con lo que ya hay.
+            console.warn(
+              `[Gemini API] Tope de ${GeminiService.MAX_TOOL_ITERATIONS} iteraciones de herramientas alcanzado. Se responde con la información disponible.`,
+            );
+            delete body.tools;
+            delete body.tool_choice;
+          }
+
           // Hacemos una última llamada pero esta vez con stream = true
           body.model = currentModel;
           body.stream = true;
-          
+
           let fetchRes: Response | undefined;
           let fetchErr: any;
 
@@ -409,7 +555,9 @@ ${memorySection}
               const status = fetchRes.status;
               if (status === 429 || status === 403 || status === 503) {
                 if (currentModel !== 'gemini-3.1-flash-lite') {
-                  console.warn(`[Gemini API Stream] Error ${status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`);
+                  console.warn(
+                    `[Gemini API Stream] Error ${status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`,
+                  );
                   currentModel = 'gemini-3.1-flash-lite';
                   body.model = currentModel;
                   continue; // Reintentar inmediatamente con el nuevo modelo
@@ -421,9 +569,9 @@ ${memorySection}
                 const errorData = await fetchRes.json().catch(() => null);
                 throw { status, error: errorData };
               }
-              
+
               if (attempt === 3) throw { status, error: { message: 'Max retries reached' } };
-              
+
               const delay = Math.pow(2, attempt + 1) * 1000;
               await new Promise((r) => setTimeout(r, delay));
             } catch (e: any) {
@@ -466,16 +614,18 @@ ${memorySection}
       }
     } catch (err: any) {
       console.error('[Gemini API] Error:', err);
-      let errorMsg = 'Hubo un inconveniente al comunicarme con tu Coach (Gemini). Verifica tu API Key o conexión.';
+      let errorMsg =
+        'Hubo un inconveniente al comunicarme con tu Coach (Gemini). Verifica tu API Key o conexión.';
       if (err?.status === 429) {
         let retryAfter = '';
         try {
           retryAfter = err?.headers?.get('retry-after') || err?.error?.error?.message || '';
-        } catch(e) {}
+        } catch (e) {}
         errorMsg = `⚠️ **Límite de solicitudes de Gemini alcanzado (429 - Rate Limit)**.\n\nEl free tier de Gemini tiene un límite de tokens/solicitudes por minuto. Por favor espera unos segundos e intenta nuevamente${retryAfter ? ` (${retryAfter})` : ''}.`;
       }
       if (err?.status === 503) {
-        errorMsg = '⚠️ **Gemini está experimentando alta demanda**.\n\nEl servidor está temporalmente saturado. Espera unos segundos e intenta de nuevo — suele resolverse rápido.';
+        errorMsg =
+          '⚠️ **Gemini está experimentando alta demanda**.\n\nEl servidor está temporalmente saturado. Espera unos segundos e intenta de nuevo — suele resolverse rápido.';
       }
       yield { type: 'error', text: errorMsg };
     }
@@ -499,7 +649,12 @@ ${memorySection}
    * POST con retry automático y backoff exponencial para errores transitorios (503, 429).
    * Máximo 3 reintentos con delays de 2s, 4s, 8s.
    */
-  private async postWithRetry(url: string, body: any, headers: HttpHeaders, maxRetries = 3): Promise<any> {
+  private async postWithRetry(
+    url: string,
+    body: any,
+    headers: HttpHeaders,
+    maxRetries = 3,
+  ): Promise<any> {
     let lastError: any;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -522,11 +677,51 @@ ${memorySection}
 
         // Backoff exponencial: 2s, 4s, 8s
         const delay = Math.pow(2, attempt + 1) * 1000;
-        console.warn(`[Gemini API] ${status} en intento ${attempt + 1}/${maxRetries + 1}. Reintentando en ${delay / 1000}s...`);
+        console.warn(
+          `[Gemini API] ${status} en intento ${attempt + 1}/${maxRetries + 1}. Reintentando en ${delay / 1000}s...`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
     throw lastError;
+  }
+
+  /** Nombres de las herramientas que se le declaran al modelo. */
+  get declaredToolNames(): string[] {
+    return this.toolsDeclaration.map((t) => t.function.name);
+  }
+
+  /**
+   * Contrasta las herramientas declaradas al modelo contra las que el servidor
+   * MCP publica en `tools/list`.
+   *
+   * Existe porque el contrato está escrito dos veces (servidor y cliente) y nada
+   * lo verificaba: `crear_mesociclo_completo` vivió implementada en el servidor
+   * pero invisible para el modelo, así que los pedidos de periodización no hacían
+   * nada. Es diagnóstico: no lanza ni bloquea el chat.
+   */
+  async verifyToolContract(): Promise<{ missingInClient: string[]; missingInServer: string[] }> {
+    const serverTools = await this.mcpClient.listTools();
+    const serverNames: string[] = serverTools.map((t: McpToolDefinition) => t.name);
+    const clientNames: string[] = this.declaredToolNames;
+
+    const missingInClient = serverNames.filter((n: string) => !clientNames.includes(n));
+    const missingInServer = clientNames.filter((n: string) => !serverNames.includes(n));
+
+    if (missingInClient.length > 0) {
+      console.warn(
+        '[MCP] El servidor expone herramientas que el modelo NO puede ver:',
+        missingInClient,
+      );
+    }
+    if (missingInServer.length > 0) {
+      console.warn(
+        '[MCP] Se declaran al modelo herramientas que el servidor NO implementa:',
+        missingInServer,
+      );
+    }
+
+    return { missingInClient, missingInServer };
   }
 
   /**
@@ -542,4 +737,3 @@ ${memorySection}
     return 'La herramienta no pudo completarse. Intenta reformular la solicitud.';
   }
 }
-
