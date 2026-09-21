@@ -91,7 +91,7 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
                   </div>
                   <button 
                     type="button" 
-                    class="text-muted hover:text-red-500 shrink-0 bg-transparent border-none p-1 cursor-pointer"
+                    class="text-muted hover:text-[var(--state-error)] shrink-0 bg-transparent border-none p-1 cursor-pointer"
                     (click)="onDeleteMemory.emit(mem.id)"
                     title="Olvidar recuerdo"
                   >
@@ -279,7 +279,7 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
 
       /* Soporte para hover explícito */
       .hover\\:text-primary:hover { color: var(--text-primary); }
-      .hover\\:text-red-500:hover { color: #ef4444; }
+      .hover\\:text-\\[var\\(--state-error\\)\\]:hover { color: var(--state-error); }
 
       .animation-fade-in {
         animation: fade-in 0.2s ease-out forwards;
