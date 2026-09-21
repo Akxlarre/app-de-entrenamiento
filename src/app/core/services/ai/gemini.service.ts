@@ -467,6 +467,16 @@ ${memorySection}
     // la API key del lado del servidor. Autenticamos con el JWT de Supabase.
     const url = this.proxyUrl;
     const authToken = await this.getAuthToken();
+
+    // Sin sesión el proxy va a rechazar con 401 igual: mejor cortar acá y
+    // decirlo claro que gastar un round-trip para mostrar un error genérico.
+    if (!authToken) {
+      yield {
+        type: 'error',
+        text: 'No hay una sesión activa. Iniciá sesión de nuevo para hablar con el Coach.',
+      };
+      return;
+    }
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       apikey: environment.supabase.anonKey,
@@ -637,8 +647,7 @@ ${memorySection}
       }
     } catch (err: any) {
       console.error('[Gemini API] Error:', err);
-      let errorMsg =
-        'Hubo un inconveniente al comunicarme con tu Coach (Gemini). Verifica tu API Key o conexión.';
+      let errorMsg = this.describeChatError(err);
       if (err?.status === 429) {
         let retryAfter = '';
         try {
@@ -711,6 +720,43 @@ ${memorySection}
       }
     }
     throw lastError;
+  }
+
+  /**
+   * Traduce una falla del chat a algo accionable.
+   *
+   * Antes todo lo que no fuera 429/503 caía en un único cartel que decía
+   * "Verifica tu API Key". Desde que Gemini se consume vía Edge Function
+   * (spec 0018) esa frase es directamente falsa: la app ya no tiene ninguna
+   * API key, así que mandaba a revisar lo único que no podía ser la causa.
+   */
+  private describeChatError(err: any): string {
+    const status = err?.status;
+
+    if (status === 401 || status === 403) {
+      return 'Tu sesión expiró o no es válida. Cerrá sesión y volvé a entrar para seguir hablando con el Coach.';
+    }
+
+    if (status === 404) {
+      return 'El servicio del Coach no está disponible (404). La Edge Function `gemini-proxy` no está desplegada en este proyecto de Supabase.';
+    }
+
+    if (status === 500 || status === 502) {
+      // El proxy responde con { error: { message } }; si vino, es lo más útil
+      // que le podemos mostrar a quien administra el proyecto.
+      const detalle = err?.error?.error?.message || err?.error?.message || '';
+      return `El Coach está desplegado pero mal configurado${
+        detalle
+          ? `: ${detalle}`
+          : ' (probablemente falta el secreto GEMINI_API_KEY en la Edge Function)'
+      }.`;
+    }
+
+    if (!status) {
+      return 'No pude conectarme con el Coach. Revisá tu conexión a internet e intentá de nuevo.';
+    }
+
+    return `Hubo un inconveniente al comunicarme con tu Coach (error ${status}). Intentá de nuevo en unos segundos.`;
   }
 
   /** Nombres de las herramientas que se le declaran al modelo. */

@@ -171,6 +171,72 @@ describe('GeminiService', () => {
     });
   });
 
+  describe('diagnóstico de errores del Coach', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    async function responderCon(err: any): Promise<string> {
+      mockHttpClient.post.mockReturnValue(throwError(() => err));
+      const promise = service.generateResponse([], 'hola');
+      await vi.advanceTimersByTimeAsync(100);
+      return promise;
+    }
+
+    it('404 dice que la Edge Function no está desplegada', async () => {
+      const result = await responderCon({ status: 404, error: 'Not Found' });
+
+      expect(result).toContain('gemini-proxy');
+      expect(result).toContain('404');
+    });
+
+    it('500 apunta al secreto faltante e incluye el detalle del servidor', async () => {
+      const result = await responderCon({
+        status: 500,
+        error: { error: { message: 'El proxy de Gemini no tiene GEMINI_API_KEY configurada.' } },
+      });
+
+      expect(result).toContain('GEMINI_API_KEY');
+      expect(result).toContain('mal configurado');
+    });
+
+    it('401 habla de la sesión, no de una API Key', async () => {
+      const result = await responderCon({ status: 401, error: 'boom' });
+
+      expect(result.toLowerCase()).toContain('sesión');
+      expect(result).not.toContain('API Key');
+    });
+
+    it('sin status habla de conexión', async () => {
+      const result = await responderCon({ error: 'network down' });
+
+      expect(result.toLowerCase()).toContain('conexión');
+    });
+
+    it('ningún mensaje de error manda a verificar una API Key en la app', async () => {
+      for (const err of [{ status: 401 }, { status: 404 }, { status: 500 }, { status: 418 }, {}]) {
+        const result = await responderCon(err);
+        expect(result).not.toContain('Verifica tu API Key');
+      }
+    });
+
+    it('corta antes de salir a la red si no hay sesión', async () => {
+      mockSupabaseService.client.auth.getSession.mockResolvedValue({ data: { session: null } });
+
+      const promise = service.generateResponse([], 'hola');
+      await vi.advanceTimersByTimeAsync(100);
+      const result = await promise;
+
+      expect(result.toLowerCase()).toContain('sesión');
+      expect(mockHttpClient.post).not.toHaveBeenCalled();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+  });
+
   describe('proxy de Gemini (la API key no viaja al navegador)', () => {
     it('llama a la Edge Function, no a googleapis, y autentica con el JWT', async () => {
       mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
@@ -411,7 +477,9 @@ describe('GeminiService', () => {
       await vi.advanceTimersByTimeAsync(100);
       const result = await promise;
 
-      expect(result).toContain('Verifica tu API Key');
+      // Ya no dice "Verifica tu API Key": desde el proxy (spec 0018) la app no
+      // tiene ninguna, y un 401 es siempre un problema de sesión.
+      expect(result.toLowerCase()).toContain('sesión');
       expect(mockHttpClient.post).toHaveBeenCalledTimes(1); // No retries for 401
     });
   });
