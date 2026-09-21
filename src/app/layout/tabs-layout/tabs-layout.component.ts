@@ -42,12 +42,11 @@ import { Router } from '@angular/router';
   ],
   template: `
     <ion-tabs [class.has-session]="workoutFacade.activeSession() !== null && !isWorkoutRoute()">
-      <!-- Barra de sesión en curso — reemplaza al FAB mudo anterior. -->
+      <!-- Barra de sesión en curso -->
       @if (workoutFacade.activeSession(); as session) {
         @if (!isWorkoutRoute()) {
           <button
             class="session-bar"
-            slot="bottom"
             [class.is-hidden]="coachFacade.isDrawerOpen()"
             (click)="resumeWorkout()"
           >
@@ -62,26 +61,7 @@ import { Router } from '@angular/router';
         }
       }
 
-      @if (!isWorkoutRoute()) {
-        <ion-tab-bar slot="bottom" class="main-tab-bar">
-          <ion-tab-button tab="workouts">
-            <ion-icon name="barbell-outline"></ion-icon>
-            <ion-label>Entrenar</ion-label>
-          </ion-tab-button>
-
-          <ion-tab-button tab="explorer">
-            <ion-icon name="search-outline"></ion-icon>
-            <ion-label>Ejercicios</ion-label>
-          </ion-tab-button>
-
-          <ion-tab-button tab="profile">
-            <ion-icon name="person-outline"></ion-icon>
-            <ion-label>Perfil</ion-label>
-          </ion-tab-button>
-        </ion-tab-bar>
-      }
-
-      <!-- Coach IA — Flota sobre el contenido -->
+      <!-- Coach IA -->
       <button
         class="coach-fab"
         [class.is-hidden]="coachFacade.isDrawerOpen() || isCoachRoute()"
@@ -113,6 +93,25 @@ import { Router } from '@angular/router';
           />
         </div>
       </app-drawer>
+
+      @if (!isWorkoutRoute()) {
+        <ion-tab-bar slot="bottom" class="main-tab-bar">
+          <ion-tab-button tab="workouts">
+            <ion-icon name="barbell-outline"></ion-icon>
+            <ion-label>Entrenar</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="explorer">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-label>Ejercicios</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="profile">
+            <ion-icon name="person-outline"></ion-icon>
+            <ion-label>Perfil</ion-label>
+          </ion-tab-button>
+        </ion-tab-bar>
+      }
     </ion-tabs>
   `,
   styles: [
@@ -121,17 +120,11 @@ import { Router } from '@angular/router';
         display: block;
         height: 100%;
 
-        /* Geometría del pie. Todo lo que flota se posiciona contra estas
-           dos medidas, así nada se pisa cuando aparece la sesión. */
-        --tabbar-h: calc(56px + var(--ion-safe-area-bottom, 0px));
+        /* Geometría del pie. Usamos env() nativo porque Ionic lo usa
+           internamente para calcular la altura real de ion-tab-bar. */
+        --tabbar-h: calc(56px + env(safe-area-inset-bottom, 0px));
         --session-bar-h: 56px;
 
-        /* El shell publica cuánto espacio ocupa su cromo inferior y las
-           vistas lo consumen para su padding. Antes cada vista adivinaba
-           un número mágico (96px) que se quedaba corto al aparecer la
-           barra de sesión y le tapaba el último bloque.
-           El FAB del Coach no cuenta: flota sobre la esquina como
-           cualquier FAB y no bloquea una columna entera. */
         --chrome-bottom: calc(var(--tabbar-h) + var(--space-4));
       }
 
@@ -181,7 +174,10 @@ import { Router } from '@angular/router';
          Ember, no verde: en este sistema el verde significa
          "logrado" y esto es "está pasando ahora". */
       .session-bar {
-        position: relative;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: var(--tabbar-h);
         z-index: 95;
 
         display: flex;
