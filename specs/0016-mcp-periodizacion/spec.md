@@ -1,5 +1,5 @@
 > id: 0016-mcp-periodizacion
-> status: done
+> status: draft
 > created: 2026-09-21
 > refs: Auditoría del MCP pedida por el usuario tras fallar "hazme una periodización"
 
@@ -52,8 +52,10 @@ servidor MCP (`supabase/functions/mcp-server/index.ts:340-414`).
 - [x] AC5: El system prompt incluye una sección de periodización con el flujo completo.
 - [x] AC6: El bucle de function calling tiene tope de iteraciones y corta limpio.
 - [x] AC7: El schema de `weekly_sessions` del servidor se corrige igual que el del cliente.
-- [x] AC8: Tests en `gemini.service.spec.ts` y `mcp-client.service.spec.ts` cubren
+- [ ] AC8: Tests en `gemini.service.spec.ts` y `mcp-client.service.spec.ts` cubren
       la nueva tool, el tope del bucle y `listTools()`.
+      ESCRITOS PERO SIN EJECUTAR — ver Verificación. El AC no se da por cumplido
+      hasta que `npm run test:ci` pase en verde.
 
 ## Verificación
 
@@ -84,3 +86,27 @@ NO ejecutado en este entorno:
 - La API key de Gemini viaja al bundle del navegador (`gemini.service.ts` llama
   a `generativelanguage.googleapis.com` desde el cliente). Conviene proxear por
   la Edge Function, que ya autentica por JWT. Fuera de scope de esta spec.
+
+## Estado de cierre
+
+La spec queda en `draft`, NO en `done`. AC1-AC7 están implementados y
+verificados con `tsc`; AC8 no puede darse por cumplido sin ejecutar los tests.
+
+Para cerrarla:
+1. `npm install` en una máquina con red.
+2. `npm run test:ci` — deben pasar los tests nuevos de `listTools()`, del
+   contrato de herramientas y del tope del bucle.
+3. `npm run lint:arch`.
+4. Recién ahí marcar AC8, pasar status a `done` y vaciar `specs/.active`.
+
+## Índices
+
+No se agregaron componentes, servicios ni directivas nuevas: los cambios son
+métodos nuevos sobre dos servicios que ya existían. Aun así, `indices/` está en
+.gitignore y no existe en el clon remoto, así que no se pudo sincronizar ni
+regenerar (`scripts/indices-sync.js` requiere node_modules). Al correr
+`npm run indices:sync` localmente, conviene que `indices/SERVICES.md` refleje:
+
+- `McpClientService.listTools()` — lee el contrato de herramientas del servidor MCP.
+- `GeminiService.verifyToolContract()` / `declaredToolNames` — detectan divergencias
+  entre lo declarado al modelo y lo que el servidor publica.
