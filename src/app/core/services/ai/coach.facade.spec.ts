@@ -3,6 +3,8 @@ import { CoachFacade } from './coach.facade';
 import { GeminiService } from './gemini.service';
 import { McpClientService } from './mcp-client.service';
 
+import { MessageService } from 'primeng/api';
+
 const mockGeminiService = {
   chat: vi.fn().mockResolvedValue('Respuesta del coach'),
 };
@@ -22,6 +24,7 @@ describe('CoachFacade', () => {
         CoachFacade,
         { provide: GeminiService, useValue: mockGeminiService },
         { provide: McpClientService, useValue: mockMcpClientService },
+        { provide: MessageService, useValue: { add: vi.fn(), clear: vi.fn() } }
       ],
     });
 

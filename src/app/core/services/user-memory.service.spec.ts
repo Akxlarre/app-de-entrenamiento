@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { UserMemoryService } from './user-memory.service';
-import { SupabaseService } from '../infrastructure/supabase.service';
+import { SupabaseService } from './infrastructure/supabase.service';
 
 describe('UserMemoryService', () => {
   let service: UserMemoryService;
@@ -37,9 +37,9 @@ describe('UserMemoryService', () => {
       data: [{ id: '1', content: 'test', category: 'goal' }],
       error: null
     });
-    const result = await service.getUserMemories();
-    expect(result.error).toBeNull();
-    expect(result.data).toBeDefined();
+    const result = await service.getMemories();
+    expect(result).toBeDefined();
+    expect(result.length).toBe(1);
     expect(supabaseServiceMock.client.from).toHaveBeenCalledWith('user_memory');
   });
 });

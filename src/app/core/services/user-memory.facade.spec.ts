@@ -8,7 +8,7 @@ describe('UserMemoryFacade', () => {
 
   beforeEach(() => {
     serviceMock = {
-      getUserMemories: vi.fn().mockResolvedValue({ data: [], error: null }),
+      getMemories: vi.fn().mockResolvedValue([]),
       deleteMemory: vi.fn().mockResolvedValue({ error: null })
     };
 
@@ -28,7 +28,7 @@ describe('UserMemoryFacade', () => {
 
   it('should load memories', async () => {
     await facade.loadMemories();
-    expect(serviceMock.getUserMemories).toHaveBeenCalled();
+    expect(serviceMock.getMemories).toHaveBeenCalled();
     expect(facade.memories().length).toBe(0);
   });
 

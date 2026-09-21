@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActiveWorkoutPage } from './active-workout.page';
 import { WorkoutFacade, ActiveWorkoutState } from '@core/facades/workout.facade';
 import { signal } from '@angular/core';
+import { MessageService } from 'primeng/api';
 
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
@@ -28,7 +29,8 @@ describe('ActiveWorkoutPage', () => {
     await TestBed.configureTestingModule({
       imports: [ActiveWorkoutPage, HttpClientTestingModule],
       providers: [
-        { provide: WorkoutFacade, useValue: mockFacade }
+        { provide: WorkoutFacade, useValue: mockFacade },
+        { provide: MessageService, useValue: { add: vi.fn(), clear: vi.fn() } }
       ]
     }).compileComponents();
 

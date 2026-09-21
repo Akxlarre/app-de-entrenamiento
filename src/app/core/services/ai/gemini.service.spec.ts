@@ -54,22 +54,31 @@ describe('GeminiService', () => {
           // For now, let's just make it return a resolved stream.
         }
 
-        const encoder = new TextEncoder();
-        const mockStream = new ReadableStream({
-          start(controller) {
-            const fakeChunk =
-              'data: ' +
-              JSON.stringify({ choices: [{ delta: { content: mockedContent } }] }) +
-              '\n\n';
-            controller.enqueue(encoder.encode(fakeChunk));
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-            controller.close();
-          },
-        });
         return Promise.resolve({
           ok: true,
-          body: mockStream,
-        } as unknown as Response);
+          status: 200,
+          body: {
+            getReader: () => {
+              let readCount = 0;
+              return {
+                read: async () => {
+                  readCount++;
+                  if (readCount === 1) {
+                    const fakeChunk =
+                      'data: ' +
+                      JSON.stringify({ choices: [{ delta: { content: mockedContent } }] }) +
+                      '\n\n';
+                    return { value: new TextEncoder().encode(fakeChunk), done: false };
+                  } else if (readCount === 2) {
+                    return { value: new TextEncoder().encode('data: [DONE]\n\n'), done: false };
+                  } else {
+                    return { done: true };
+                  }
+                }
+              };
+            }
+          }
+        } as any);
       })
     );
   });
@@ -84,6 +93,16 @@ describe('GeminiService', () => {
   });
 
   describe('generateResponse() — cuando una herramienta falla', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // Provide a default return value so it never returns undefined
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ignored' } }] }));
+    });
+    
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('empuja un mensaje role:tool con el error limpio y deja que el modelo responda', async () => {
       mockHttpClient.post
         .mockReturnValueOnce(
