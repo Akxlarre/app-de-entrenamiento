@@ -413,7 +413,9 @@ import { RoutineWithExercises } from '@core/models/routine.model';
         padding: var(--tier-pad, var(--space-4));
         /* El shell publica cuánto mide su cromo inferior (tabs + barra de
            sesión cuando la hay). La vista no adivina el número. */
-        padding-bottom: var(--chrome-bottom, 114px);
+        /* Aumentamos el padding para que el usuario pueda scrollear completamente
+           más allá del FAB del Coach IA, que flota encima de la esquina. */
+        padding-bottom: calc(var(--chrome-bottom, 114px) + 80px);
         display: flex;
         flex-direction: column;
         gap: var(--tier-gap, var(--space-5));

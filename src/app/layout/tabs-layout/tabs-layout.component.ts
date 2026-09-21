@@ -146,6 +146,8 @@ import { Router } from '@angular/router';
       .main-tab-bar {
         --background: var(--bg-surface);
         --border: 1px solid var(--border-default);
+        height: var(--tabbar-h);
+        padding-bottom: var(--ion-safe-area-bottom, 0px);
       }
 
       ion-tab-button {
