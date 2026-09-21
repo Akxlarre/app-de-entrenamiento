@@ -9,8 +9,40 @@ on:
       - 'v*'
 
 jobs:
+  # ── Job 1: Deploy Edge Functions ─────────────────────────────
+  deploy_edge_functions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Extraer Project Ref desde SUPABASE_URL
+        id: extract_ref
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: |
+          # SUPABASE_URL tiene formato https://<project-ref>.supabase.co
+          REF=$(echo "$SUPABASE_URL" | sed -E 's|https://([^.]+)\.supabase\.co.*|\1|')
+          echo "project_ref=$REF" >> $GITHUB_OUTPUT
+          echo "📦 Project ref extraído: $REF"
+
+      - name: Deploy Edge Function (mcp-server)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy mcp-server \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }} \
+            --no-verify-jwt
+
+  # ── Job 2: Build y Deploy de APK ─────────────────────────────
   build_and_deploy_apk:
     runs-on: ubuntu-latest
+    needs: deploy_edge_functions
 
     steps:
       - name: Checkout del código
