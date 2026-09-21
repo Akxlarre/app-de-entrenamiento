@@ -70,7 +70,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
             category
           )
         )
-      `,
+      `
       )
       .eq('user_id', authenticatedUserId)
       .order('created_at', { ascending: false });
@@ -80,7 +80,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     const formatted = (data || []).map((r: any) => ({
       ...r,
       routine_exercises: (r.routine_exercises || []).sort(
-        (a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0),
+        (a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0)
       ),
     }));
 
@@ -92,7 +92,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     const { data, error } = await supabase
       .from('workouts')
       .select(
-        'id, routine_id, start_time, end_time, notes, routines(name), workout_reports(energy_level, session_rpe, satisfaction_rating, notes)',
+        'id, routine_id, start_time, end_time, notes, routines(name), workout_reports(energy_level, session_rpe, satisfaction_rating, notes)'
       )
       .eq('user_id', authenticatedUserId)
       .order('start_time', { ascending: false })
@@ -117,7 +117,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     const { data, error } = await supabase
       .from('workout_sets')
       .select(
-        'id, set_number, set_type, weight, reps, rir, rpe, completed, exercises(name_es, name_en)',
+        'id, set_number, set_type, weight, reps, rir, rpe, completed, exercises(name_es, name_en)'
       )
       .eq('workout_id', args.workout_id)
       .order('set_number', { ascending: true });
@@ -162,7 +162,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
           text: JSON.stringify(
             { message: 'Rutina creada exitosamente', routine: newRoutine },
             null,
-            2,
+            2
           ),
         },
       ],
@@ -188,7 +188,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     if (error?.code === '23503') {
       throw new Error(
         'No se puede eliminar esta rutina porque forma parte de un plan de entrenamiento. ' +
-          'Para eliminarla, primero elimina el plan que la usa.',
+          'Para eliminarla, primero elimina el plan que la usa.'
       );
     }
     if (error) throw new Error(error.message);
@@ -203,7 +203,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
           text: JSON.stringify(
             { message: 'Rutina eliminada exitosamente', deleted_routine_id: args.routine_id },
             null,
-            2,
+            2
           ),
         },
       ],
@@ -292,7 +292,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
           id,
           name
         )
-      `,
+      `
       )
       .eq('user_id', authenticatedUserId)
       .is('end_time', null)
@@ -307,7 +307,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
               text: JSON.stringify(
                 { message: 'No tienes ningún entrenamiento en curso actualmente.' },
                 null,
-                2,
+                2
               ),
             },
           ],
@@ -319,7 +319,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     const { data: sets, error: setsErr } = await supabase
       .from('workout_sets')
       .select(
-        'id, set_number, set_type, weight, reps, rir, rpe, completed, completed_at, exercises(name_es, name_en)',
+        'id, set_number, set_type, weight, reps, rir, rpe, completed, completed_at, exercises(name_es, name_en)'
       )
       .eq('workout_id', workout.id)
       .eq('completed', true)
@@ -354,7 +354,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
             )
           )
         )
-      `,
+      `
       )
       .eq('user_id', authenticatedUserId)
       .eq('status', 'active')
@@ -372,7 +372,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
             text: JSON.stringify(
               { active_mesocycle: null, message: 'El usuario no tiene ningún mesociclo activo.' },
               null,
-              2,
+              2
             ),
           },
         ],
@@ -392,7 +392,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     // sabe corregir. Estos mensajes sí son accionables.
     if (!Array.isArray(weekly_sessions) || weekly_sessions.length === 0) {
       throw new Error(
-        'weekly_sessions debe ser un array con al menos una sesión. Describe UNA semana tipo; se repite sola en todas las semanas.',
+        'weekly_sessions debe ser un array con al menos una sesión. Describe UNA semana tipo; se repite sola en todas las semanas.'
       );
     }
     if (!Number.isInteger(duration_weeks) || duration_weeks < 1) {
@@ -404,13 +404,46 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     }
     if (new Set(dayNumbers).size !== dayNumbers.length) {
       throw new Error(
-        'Hay day_number repetidos en weekly_sessions. Cada día de la semana puede aparecer una sola vez.',
+        'Hay day_number repetidos en weekly_sessions. Cada día de la semana puede aparecer una sola vez.'
       );
     }
     if (weekly_sessions.some((s: any) => !s?.routine_id)) {
       throw new Error(
-        'Cada sesión necesita un routine_id real del usuario. Llama a obtener_mis_rutinas para conseguirlos.',
+        'Cada sesión necesita un routine_id real del usuario. Llama a obtener_mis_rutinas para conseguirlos.'
       );
+    }
+
+    // La BD ahora garantiza un solo mesociclo activo por usuario (índice único
+    // parcial mesocycles_one_active_per_user). Sin este pre-chequeo el insert
+    // fallaría con un error de constraint que el modelo no sabe interpretar.
+    const { data: activo, error: activoErr } = await supabase
+      .from('mesocycles')
+      .select('id, name')
+      .eq('user_id', authenticatedUserId)
+      .eq('status', 'active')
+      // order+limit y no maybeSingle a secas: si la migración del índice único
+      // todavía no corrió en este entorno, puede haber más de un activo y
+      // maybeSingle reventaría.
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activoErr) throw new Error(activoErr.message);
+
+    if (activo) {
+      if (!args?.reemplazar_activo) {
+        throw new Error(
+          `El usuario ya tiene un mesociclo activo ("${activo.name}"). Creá uno nuevo sólo si te lo confirma explícitamente: avisale que el plan actual pasará a abandonado y volvé a llamar a esta herramienta con reemplazar_activo=true.`
+        );
+      }
+
+      const { error: abandonErr } = await supabase
+        .from('mesocycles')
+        .update({ status: 'abandoned' })
+        .eq('id', activo.id);
+
+      if (abandonErr)
+        throw new Error('No se pudo archivar el plan anterior: ' + abandonErr.message);
     }
 
     const mesocycleId = crypto.randomUUID();
@@ -524,7 +557,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
         reps,
         set_type,
         exercises ( muscle )
-      `,
+      `
       )
       .in('workout_id', workoutIds)
       .eq('completed', true);
@@ -566,7 +599,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
         rir,
         set_type,
         workouts!inner ( id, start_time, user_id )
-      `,
+      `
       )
       .eq('exercise_id', args.exercise_id)
       .eq('workouts.user_id', authenticatedUserId)
@@ -625,7 +658,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     let query = supabase
       .from('workout_exercise_feedback')
       .select(
-        'id, workout_id, category, rating, tags, notes, created_at, exercises(name_es, name_en)',
+        'id, workout_id, category, rating, tags, notes, created_at, exercises(name_es, name_en)'
       )
       .eq('user_id', authenticatedUserId)
       .order('created_at', { ascending: false });
@@ -649,7 +682,7 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
 function createSecureMcpServer(authenticatedUserId: string) {
   const server = new Server(
     { name: 'entrenamiento-mcp-seguro', version: '1.1.0' },
-    { capabilities: { tools: {} } },
+    { capabilities: { tools: {} } }
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -866,6 +899,11 @@ function createSecureMcpServer(authenticatedUserId: string) {
                 required: ['day_number', 'routine_id'],
               },
             },
+            reemplazar_activo: {
+              type: 'boolean',
+              description:
+                'Sólo true si el usuario confirmó explícitamente reemplazar su plan activo. Archiva el anterior como abandonado. Por defecto false.',
+            },
           },
           required: ['name', 'duration_weeks', 'weekly_sessions'],
         },
@@ -922,7 +960,7 @@ Deno.serve(async (req) => {
         JSON.stringify({
           error: 'No autorizado. Se requiere un JWT válido en el header Authorization.',
         }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...cors } },
+        { status: 401, headers: { 'Content-Type': 'application/json', ...cors } }
       );
     }
 
@@ -934,7 +972,7 @@ Deno.serve(async (req) => {
         const result = await executeTool(
           user.id,
           jsonBody.params.name,
-          jsonBody.params.arguments || {},
+          jsonBody.params.arguments || {}
         );
         return new Response(
           JSON.stringify({
@@ -943,7 +981,7 @@ Deno.serve(async (req) => {
             result,
             content: result.content,
           }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...cors } },
+          { status: 200, headers: { 'Content-Type': 'application/json', ...cors } }
         );
       }
     } catch {

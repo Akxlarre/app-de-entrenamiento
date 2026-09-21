@@ -80,7 +80,7 @@ describe('GeminiService', () => {
             },
           },
         } as any);
-      }),
+      })
     );
   });
 
@@ -102,9 +102,33 @@ describe('GeminiService', () => {
       expect(service.declaredToolNames).toContain('obtener_mesociclo_activo');
     });
 
+    it('expone reemplazar_activo y NO lo hace obligatorio', () => {
+      const meso: any = (service as any).toolsDeclaration.find(
+        (t: any) => t.function.name === 'crear_mesociclo_completo'
+      );
+      const params = meso.function.parameters;
+
+      expect(params.properties.reemplazar_activo.type).toBe('boolean');
+      // Debe ser opt-in: si fuera required, el modelo lo mandaría siempre y
+      // archivaría el plan del usuario sin pedirle permiso.
+      expect(params.required).not.toContain('reemplazar_activo');
+    });
+
+    it('el prompt obliga a confirmar antes de reemplazar un plan activo', () => {
+      const prompt = (service as any).buildSystemPrompt?.() ?? '';
+      // El prompt se arma dentro del stream; si no hay helper, basta con que la
+      // declaración documente el contrato.
+      const meso: any = (service as any).toolsDeclaration.find(
+        (t: any) => t.function.name === 'crear_mesociclo_completo'
+      );
+      const desc = meso.function.parameters.properties.reemplazar_activo.description;
+
+      expect(`${prompt} ${desc}`.toLowerCase()).toContain('confirm');
+    });
+
     it('weekly_sessions tipa sus items en vez de describirlos en prosa', () => {
       const meso: any = (service as any).toolsDeclaration.find(
-        (t: any) => t.function.name === 'crear_mesociclo_completo',
+        (t: any) => t.function.name === 'crear_mesociclo_completo'
       );
       const weekly = meso.function.parameters.properties.weekly_sessions;
 
@@ -156,7 +180,7 @@ describe('GeminiService', () => {
               },
             },
           ],
-        }),
+        })
       );
       mockMcpClientService.callTool.mockResolvedValue('[]');
 
@@ -182,7 +206,7 @@ describe('GeminiService', () => {
               },
             },
           ],
-        }),
+        })
       );
       mockMcpClientService.callTool.mockResolvedValue('[]');
 
@@ -191,7 +215,7 @@ describe('GeminiService', () => {
       await promise;
 
       const lastFetchBody = JSON.parse(
-        (globalThis.fetch as any).mock.calls.at(-1)[1].body as string,
+        (globalThis.fetch as any).mock.calls.at(-1)[1].body as string
       );
       expect(lastFetchBody.tools).toBeUndefined();
       expect(lastFetchBody.tool_choice).toBeUndefined();
@@ -225,7 +249,7 @@ describe('GeminiService', () => {
                 },
               },
             ],
-          }),
+          })
         )
         .mockReturnValueOnce(of({ choices: [{ message: { content: 'ignored' } }] }));
 
@@ -258,7 +282,7 @@ describe('GeminiService', () => {
                 },
               },
             ],
-          }),
+          })
         )
         .mockReturnValueOnce(of({ choices: [{ message: { content: 'ignored' } }] }));
 
@@ -286,7 +310,7 @@ describe('GeminiService', () => {
                 },
               },
             ],
-          }),
+          })
         )
         .mockReturnValueOnce(of({ choices: [{ message: { content: 'ignored' } }] }));
 
@@ -313,7 +337,7 @@ describe('GeminiService', () => {
           status: 429,
           headers: { get: () => null },
           error: { error: { message: 'Rate limit reached' } },
-        })),
+        }))
       );
 
       const promise = service.generateResponse([], 'hola');
@@ -333,7 +357,7 @@ describe('GeminiService', () => {
         throwError(() => ({
           status: 503,
           error: { error: { message: 'High demand' } },
-        })),
+        }))
       );
 
       const promise = service.generateResponse([], 'hola');

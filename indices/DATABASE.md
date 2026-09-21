@@ -79,7 +79,10 @@ cubre el INSERT.
   sesión sin una rutina que ya exista.
 - **UNIQUE(week_id, day_number).** Repetir un día dentro del patrón semanal
   rompe el insert del mesociclo completo.
-- **Varios mesociclos `active` a la vez no están impedidos por constraint.**
-  `MesocycleFacade.loadActiveMesocycle()` toma el más reciente con `limit(1)`,
-  así que un plan nuevo tapa al anterior en la UI sin avisar.
+- **Un solo mesociclo `active` por usuario**, garantizado por el índice único
+  parcial `mesocycles_one_active_per_user` (`ON mesocycles (user_id) WHERE
+  status = 'active'`). Para empezar un plan nuevo hay que archivar el anterior
+  como `abandoned` primero; `crear_mesociclo_completo` lo hace con
+  `reemplazar_activo=true`. `completed` y `abandoned` no tienen límite: el
+  historial se acumula.
 - **Realtime no funciona sobre VIEWs.** Hoy no hay ninguna definida.

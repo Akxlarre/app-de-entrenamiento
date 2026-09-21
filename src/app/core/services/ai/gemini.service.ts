@@ -321,6 +321,11 @@ export class GeminiService {
                 required: ['day_number', 'routine_id'],
               },
             },
+            reemplazar_activo: {
+              type: 'boolean',
+              description:
+                'Sólo true si el usuario confirmó explícitamente que quiere reemplazar su plan activo. Archiva el anterior como abandonado. Por defecto false: si ya hay un plan activo y no mandás este flag, la herramienta falla a propósito.',
+            },
           },
           required: ['name', 'duration_weeks', 'weekly_sessions'],
         },
@@ -336,7 +341,7 @@ export class GeminiService {
     history: ChatMessage[],
     prompt: string,
     imageBase64?: string,
-    userMemories: string = '',
+    userMemories: string = ''
   ): AsyncGenerator<ChatStreamEvent, void, unknown> {
     const nowIso = new Date().toISOString();
     const nowTimeStr = new Date().toLocaleTimeString('es-ES', {
@@ -388,7 +393,7 @@ ${memorySection}
 8. PERIODIZACIÓN Y PLANES DE VARIAS SEMANAS (MESOCICLOS):
    - Si el usuario pide una "periodización", un "plan", un "bloque", un "mesociclo", o "planificame las próximas semanas", eso se materializa SIEMPRE con 'crear_mesociclo_completo'. NO respondas con un plan escrito en texto sin crearlo: el usuario espera verlo en su app.
    - Flujo obligatorio, en este orden:
-     a) Llama a 'obtener_mesociclo_activo'. Si ya hay uno activo, AVISA al usuario que crear otro hará que el actual deje de mostrarse, y pide confirmación explícita antes de continuar.
+     a) Llama a 'obtener_mesociclo_activo'. Si ya hay uno activo, NO crees otro sin permiso: contale qué plan tiene en curso, avisale que el actual quedará archivado como abandonado, y pedile confirmación explícita. Recién con un "sí" claro volvés a llamar a 'crear_mesociclo_completo' con reemplazar_activo=true. La base de datos sólo admite UN mesociclo activo por usuario, así que sin ese flag la herramienta va a fallar a propósito.
      b) Llama a 'obtener_mis_rutinas' para conseguir los 'routine_id' REALES. Nunca inventes un UUID: cada sesión del plan debe apuntar a una rutina que el usuario ya tenga.
      c) Si al usuario le faltan rutinas para el plan que querés armar, creálas primero con 'crear_rutina' (que a su vez requiere 'buscar_ejercicios').
      d) Opcionalmente revisa 'analizar_progresion_ejercicio' o 'analizar_volumen_muscular' para calibrar los pesos iniciales con datos reales en vez de estimar a ciegas.
@@ -476,7 +481,7 @@ ${memorySection}
             currentModel !== 'gemini-3.1-flash-lite'
           ) {
             console.warn(
-              `[Gemini API] Error ${err?.status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`,
+              `[Gemini API] Error ${err?.status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`
             );
             currentModel = 'gemini-3.1-flash-lite';
             body.model = currentModel;
@@ -525,7 +530,7 @@ ${memorySection}
             // role:tool es un historial inválido para la API. Cerramos sin
             // herramientas para forzar una respuesta redactada con lo que ya hay.
             console.warn(
-              `[Gemini API] Tope de ${GeminiService.MAX_TOOL_ITERATIONS} iteraciones de herramientas alcanzado. Se responde con la información disponible.`,
+              `[Gemini API] Tope de ${GeminiService.MAX_TOOL_ITERATIONS} iteraciones de herramientas alcanzado. Se responde con la información disponible.`
             );
             delete body.tools;
             delete body.tool_choice;
@@ -556,7 +561,7 @@ ${memorySection}
               if (status === 429 || status === 403 || status === 503) {
                 if (currentModel !== 'gemini-3.1-flash-lite') {
                   console.warn(
-                    `[Gemini API Stream] Error ${status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`,
+                    `[Gemini API Stream] Error ${status} en ${currentModel}, haciendo fallback a gemini-3.1-flash-lite`
                   );
                   currentModel = 'gemini-3.1-flash-lite';
                   body.model = currentModel;
@@ -621,7 +626,9 @@ ${memorySection}
         try {
           retryAfter = err?.headers?.get('retry-after') || err?.error?.error?.message || '';
         } catch (e) {}
-        errorMsg = `⚠️ **Límite de solicitudes de Gemini alcanzado (429 - Rate Limit)**.\n\nEl free tier de Gemini tiene un límite de tokens/solicitudes por minuto. Por favor espera unos segundos e intenta nuevamente${retryAfter ? ` (${retryAfter})` : ''}.`;
+        errorMsg = `⚠️ **Límite de solicitudes de Gemini alcanzado (429 - Rate Limit)**.\n\nEl free tier de Gemini tiene un límite de tokens/solicitudes por minuto. Por favor espera unos segundos e intenta nuevamente${
+          retryAfter ? ` (${retryAfter})` : ''
+        }.`;
       }
       if (err?.status === 503) {
         errorMsg =
@@ -653,7 +660,7 @@ ${memorySection}
     url: string,
     body: any,
     headers: HttpHeaders,
-    maxRetries = 3,
+    maxRetries = 3
   ): Promise<any> {
     let lastError: any;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -678,7 +685,9 @@ ${memorySection}
         // Backoff exponencial: 2s, 4s, 8s
         const delay = Math.pow(2, attempt + 1) * 1000;
         console.warn(
-          `[Gemini API] ${status} en intento ${attempt + 1}/${maxRetries + 1}. Reintentando en ${delay / 1000}s...`,
+          `[Gemini API] ${status} en intento ${attempt + 1}/${maxRetries + 1}. Reintentando en ${
+            delay / 1000
+          }s...`
         );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -711,13 +720,13 @@ ${memorySection}
     if (missingInClient.length > 0) {
       console.warn(
         '[MCP] El servidor expone herramientas que el modelo NO puede ver:',
-        missingInClient,
+        missingInClient
       );
     }
     if (missingInServer.length > 0) {
       console.warn(
         '[MCP] Se declaran al modelo herramientas que el servidor NO implementa:',
-        missingInServer,
+        missingInServer
       );
     }
 
