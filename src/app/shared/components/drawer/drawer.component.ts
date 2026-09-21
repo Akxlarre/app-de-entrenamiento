@@ -46,14 +46,15 @@ import { Subscription } from 'rxjs';
       <div
         #panel
         class="absolute bottom-0 right-0 z-50 flex flex-col w-full md:w-[50%] shadow-2xl bg-surface md:rounded-l-3xl"
-        style="top: var(--layout-top-offset, 0px)"
+        style="top: var(--layout-top-offset, 0px); padding-bottom: var(--ion-safe-area-bottom, 20px);"
         role="dialog"
         aria-modal="true"
         [attr.aria-labelledby]="titleId"
       >
         <!-- Header -->
         <header
-          class="flex items-center justify-between px-6 py-4 border-b shrink-0 bg-transparent border-border-subtle"
+          class="flex items-center justify-between px-6 pb-4 border-b shrink-0 bg-transparent border-border-subtle"
+          style="padding-top: calc(var(--ion-safe-area-top, 24px) + 1rem);"
         >
           <div class="flex items-center gap-3">
             @if (icon()) {
