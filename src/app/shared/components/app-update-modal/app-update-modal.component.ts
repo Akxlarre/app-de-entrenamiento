@@ -10,23 +10,26 @@ import { IconComponent } from '@shared/components/icon/icon.component';
   template: `
     @if (visible()) {
       <div
-        class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+        class="fixed inset-0 z-[99999] flex items-center justify-center p-4 backdrop-blur-md animate-fade-in"
+        style="background: var(--overlay-backdrop);"
       >
         <div
-          class="w-full max-w-sm rounded-2xl border border-white/10 bg-[#121217] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden"
+          class="w-full max-w-sm rounded-2xl border bg-surface p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden"
+          style="border-color: var(--border-default);"
         >
           <!-- Top badge / icon -->
           <div class="flex items-center gap-3">
             <div
-              class="w-12 h-12 rounded-xl bg-[var(--ds-brand)]/15 border border-[var(--ds-brand)]/30 flex items-center justify-center shadow-lg shadow-[var(--ds-brand)]/10"
+              class="w-12 h-12 rounded-xl flex items-center justify-center"
+              style="background: var(--color-primary-muted); border: 1px solid var(--accent-border);"
             >
-              <app-icon name="rocket" [size]="24" [color]="'var(--ds-brand)'" />
+              <app-icon name="rocket" [size]="24" color="var(--ds-brand)" />
             </div>
             <div class="flex flex-col">
-              <h3 class="m-0 text-base font-bold text-white tracking-tight">
+              <h3 class="m-0 text-base font-bold text-primary tracking-tight">
                 ¡Nueva versión disponible!
               </h3>
-              <span class="text-xs font-semibold text-[var(--color-primary-hover)]"
+              <span class="text-xs font-semibold" style="color: var(--ds-brand);"
                 >Versión {{ updateInfo()?.version || 'actualizada' }}</span
               >
             </div>
@@ -34,7 +37,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 
           <!-- Notes -->
           <div
-            class="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3.5 text-xs text-zinc-300 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap"
+            class="rounded-xl p-3.5 text-xs text-muted leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap"
+            style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
           >
             {{ updateInfo()?.release_notes || 'Mejoras de rendimiento y corrección de errores.' }}
           </div>
@@ -42,8 +46,8 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           <!-- Error message if any -->
           @if (error()) {
             <div
-              class="p-3 rounded-xl text-xs font-semibold text-primary border border-surface-border flex items-center gap-1.5"
-              style="background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.2);"
+              class="p-3 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+              style="background: var(--state-error-bg); color: var(--state-error); border: 1px solid var(--state-error-border);"
             >
               <app-icon name="alert-circle" [size]="14" />
               {{ error() }}
@@ -54,25 +58,25 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           @if (isDownloading()) {
             <div class="flex flex-col gap-2 pt-2">
               <div class="flex justify-between text-xs font-semibold">
-                <span class="text-zinc-400">Descargando actualización...</span>
-                <span class="text-[var(--color-primary-hover)]">{{ downloadProgress() }}%</span>
+                <span class="text-secondary">Descargando actualización...</span>
+                <span style="color: var(--ds-brand);">{{ downloadProgress() }}%</span>
               </div>
-              <div class="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
+              <div class="w-full h-2.5 rounded-full overflow-hidden" style="background: var(--bg-subtle);">
                 <div
-                  class="h-full bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] transition-all duration-200"
-                  [style.width.%]="downloadProgress()"
+                  class="h-full transition-all duration-200"
+                  style="background: var(--gradient-primary); width: {{ downloadProgress() }}%;"
                 ></div>
               </div>
             </div>
           }
 
           <!-- Action buttons -->
-          <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-white/[0.06] mt-1">
+          <div class="flex items-center justify-end gap-2.5 pt-2 mt-1" style="border-top: 1px solid var(--border-subtle);">
             @if (!isForceUpdate && !isDownloading()) {
               <button
                 type="button"
                 (click)="onClose()"
-                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white bg-transparent border-none cursor-pointer transition-all active:scale-95"
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-secondary hover:text-primary bg-transparent border-none cursor-pointer transition-all active:scale-95"
               >
                 Más tarde
               </button>
@@ -82,11 +86,13 @@ import { IconComponent } from '@shared/components/icon/icon.component';
               type="button"
               (click)="onUpdateClick()"
               [disabled]="isDownloading()"
-              class="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] border-none shadow-lg shadow-[var(--ds-brand)]/20 cursor-pointer transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              class="flex-1 py-3 px-4 rounded-xl text-xs font-bold border-none shadow-lg cursor-pointer transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style="background: var(--gradient-primary); color: var(--color-primary-text);"
             >
               @if (isDownloading()) {
                 <span
-                  class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"
+                  class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent"
+                  style="border-color: rgba(0,0,0,0.3); border-top-color: transparent;"
                 ></span>
                 <span>Instalando...</span>
               } @else {

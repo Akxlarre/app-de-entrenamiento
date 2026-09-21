@@ -18,10 +18,11 @@ import { checkmarkCircleOutline } from 'ionicons/icons';
 import { WorkoutFacade } from '@core/facades/workout.facade';
 import { CoachFacade } from '@core/services/ai/coach.facade';
 import { ExerciseSelectorComponent } from '../../explorer/exercise-selector/exercise-selector.component';
-import { ExerciseDefinition } from '@core/facades/exercise.facade';
+import { ExerciseDefinition, ExerciseFacade } from '@core/facades/exercise.facade';
 import { WorkoutTimerComponent } from './workout-timer.component';
 import { RestTimerComponent } from './rest-timer.component';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
+import { ExerciseDetailComponent } from '../../explorer/components/exercise-detail/exercise-detail.component';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { DrawerComponent } from '@shared/components/drawer/drawer.component';
@@ -58,6 +59,7 @@ import {
     CoachChatComponent,
     EmptyStateComponent,
     FormsModule,
+    ExerciseDetailComponent,
   ],
   template: `
     <!-- Tier 3 en encabezado y contenido, no en el host: los modales
@@ -133,6 +135,14 @@ import {
                   }
                 </div>
 
+                <button
+                  type="button"
+                  class="feedback-ex-btn"
+                  [attr.aria-label]="'Información de ' + ex.exercise_name"
+                  (click)="openExerciseInfo(ex.exercise_id)"
+                >
+                  <app-icon name="info" [size]="20" [ariaHidden]="true" />
+                </button>
                 <button
                   type="button"
                   class="feedback-ex-btn"
@@ -425,6 +435,18 @@ import {
       </div>
     </app-modal>
 
+    <!-- Exercise Info Modal -->
+    <app-modal
+      class="tier-dato"
+      [isOpen]="infoModalOpen()"
+      [title]="selectedExerciseInfo()?.name_es || selectedExerciseInfo()?.name_en || 'Información'"
+      (closed)="infoModalOpen.set(false)"
+    >
+      @if (selectedExerciseInfo(); as info) {
+        <app-exercise-detail [exercise]="info" />
+      }
+    </app-modal>
+
     <!-- Exercise Feedback Modal -->
     <app-modal
       class="tier-dato"
@@ -563,12 +585,17 @@ import {
       icon="sparkles"
       (closed)="coachFacade.closeDrawer()"
     >
-      <div class="h-[calc(100vh-110px)] flex flex-col">
+      <div class="h-[calc(100vh-110px)] flex flex-col relative">
         <app-coach-chat
           [messages]="coachFacade.messages()"
           [isLoading]="coachFacade.isLoading()"
-          (onSend)="coachFacade.sendMessage($event)"
+          [toolStatus]="coachFacade.toolStatus()"
+          [memories]="coachFacade.memories()"
+          [isMemoryOpen]="coachFacade.isMemoryOpen()"
+          (onSend)="coachFacade.sendMessage($event.text, $event.imageBase64)"
           (onClear)="coachFacade.clearChat()"
+          (onToggleMemory)="coachFacade.toggleMemory()"
+          (onDeleteMemory)="coachFacade.deleteMemory($event)"
         />
       </div>
     </app-drawer>
@@ -1181,6 +1208,18 @@ export class ActiveWorkoutPage {
   gsap = inject(GsapAnimationsService);
   restTimer = viewChild<RestTimerComponent>('restTimer');
   alertCtrl = inject(AlertController);
+  exerciseFacade = inject(ExerciseFacade);
+
+  infoModalOpen = signal(false);
+  selectedExerciseInfo = signal<ExerciseDefinition | null>(null);
+
+  async openExerciseInfo(exerciseId: string) {
+    const info = await this.exerciseFacade.getExerciseById(exerciseId);
+    if (info) {
+      this.selectedExerciseInfo.set(info);
+      this.infoModalOpen.set(true);
+    }
+  }
 
   /** Nombre completo del tipo de serie, para el aria-label de su letra. */
   readonly nombreTipoSerie = nombreTipoSerie;

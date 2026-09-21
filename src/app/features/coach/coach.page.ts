@@ -35,8 +35,13 @@ import { AppHeaderComponent } from '@shared/components/app-header/app-header.com
         <app-coach-chat
           [messages]="coachFacade.messages()"
           [isLoading]="coachFacade.isLoading()"
-          (onSend)="handleSend($event)"
+          [toolStatus]="coachFacade.toolStatus()"
+          [memories]="coachFacade.memories()"
+          [isMemoryOpen]="coachFacade.isMemoryOpen()"
+          (onSend)="coachFacade.sendMessage($event.text, $event.imageBase64)"
           (onClear)="coachFacade.clearChat()"
+          (onToggleMemory)="coachFacade.toggleMemory()"
+          (onDeleteMemory)="coachFacade.deleteMemory($event)"
         />
       </div>
     </div>
@@ -86,7 +91,7 @@ export class CoachPage implements AfterViewInit {
     this.gsap.animateTierEnter(this.host.nativeElement.querySelector('.tier-trabajo'));
   }
 
-  handleSend(userText: string): void {
-    this.coachFacade.sendMessage(userText);
+  handleSend(event: {text: string; imageBase64?: string}): void {
+    this.coachFacade.sendMessage(event.text, event.imageBase64);
   }
 }

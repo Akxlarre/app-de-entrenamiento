@@ -26,7 +26,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const supabaseUrl = environment.supabase.url;
   
-  // Skip interceptor for external APIs (like Groq)
+  // Skip interceptor for external APIs (like Gemini)
   if (!req.url.startsWith(supabaseUrl) && req.url.startsWith('http')) {
     // Si la request no va hacia Supabase, la dejamos pasar sin tocar los headers
     return next(req);

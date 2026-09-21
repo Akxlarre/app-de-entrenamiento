@@ -71,6 +71,8 @@ import {
   // ── Comunicación ──
   Mail,
   MessageCircle,
+  Mic,
+  MicOff,
   Send,
   // ── Estado ──
   Ban,
@@ -195,6 +197,8 @@ export const appConfig: ApplicationConfig = {
         Mail,
         MessageCircle,
         Send,
+        Mic,
+        MicOff,
         // Estado
         Ban,
         Circle,

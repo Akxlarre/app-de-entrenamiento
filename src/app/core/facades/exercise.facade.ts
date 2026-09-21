@@ -89,7 +89,17 @@ export class ExerciseFacade {
     if (!text) return '';
     return text
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[\\u0300-\\u036f]/g, '')
       .toLowerCase();
+  }
+
+  async getExerciseById(id: string): Promise<ExerciseDefinition | undefined> {
+    if (!this.isLoaded) {
+      if (!this.loadPromise) {
+        this.loadPromise = this.fetchExercises();
+      }
+      await this.loadPromise;
+    }
+    return this.allExercises().find(e => e.id === id);
   }
 }

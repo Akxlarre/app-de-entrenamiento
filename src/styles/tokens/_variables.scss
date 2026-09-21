@@ -613,6 +613,17 @@ body {
   align-items: center;
   gap: var(--space-2);
 
+  &:empty {
+    width: 8px;
+    height: 8px;
+    justify-content: center;
+    &::before {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
+
   /* Dot base */
   &::before {
     content: '';
@@ -631,8 +642,9 @@ body {
     content: '';
     position: absolute;
     left: 0;
-    top: 50%;
-    margin-top: -4px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
     width: 8px;
     height: 8px;
     border-radius: var(--radius-full);

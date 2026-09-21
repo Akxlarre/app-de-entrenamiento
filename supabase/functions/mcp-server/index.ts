@@ -210,6 +210,55 @@ async function executeTool(authenticatedUserId: string, toolName: string, args: 
     };
   }
 
+  if (toolName === 'guardar_recuerdo') {
+    const { data, error } = await supabase
+      .from('user_memory')
+      .insert({
+        user_id: authenticatedUserId,
+        category: args.category,
+        content: args.content,
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ message: 'Recuerdo guardado exitosamente', data }, null, 2),
+        },
+      ],
+    };
+  }
+
+  if (toolName === 'eliminar_recuerdo') {
+    if (!args?.memory_id) {
+      throw new Error('El parámetro memory_id es obligatorio.');
+    }
+
+    const { data, error } = await supabase
+      .from('user_memory')
+      .delete()
+      .eq('id', args.memory_id)
+      .eq('user_id', authenticatedUserId)
+      .select();
+
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) {
+      throw new Error('No se encontró el recuerdo o no tienes permiso para eliminarlo.');
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ message: 'Recuerdo eliminado exitosamente' }, null, 2),
+        },
+      ],
+    };
+  }
+
   if (toolName === 'buscar_ejercicios') {
     const limit = args?.limit ?? 10;
     let query = supabase
@@ -545,6 +594,29 @@ function createSecureMcpServer(authenticatedUserId: string) {
           properties: {
             limit: { type: 'number', description: 'Cantidad de sesiones. Default: 5' },
           },
+        },
+      },
+      {
+        name: 'guardar_recuerdo',
+        description: 'Guarda un hecho importante o preferencia del usuario a largo plazo para futuras sesiones.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            category: { type: 'string', description: "Categoría del recuerdo: 'injury', 'preference', 'goal', 'limitation' u 'other'." },
+            content: { type: 'string', description: "Hecho concreto. Ejemplo: 'Le duele la rodilla al hacer sentadilla pesada'." },
+          },
+          required: ['category', 'content'],
+        },
+      },
+      {
+        name: 'eliminar_recuerdo',
+        description: 'Elimina un recuerdo del usuario, por ejemplo, si reporta que ya se curó de una lesión.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            memory_id: { type: 'string', description: 'El ID UUID del recuerdo a eliminar.' },
+          },
+          required: ['memory_id'],
         },
       },
       {

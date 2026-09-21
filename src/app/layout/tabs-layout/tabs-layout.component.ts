@@ -83,12 +83,18 @@ import { Router } from '@angular/router';
         [noPadding]="true"
         (closed)="coachFacade.closeDrawer()"
       >
-        <div class="h-full flex flex-col">
+        <!-- Contenedor del chat -->
+        <div class="h-full flex flex-col relative">
           <app-coach-chat
             [messages]="coachFacade.messages()"
             [isLoading]="coachFacade.isLoading()"
-            (onSend)="coachFacade.sendMessage($event)"
+            [toolStatus]="coachFacade.toolStatus()"
+            [memories]="coachFacade.memories()"
+            [isMemoryOpen]="coachFacade.isMemoryOpen()"
+            (onSend)="coachFacade.sendMessage($event.text, $event.imageBase64)"
             (onClear)="coachFacade.clearChat()"
+            (onToggleMemory)="coachFacade.toggleMemory()"
+            (onDeleteMemory)="coachFacade.deleteMemory($event)"
           />
         </div>
       </app-drawer>

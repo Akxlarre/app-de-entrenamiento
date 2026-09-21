@@ -1,3 +1,4 @@
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,11 +9,10 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '@shared/components/icon/icon.component';
 import { ChatMessage } from '@core/services/ai/gemini.service';
-
+import { UserMemory } from '@core/services/user-memory.service';
 import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
 
 @Component({
@@ -21,22 +21,89 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
   imports: [CommonModule, FormsModule, IconComponent, MarkdownPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block h-full flex flex-col bg-surface overflow-hidden',
+    class: 'flex h-full flex-col bg-surface overflow-hidden relative',
   },
   template: `
     <div class="chat-statusbar">
-      <p class="chat-status indicator-live">Conectado (MCP)</p>
-      <button
-        type="button"
-        class="chat-icon-btn"
-        title="Limpiar conversación"
-        aria-label="Limpiar conversación"
-        data-llm-action="limpiar-chat-coach"
-        (click)="onClear.emit()"
-      >
-        <app-icon name="trash-2" [size]="18" [ariaHidden]="true" />
-      </button>
+      <div class="flex items-center gap-2">
+        <span class="indicator-live"></span>
+        <p class="chat-status">Conectado (MCP)</p>
+      </div>
+      <div class="flex gap-1">
+        <button
+          type="button"
+          class="chat-icon-btn"
+          title="Ver Perfil de Memoria"
+          aria-label="Ver Perfil de Memoria"
+          (click)="onToggleMemory.emit()"
+        >
+          <app-icon name="brain" [size]="18" [ariaHidden]="true" />
+        </button>
+        <button
+          type="button"
+          class="chat-icon-btn"
+          title="Limpiar conversación"
+          aria-label="Limpiar conversación"
+          data-llm-action="limpiar-chat-coach"
+          (click)="onClear.emit()"
+        >
+          <app-icon name="trash-2" [size]="18" [ariaHidden]="true" />
+        </button>
+      </div>
     </div>
+
+    <!-- Capa de Memoria a Largo Plazo -->
+    @if (isMemoryOpen()) {
+      <div class="absolute top-[49px] left-0 right-0 bottom-0 z-50 bg-surface flex flex-col animation-fade-in">
+        <div class="px-5 py-4 flex-1 overflow-y-auto">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-base font-semibold text-primary m-0 flex items-center gap-2">
+              <app-icon name="brain" [size]="18" /> Memoria del Coach
+            </h3>
+            <button
+              type="button"
+              class="bg-transparent border-none text-muted hover:text-primary cursor-pointer p-1"
+              (click)="onToggleMemory.emit()"
+              title="Volver al chat"
+              aria-label="Cerrar memoria"
+            >
+              <app-icon name="x" [size]="20" />
+            </button>
+          </div>
+          <p class="text-sm text-muted mb-6">
+            Aquí están los datos que la IA ha aprendido sobre ti. Puedes eliminarlos si ya no son relevantes.
+          </p>
+
+          @if (memories().length === 0) {
+            <div class="text-center py-8">
+              <p class="text-sm text-muted">Aún no hay recuerdos guardados.</p>
+            </div>
+          } @else {
+            <div class="flex flex-col gap-3">
+              @for (mem of memories(); track mem.id) {
+                <div class="p-3 bg-base border border-subtle rounded-lg flex gap-3 items-start">
+                  <div class="mt-0.5 text-brand">
+                    <app-icon [name]="getMemoryIcon(mem.category)" [size]="16" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm text-primary m-0">{{ mem.content }}</p>
+                    <span class="text-xs text-muted mt-1 inline-block">{{ getMemoryLabel(mem.category) | uppercase }}</span>
+                  </div>
+                  <button 
+                    type="button" 
+                    class="text-muted hover:text-red-500 shrink-0 bg-transparent border-none p-1 cursor-pointer"
+                    (click)="onDeleteMemory.emit(mem.id)"
+                    title="Olvidar recuerdo"
+                  >
+                    <app-icon name="trash-2" [size]="16" />
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Chat Body / Message List (Scrollable Area) -->
     <div #scrollContainer class="flex-1 px-5 py-4 overflow-y-auto flex flex-col gap-4">
@@ -79,26 +146,33 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
       }
 
       @for (msg of messages(); track msg.id) {
-        <div
-          class="flex flex-col max-w-[85%]"
-          [class.self-end]="msg.sender === 'user'"
-          [class.self-start]="msg.sender === 'assistant'"
-        >
+        @if (msg.text || msg.imageBase64) {
           <div
-            class="chat-bubble"
-            [class.chat-bubble--user]="msg.sender === 'user'"
-            [class.chat-bubble--assistant]="msg.sender === 'assistant'"
+            class="flex flex-col max-w-[85%]"
+            [class.self-end]="msg.sender === 'user'"
+            [class.self-start]="msg.sender === 'assistant'"
           >
-            @if (msg.sender === 'assistant') {
-              <div [innerHTML]="msg.text | markdown"></div>
-            } @else {
-              <p class="m-0 whitespace-pre-wrap">{{ msg.text }}</p>
-            }
+            <div
+              class="chat-bubble"
+              [class.chat-bubble--user]="msg.sender === 'user'"
+              [class.chat-bubble--assistant]="msg.sender === 'assistant'"
+            >
+              @if (msg.imageBase64) {
+                <img [src]="msg.imageBase64" alt="Adjunto" class="chat-bubble-img" />
+              }
+              @if (msg.text) {
+                @if (msg.sender === 'assistant') {
+                  <div [innerHTML]="msg.text | markdown"></div>
+                } @else {
+                  <p class="m-0 whitespace-pre-wrap">{{ msg.text }}</p>
+                }
+              }
+            </div>
+            <span class="chat-time" [class.text-right]="msg.sender === 'user'">
+              {{ msg.timestamp | date: 'shortTime' }}
+            </span>
           </div>
-          <span class="chat-time" [class.text-right]="msg.sender === 'user'">
-            {{ msg.timestamp | date: 'shortTime' }}
-          </span>
-        </div>
+        }
       }
 
       @if (isLoading()) {
@@ -144,7 +218,24 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
     </div>
 
     <div class="chat-inputbar">
+      @if (selectedImageBase64()) {
+        <div class="chat-image-preview">
+          <img [src]="selectedImageBase64()" alt="Imagen adjunta" class="preview-img" />
+          <button type="button" class="preview-remove" (click)="selectedImageBase64.set(null)" aria-label="Eliminar imagen">
+            <app-icon name="x" [size]="14" [ariaHidden]="true" />
+          </button>
+        </div>
+      }
       <form (ngSubmit)="send()" class="chat-form">
+        <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)" />
+        <button
+          type="button"
+          (click)="fileInput.click()"
+          class="chat-attach"
+          title="Adjuntar imagen"
+        >
+          <app-icon name="image" [size]="18" [ariaHidden]="true" />
+        </button>
         <input
           type="text"
           [(ngModel)]="inputText"
@@ -155,8 +246,17 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
           autocomplete="off"
         />
         <button
+          type="button"
+          (click)="toggleRecording()"
+          class="chat-mic"
+          [class.is-recording]="isRecording()"
+          title="Dictado por voz"
+        >
+          <app-icon [name]="isRecording() ? 'mic' : 'mic-off'" [size]="18" [ariaHidden]="true" />
+        </button>
+        <button
           type="submit"
-          [disabled]="!inputText().trim() || isLoading()"
+          [disabled]="(!inputText().trim() && !selectedImageBase64()) || isLoading()"
           class="chat-send"
           title="Enviar mensaje"
           aria-label="Enviar mensaje"
@@ -169,6 +269,26 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
   `,
   styles: [
     `
+      /* Utilidades de texto que podrían faltar en Tailwind local */
+      .text-primary { color: var(--text-primary); }
+      .text-muted { color: var(--text-muted); }
+      .text-brand { color: var(--ds-brand); }
+      .bg-surface { background-color: var(--bg-surface); }
+      .bg-base { background-color: var(--bg-base); }
+      .border-subtle { border-color: var(--border-subtle); }
+
+      /* Soporte para hover explícito */
+      .hover\\:text-primary:hover { color: var(--text-primary); }
+      .hover\\:text-red-500:hover { color: #ef4444; }
+
+      .animation-fade-in {
+        animation: fade-in 0.2s ease-out forwards;
+      }
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
       .chat-statusbar {
         display: flex;
         align-items: center;
@@ -251,7 +371,20 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
         font-size: var(--text-sm);
         line-height: 1.6;
         color: var(--text-primary);
+        animation: chat-fade-in-up 0.3s ease-out forwards;
       }
+
+      .chat-bubble-img {
+        max-width: 100%;
+        border-radius: var(--radius-sm);
+        margin-bottom: 0.5rem;
+      }
+
+      @keyframes chat-fade-in-up {
+        0% { opacity: 0; transform: translateY(12px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+
       /* Sin ember: con varios mensajes en pantalla la marca pasaba de la
          regla 3-2-1. La posición y la esquina ya dicen quién habla. */
       .chat-bubble--user {
@@ -335,8 +468,62 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
         color: var(--text-muted);
       }
 
-      /* Medía 36px, con el ícono en blanco sobre ember (2.9:1). Tinta sobre
-         ember da 7.0:1. */
+      .chat-image-preview {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 0.75rem;
+      }
+      .preview-img {
+        height: 60px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        object-fit: cover;
+      }
+      .preview-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-muted);
+      }
+
+      .chat-mic, .chat-attach {
+        width: var(--target-min);
+        height: var(--target-min);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: var(--radius-full);
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color 0.2s ease, transform 0.15s ease;
+      }
+      .chat-mic:active, .chat-attach:active {
+        transform: scale(0.94);
+      }
+      .chat-mic.is-recording {
+        color: var(--state-error);
+        background: var(--state-error-bg);
+        animation: pulse-recording 1.5s infinite ease-in-out;
+      }
+
+      @keyframes pulse-recording {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+        50% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+
       .chat-send {
         width: var(--target-min);
         height: var(--target-min);
@@ -363,16 +550,25 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
 export class CoachChatComponent {
   messages = input.required<ChatMessage[]>();
   isLoading = input<boolean>(false);
+  toolStatus = input<string | null>(null);
+  
+  // Memory properties
+  memories = input<UserMemory[]>([]);
+  isMemoryOpen = input<boolean>(false);
 
-  onSend = output<string>();
+  onSend = output<{text: string; imageBase64?: string}>();
   onClear = output<void>();
+  onToggleMemory = output<void>();
+  onDeleteMemory = output<string>();
 
   inputText = signal<string>('');
+  isRecording = signal<boolean>(false);
+  selectedImageBase64 = signal<string | null>(null);
 
   private scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
+  private recognition: any;
 
   constructor() {
-    // Auto-scroll al fondo cuando cambian los mensajes o el estado de carga
     effect(() => {
       const msgs = this.messages();
       const loading = this.isLoading();
@@ -382,21 +578,117 @@ export class CoachChatComponent {
         if (el) {
           el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
         }
-      }, 100); // Pequeño delay para que el DOM renderice primero
+      }, 100);
     });
+
+    this.initSpeechRecognition();
+  }
+
+  getMemoryIcon(category: string): string {
+    const map: Record<string, string> = {
+      injury: 'activity',
+      preference: 'star',
+      goal: 'target',
+      equipment: 'dumbbell',
+      schedule: 'calendar',
+      level: 'award',
+      other: 'info',
+    };
+    return map[category] || 'brain';
+  }
+
+  getMemoryLabel(category: string): string {
+    const map: Record<string, string> = {
+      injury: 'Lesión / Molestia',
+      preference: 'Preferencia',
+      goal: 'Objetivo',
+      equipment: 'Equipamiento',
+      schedule: 'Disponibilidad',
+      level: 'Nivel',
+      other: 'Otro',
+    };
+    return map[category] || category;
+  }
+
+  private initSpeechRecognition(): void {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.lang = 'es-ES';
+      this.recognition.continuous = false;
+      this.recognition.interimResults = true;
+
+      this.recognition.onstart = () => {
+        this.isRecording.set(true);
+      };
+
+      this.recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        const newText = finalTranscript || interimTranscript;
+        if (newText) {
+          this.inputText.set(newText);
+        }
+      };
+
+      this.recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        this.isRecording.set(false);
+      };
+
+      this.recognition.onend = () => {
+        this.isRecording.set(false);
+      };
+    } else {
+      console.warn('Speech Recognition API no está soportada en este navegador.');
+    }
+  }
+
+  toggleRecording(): void {
+    if (!this.recognition) {
+      alert('Tu navegador no soporta el dictado por voz.');
+      return;
+    }
+
+    if (this.isRecording()) {
+      this.recognition.stop();
+    } else {
+      this.inputText.set('');
+      this.recognition.start();
+    }
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => this.selectedImageBase64.set(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+    event.target.value = '';
   }
 
   send(): void {
     const val = this.inputText().trim();
-    if (val && !this.isLoading()) {
-      this.onSend.emit(val);
+    const img = this.selectedImageBase64();
+    if ((val || img) && !this.isLoading()) {
+      this.onSend.emit({ text: val, imageBase64: img || undefined });
       this.inputText.set('');
+      this.selectedImageBase64.set(null);
     }
   }
 
-  sendQuickPrompt(promptText: string): void {
-    if (!this.isLoading()) {
-      this.onSend.emit(promptText);
-    }
+  sendQuickPrompt(text: string): void {
+    this.inputText.set(text);
+    this.send();
   }
 }

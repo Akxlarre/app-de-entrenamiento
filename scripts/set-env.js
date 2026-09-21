@@ -33,7 +33,7 @@ if (!url || !anonKey) {
 }
 
 if (!geminiApiKey) {
-  console.warn('⚠️  GEMINI_API_KEY no está seteada — el Coach Virtual IA (Groq) no funcionará en este build.');
+  console.warn('⚠️  GEMINI_API_KEY no está seteada — el Coach Virtual IA (Gemini) no funcionará en este build.');
 }
 
 const content = `export const environment = {
