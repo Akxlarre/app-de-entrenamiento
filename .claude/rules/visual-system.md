@@ -16,7 +16,11 @@ paths:
 
 ## Tokens de color (PROHIBIDO hardcodear)
 
-- Textos: `text-primary`, `text-secondary`, `text-muted`
+- Textos: `text-text-primary`, `text-text-secondary`, `text-text-muted`
+  > El doble `text-` no es un error de tipeo. El `@theme` de `tailwind.css`
+  > registra los tokens como `--color-text-primary`, y Tailwind v4 genera la
+  > utilidad anteponiendo `text-`. Escribir `text-primary` produce una clase que
+  > **no existe**: el elemento hereda el color y suele caer al negro (fix-045).
 - Fondos: `bg-base` (página), `bg-surface` (cards), `bg-surface-elevated`
 - Marca: `var(--ds-brand)`, `var(--color-primary)`
 - **NUNCA**: `text-red-500`, `bg-[#ff0000]`, u otras utilities de colores arbitrarios de Tailwind. Usa siempre variables abstractas.
