@@ -12,7 +12,7 @@ import { ConfirmModalService } from '@core/services/ui/confirm-modal.service';
   template: `
     <app-modal [isOpen]="svc.isOpen()" [title]="svc.config()?.title ?? ''" (closed)="svc.cancel()">
       @if (svc.config(); as cfg) {
-        <p class="text-secondary m-0">{{ cfg.message }}</p>
+        <p class="text-text-secondary m-0">{{ cfg.message }}</p>
       }
 
       @if (svc.config(); as cfg) {

@@ -33,6 +33,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 import { SessionDetailComponent } from '../components/session-detail/session-detail.component';
 import { EmptyStateComponent } from '@shared/components/empty-state/empty-state.component';
 import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skeleton-block.component';
+import { ConfirmModalService } from '@core/services/ui/confirm-modal.service';
 
 @Component({
   selector: 'app-workout-history',
@@ -75,76 +76,111 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
           </div>
 
           @if (workoutFacade.isLoadingHistory() && workoutFacade.history().length === 0) {
-            <div class="feed-list">
-              @for (i of [1, 2, 3]; track i) {
-                <div class="workout-card history-card" style="pointer-events: none;">
-                  <div class="card-top">
-                    <app-skeleton-block variant="text" [width]="i === 1 ? '45%' : i === 2 ? '35%' : '40%'" height="16px" />
-                    <app-skeleton-block variant="text" width="22%" height="14px" />
-                  </div>
-                  <div class="card-stats" style="margin-top: 8px;">
-                    <app-skeleton-block variant="text" width="65px" height="24px" style="border-radius: 99px;" />
-                    <app-skeleton-block variant="text" width="65px" height="24px" style="border-radius: 99px;" />
-                  </div>
-                  <div class="exercise-tags" style="margin-top: 12px;">
-                    <app-skeleton-block variant="text" [width]="i === 1 ? '75px' : '85px'" height="20px" style="border-radius: 6px;" />
-                    <app-skeleton-block variant="text" [width]="i === 2 ? '95px' : '105px'" height="20px" style="border-radius: 6px;" />
-                    <app-skeleton-block variant="text" [width]="i === 3 ? '80px' : '90px'" height="20px" style="border-radius: 6px;" />
-                  </div>
-                </div>
-              }
+          <div class="feed-list">
+            @for (i of [1, 2, 3]; track i) {
+            <div class="workout-card history-card" style="pointer-events: none;">
+              <div class="card-top">
+                <app-skeleton-block
+                  variant="text"
+                  [width]="i === 1 ? '45%' : i === 2 ? '35%' : '40%'"
+                  height="16px"
+                />
+                <app-skeleton-block variant="text" width="22%" height="14px" />
+              </div>
+              <div class="card-stats" style="margin-top: 8px;">
+                <app-skeleton-block
+                  variant="text"
+                  width="65px"
+                  height="24px"
+                  style="border-radius: 99px;"
+                />
+                <app-skeleton-block
+                  variant="text"
+                  width="65px"
+                  height="24px"
+                  style="border-radius: 99px;"
+                />
+              </div>
+              <div class="exercise-tags" style="margin-top: 12px;">
+                <app-skeleton-block
+                  variant="text"
+                  [width]="i === 1 ? '75px' : '85px'"
+                  height="20px"
+                  style="border-radius: 6px;"
+                />
+                <app-skeleton-block
+                  variant="text"
+                  [width]="i === 2 ? '95px' : '105px'"
+                  height="20px"
+                  style="border-radius: 6px;"
+                />
+                <app-skeleton-block
+                  variant="text"
+                  [width]="i === 3 ? '80px' : '90px'"
+                  height="20px"
+                  style="border-radius: 6px;"
+                />
+              </div>
             </div>
+            }
+          </div>
           } @else if (workoutFacade.history().length === 0) {
-            <app-empty-state icon="clipboard-list" message="Aún no has registrado sesiones" />
+          <app-empty-state icon="clipboard-list" message="Aún no has registrado sesiones" />
           } @else {
-            <div class="feed-list">
-              @for (item of workoutFacade.history(); track item.id) {
-                @defer (on viewport) {
-                  <div class="workout-card history-card" (click)="viewDetails(item.id)">
-                    <div class="card-top">
-                      <div class="card-date-box">
-                        <app-icon name="calendar" [size]="14" />
-                        <span class="card-date">{{
-                          item.start_time | date: 'EEE, d MMM · HH:mm' | titlecase
-                        }}</span>
-                      </div>
-                      <span class="card-duration">
-                        <app-icon name="clock" [size]="14" />
-                        {{ item.duration_minutes }} min
-                      </span>
-                    </div>
+          <div class="feed-list">
+            @for (item of workoutFacade.history(); track item.id) { @defer (on viewport) {
+            <div class="workout-card history-card" (click)="viewDetails(item.id)">
+              <div class="card-top">
+                <div class="card-date-box">
+                  <app-icon name="calendar" [size]="14" />
+                  <span class="card-date">{{
+                    item.start_time | date : 'EEE, d MMM · HH:mm' | titlecase
+                  }}</span>
+                </div>
+                <span class="card-duration">
+                  <app-icon name="clock" [size]="14" />
+                  {{ item.duration_minutes }} min
+                </span>
+                <!-- stopPropagation: la tarjeta entera abre el detalle. -->
+                <button
+                  class="card-delete"
+                  type="button"
+                  aria-label="Eliminar esta sesión del historial"
+                  data-llm-action="delete-workout-historial"
+                  (click)="confirmDelete($event, item)"
+                >
+                  <app-icon name="trash-2" [size]="16" [ariaHidden]="true" />
+                </button>
+              </div>
 
-                    <div class="card-stats">
-                      <div class="stat-pill">
-                        <span class="stat-num">{{ item.total_volume | number: '1.0-0' }}</span>
-                        <span class="stat-unit">kg</span>
-                      </div>
-                      <div class="stat-pill">
-                        <span class="stat-num">{{ item.total_sets }}</span>
-                        <span class="stat-unit">{{
-                          item.total_sets === 1 ? 'serie' : 'series'
-                        }}</span>
-                      </div>
-                    </div>
+              <div class="card-stats">
+                <div class="stat-pill">
+                  <span class="stat-num">{{ item.total_volume | number : '1.0-0' }}</span>
+                  <span class="stat-unit">kg</span>
+                </div>
+                <div class="stat-pill">
+                  <span class="stat-num">{{ item.total_sets }}</span>
+                  <span class="stat-unit">{{ item.total_sets === 1 ? 'serie' : 'series' }}</span>
+                </div>
+              </div>
 
-                    @if (item.exercises_summary.length > 0) {
-                      <div class="exercise-tags">
-                        @for (name of item.exercises_summary; track name) {
-                          <span class="ex-tag">{{ name }}</span>
-                        }
-                      </div>
-                    }
-                  </div>
-                } @placeholder {
-                  <div class="workout-card history-card" style="pointer-events: none; min-height: 120px;">
-                    <div class="card-top">
-                      <app-skeleton-block variant="text" width="40%" height="16px" />
-                      <app-skeleton-block variant="text" width="22%" height="14px" />
-                    </div>
-                  </div>
+              @if (item.exercises_summary.length > 0) {
+              <div class="exercise-tags">
+                @for (name of item.exercises_summary; track name) {
+                <span class="ex-tag">{{ name }}</span>
                 }
+              </div>
               }
             </div>
+            } @placeholder {
+            <div class="workout-card history-card" style="pointer-events: none; min-height: 120px;">
+              <div class="card-top">
+                <app-skeleton-block variant="text" width="40%" height="16px" />
+                <app-skeleton-block variant="text" width="22%" height="14px" />
+              </div>
+            </div>
+            } }
+          </div>
           }
         </div>
         <div class="safe-bottom"></div>
@@ -168,7 +204,7 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
 
           <ion-content class="ion-padding" style="--background: var(--bg-base);">
             @if (selectedWorkout(); as workout) {
-              <app-session-detail [workout]="workout" />
+            <app-session-detail [workout]="workout" />
             }
           </ion-content>
         </ng-template>
@@ -242,7 +278,34 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: var(--space-2);
         font-size: 0.82rem;
+      }
+      /* El icono mide 16px; el área táctil llega al piso de 44px con padding
+         y un margen negativo para no estirar la fila. */
+      .card-delete {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: var(--target-min);
+        min-height: var(--target-min);
+        margin: calc(var(--target-min) / -4) calc(var(--target-min) / -4)
+          calc(var(--target-min) / -4) 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-full);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color var(--duration-fast, 150ms) ease;
+      }
+      .card-delete:hover,
+      .card-delete:focus-visible {
+        color: var(--state-error);
+      }
+      .card-delete:active {
+        transform: scale(0.92);
       }
       .card-date-box {
         display: flex;
@@ -326,6 +389,36 @@ export class HistoryPage implements OnInit, AfterViewInit {
   workoutFacade = inject(WorkoutFacade);
   gsap = inject(GsapAnimationsService);
   router = inject(Router);
+  private confirmModal = inject(ConfirmModalService);
+
+  /**
+   * Pide confirmación y borra la sesión. El borrado es irreversible, así que el
+   * mensaje lo dice en vez de limitarse a "¿estás seguro?".
+   */
+  async confirmDelete(event: Event, item: WorkoutHistoryItem): Promise<void> {
+    // La tarjeta entera navega al detalle; sin esto el tap haría las dos cosas.
+    event.stopPropagation();
+
+    const fecha = new Date(item.start_time).toLocaleDateString('es-CL', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+
+    const ok = await this.confirmModal.confirm({
+      title: 'Eliminar sesión',
+      message: `Se borrará el entrenamiento del ${fecha} con sus ${item.total_sets} ${
+        item.total_sets === 1 ? 'serie' : 'series'
+      }. No se puede deshacer.`,
+      severity: 'danger',
+      confirmLabel: 'Eliminar',
+      cancelLabel: 'Cancelar',
+    });
+
+    if (!ok) return;
+
+    await this.workoutFacade.deleteHistoryWorkout(item.id);
+  }
 
   // Estado del modal de detalles
   selectedWorkoutId = signal<string | null>(null);
@@ -381,4 +474,3 @@ export class HistoryPage implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {}
 }
-

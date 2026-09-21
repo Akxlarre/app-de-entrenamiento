@@ -153,7 +153,7 @@ export class WorkoutFacade {
     if (!this.activeSession()) return false;
     this.toast.warning(
       'Ya tenés una sesión en curso',
-      'Terminala o descartala antes de empezar otra.',
+      'Terminala o descartala antes de empezar otra.'
     );
     this.router.navigate(['/app/workouts/active']);
     return true;
@@ -183,7 +183,7 @@ export class WorkoutFacade {
       if (error) {
         console.warn(
           '[WorkoutFacade] No se pudo crear workout inicial en Supabase:',
-          error.message,
+          error.message
         );
       }
     }
@@ -216,7 +216,7 @@ export class WorkoutFacade {
       if (error) {
         console.warn(
           '[WorkoutFacade] No se pudo crear workout inicial en Supabase:',
-          error.message,
+          error.message
         );
       }
     }
@@ -234,7 +234,7 @@ export class WorkoutFacade {
   /** Devuelve `false` si no inició porque ya había una sesión en curso. */
   async startWorkoutFromMesocycleSession(
     mesoSession: any,
-    routine: RoutineWithExercises,
+    routine: RoutineWithExercises
   ): Promise<boolean> {
     if (this.hayOtraSesionEnCurso()) return false;
 
@@ -261,7 +261,7 @@ export class WorkoutFacade {
       if (error) {
         console.warn(
           '[WorkoutFacade] No se pudo crear workout inicial en Supabase:',
-          error.message,
+          error.message
         );
       }
     }
@@ -530,7 +530,7 @@ export class WorkoutFacade {
               start_time: startTimeIso,
               end_time: null,
             },
-            { onConflict: 'id' },
+            { onConflict: 'id' }
           );
 
           this.supabase.client
@@ -548,7 +548,7 @@ export class WorkoutFacade {
                 completed: Boolean(set.completed),
                 completed_at: completedAt,
               },
-              { onConflict: 'id' },
+              { onConflict: 'id' }
             )
             .then(({ error }) => {
               if (error) {
@@ -630,7 +630,7 @@ export class WorkoutFacade {
       localStorage.setItem('fittrack_pending_sync', JSON.stringify(pendingSync));
 
       this.error.set(
-        'Sesión expirada. Tu entrenamiento se guardó localmente y se sincronizará después.',
+        'Sesión expirada. Tu entrenamiento se guardó localmente y se sincronizará después.'
       );
       this.activeSession.set(null);
       this.isSaving.set(false);
@@ -651,7 +651,7 @@ export class WorkoutFacade {
         start_time: startTimeIso,
         end_time: new Date().toISOString(),
       },
-      { onConflict: 'id' },
+      { onConflict: 'id' }
     );
 
     if (wError) {
@@ -716,7 +716,7 @@ export class WorkoutFacade {
         console.warn('[WorkoutFacade] Error saving exercise feedbacks:', efError.message);
         this.toast.warning(
           'Entrenamiento guardado',
-          'No se pudo guardar el feedback de uno o más ejercicios.',
+          'No se pudo guardar el feedback de uno o más ejercicios.'
         );
       }
     }
@@ -736,7 +736,7 @@ export class WorkoutFacade {
         console.warn('[WorkoutFacade] Error saving session report:', rError.message);
         this.toast.warning(
           'Entrenamiento guardado',
-          'No se pudo guardar tu resumen de energía/RPE/notas de la sesión.',
+          'No se pudo guardar tu resumen de energía/RPE/notas de la sesión.'
         );
       }
     }
@@ -754,7 +754,7 @@ export class WorkoutFacade {
       if (msError) {
         console.warn(
           '[WorkoutFacade] Error marking mesocycle session as completed:',
-          msError.message,
+          msError.message
         );
       }
     }
@@ -870,7 +870,7 @@ export class WorkoutFacade {
               name_en
             )
           )
-        `,
+        `
         )
         .order('start_time', { ascending: false });
 
@@ -906,7 +906,7 @@ export class WorkoutFacade {
           }
 
           const detailed_exercises: HistoryExerciseDetail[] = Array.from(
-            groupedExercises.entries(),
+            groupedExercises.entries()
           ).map(([name, sets]) => {
             // Find feedback for this exercise
             const fb = (w.workout_exercise_feedback || []).find((f: any) => {
@@ -917,13 +917,15 @@ export class WorkoutFacade {
             return {
               name,
               sets: sets.sort((a, b) => a.set_number - b.set_number),
-              feedback: fb ? {
-                exercise_id: fb.exercise_id,
-                categories: fb.categories,
-                rating: fb.rating,
-                tags: fb.tags,
-                notes: fb.notes
-              } : undefined
+              feedback: fb
+                ? {
+                    exercise_id: fb.exercise_id,
+                    categories: fb.categories,
+                    rating: fb.rating,
+                    tags: fb.tags,
+                    notes: fb.notes,
+                  }
+                : undefined,
             };
           });
 
@@ -961,6 +963,44 @@ export class WorkoutFacade {
       this.error.set(e?.message || 'Error cargando historial');
     } finally {
       this.isLoadingHistory.set(false);
+    }
+  }
+
+  /**
+   * Borra una sesión del historial. Irreversible: no hay papelera.
+   *
+   * Las tablas hijas (workout_sets, workout_reports, workout_exercise_feedback)
+   * caen solas por ON DELETE CASCADE.
+   */
+  async deleteHistoryWorkout(workoutId: string): Promise<boolean> {
+    const prev = this.history();
+
+    // Optimista: desaparece de la lista antes de ir al servidor.
+    this.history.update((items) => items.filter((w) => w.id !== workoutId));
+
+    try {
+      // Primero liberamos la sesión del mesociclo, si la hubiera. El FK es
+      // ON DELETE SET NULL, así que si borráramos el workout primero el
+      // vínculo ya no existiría y la sesión quedaría marcada como completada
+      // apuntando a nada.
+      const { error: mesoError } = await this.supabase.client
+        .from('mesocycle_sessions')
+        .update({ status: 'pending', completed_workout_id: null })
+        .eq('completed_workout_id', workoutId);
+
+      if (mesoError) throw mesoError;
+
+      const { error } = await this.supabase.client.from('workouts').delete().eq('id', workoutId);
+
+      if (error) throw error;
+
+      this.toast.success('Sesión eliminada del historial');
+      return true;
+    } catch (e: any) {
+      this.history.set(prev);
+      this.toast.error('No se pudo eliminar la sesión. Intentá de nuevo.');
+      console.error('[WorkoutFacade] Error eliminando sesión:', e?.message ?? e);
+      return false;
     }
   }
 }

@@ -26,7 +26,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
               <app-icon name="rocket" [size]="24" color="var(--ds-brand)" />
             </div>
             <div class="flex flex-col">
-              <h3 class="m-0 text-base font-bold text-primary tracking-tight">
+              <h3 class="m-0 text-base font-bold text-text-primary tracking-tight">
                 ¡Nueva versión disponible!
               </h3>
               <span class="text-xs font-semibold" style="color: var(--ds-brand);"
@@ -37,7 +37,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
 
           <!-- Notes -->
           <div
-            class="rounded-xl p-3.5 text-xs text-muted leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap"
+            class="rounded-xl p-3.5 text-xs text-text-muted leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap"
             style="background: var(--bg-elevated); border: 1px solid var(--border-subtle);"
           >
             {{ updateInfo()?.release_notes || 'Mejoras de rendimiento y corrección de errores.' }}
@@ -58,7 +58,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
           @if (isDownloading()) {
             <div class="flex flex-col gap-2 pt-2">
               <div class="flex justify-between text-xs font-semibold">
-                <span class="text-secondary">Descargando actualización...</span>
+                <span class="text-text-secondary">Descargando actualización...</span>
                 <span style="color: var(--ds-brand);">{{ downloadProgress() }}%</span>
               </div>
               <div class="w-full h-2.5 rounded-full overflow-hidden" style="background: var(--bg-subtle);">
@@ -76,7 +76,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
               <button
                 type="button"
                 (click)="onClose()"
-                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-secondary hover:text-primary bg-transparent border-none cursor-pointer transition-all active:scale-95"
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary bg-transparent border-none cursor-pointer transition-all active:scale-95"
               >
                 Más tarde
               </button>
