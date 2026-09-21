@@ -11,8 +11,8 @@
 | 7 | `verifyToolContract()` + `declaredToolNames` | AC2 | done |
 | 8 | Servidor: `items` en `weekly_sessions` | AC7 | done |
 | 9 | Servidor: tool + handler `obtener_mesociclo_activo` | AC4 | done |
-| 10 | Tests de `listTools()` | AC8 | escritos, sin ejecutar |
-| 11 | Tests de tools nuevas y tope del bucle | AC8 | escritos, sin ejecutar |
+| 10 | Tests de `listTools()` | AC8 | done (verde) |
+| 11 | Tests de tools nuevas y tope del bucle | AC8 | done (verde) |
 
 ## Tareas agregadas durante la implementación
 

@@ -1,5 +1,5 @@
 > id: 0016-mcp-periodizacion
-> status: draft
+> status: done
 > created: 2026-09-21
 > refs: Auditoría del MCP pedida por el usuario tras fallar "hazme una periodización"
 
@@ -52,10 +52,8 @@ servidor MCP (`supabase/functions/mcp-server/index.ts:340-414`).
 - [x] AC5: El system prompt incluye una sección de periodización con el flujo completo.
 - [x] AC6: El bucle de function calling tiene tope de iteraciones y corta limpio.
 - [x] AC7: El schema de `weekly_sessions` del servidor se corrige igual que el del cliente.
-- [ ] AC8: Tests en `gemini.service.spec.ts` y `mcp-client.service.spec.ts` cubren
-      la nueva tool, el tope del bucle y `listTools()`.
-      ESCRITOS PERO SIN EJECUTAR — ver Verificación. El AC no se da por cumplido
-      hasta que `npm run test:ci` pase en verde.
+- [x] AC8: Tests en `gemini.service.spec.ts` y `mcp-client.service.spec.ts` cubren
+      la nueva tool, el tope del bucle y `listTools()`. EJECUTADOS EN VERDE.
 
 ## Verificación
 
@@ -70,13 +68,19 @@ Hecho y comprobado:
 - Mismas tablas que el flujo manual, así que el plan creado por el chat aparece
   en la app.
 
-NO ejecutado en este entorno:
-- `npm run test:ci` y `npm run lint:arch`. El contenedor remoto no tiene
-  `node_modules` y el Bash Guard bloquea la instalación de dependencias. Los
-  tests de AC8 están escritos pero **sin correr**. Ejecutarlos localmente antes
-  de mergear.
-- No se probó contra la Edge Function desplegada: `crear_mesociclo_completo` y
-  `obtener_mesociclo_activo` no se invocaron de verdad contra Supabase.
+Ejecutado (tras arreglar el bootstrap remoto, ver `docs/REMOTE-SESSIONS.md`):
+- `npm run test:ci`: **37 archivos, 145 tests en verde**, 0 fallos.
+- Los 7 tests nuevos corren y pasan, entre ellos el del tope del bucle
+  (verifica que `callTool` se llama exactamente 8 veces y que la llamada final
+  va sin `tools`).
+- `npm run lint:arch`: **0 errores**, 13 advertencias, ninguna en los archivos
+  tocados por esta spec (son ARCH-10 preexistentes en workout.facade.ts,
+  mesocycle.facade.ts y otros).
+
+Sigue SIN probar:
+- No se invocó contra la Edge Function desplegada: `crear_mesociclo_completo` y
+  `obtener_mesociclo_activo` no se ejercitaron contra Supabase real. La lógica
+  del servidor sólo está cubierta por lectura, no por test.
 
 ## Deuda registrada
 
@@ -89,15 +93,7 @@ NO ejecutado en este entorno:
 
 ## Estado de cierre
 
-La spec queda en `draft`, NO en `done`. AC1-AC7 están implementados y
-verificados con `tsc`; AC8 no puede darse por cumplido sin ejecutar los tests.
-
-Para cerrarla:
-1. `npm install` en una máquina con red.
-2. `npm run test:ci` — deben pasar los tests nuevos de `listTools()`, del
-   contrato de herramientas y del tope del bucle.
-3. `npm run lint:arch`.
-4. Recién ahí marcar AC8, pasar status a `done` y vaciar `specs/.active`.
+Cerrada. Los 8 ACs cumplidos y verificados con los comandos del proyecto.
 
 ## Índices
 

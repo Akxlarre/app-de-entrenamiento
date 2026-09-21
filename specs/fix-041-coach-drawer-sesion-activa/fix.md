@@ -30,6 +30,7 @@ Comparación estructural del bloque `<app-drawer>` del Coach en ambos archivos: 
 inputs del drawer (`isOpen`, `title`, `icon`, `noPadding`, `closed`) y las clases del
 wrapper (`h-full flex flex-col relative`) ahora coinciden.
 
-`npm run lint:arch` y `npm run test:ci` NO se pudieron ejecutar en este entorno remoto:
-no hay `node_modules` instalados y el Bash Guard bloquea la instalación de dependencias.
-Correrlos localmente antes de mergear.
+Ejecutados después, una vez arreglado el bootstrap remoto
+(ver `docs/REMOTE-SESSIONS.md`): `npm run test:ci` en verde (145 tests, 0 fallos)
+y `npm run lint:arch` con 0 errores. Ninguna advertencia corresponde a
+`active-workout.page.ts`.
