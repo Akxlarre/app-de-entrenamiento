@@ -30,9 +30,6 @@ import { Router } from '@angular/router';
   selector: 'app-tabs-layout',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    '[class.has-session]': 'workoutFacade.activeSession() !== null && !isWorkoutRoute()',
-  },
   imports: [
     IonTabs,
     IonTabBar,
@@ -44,7 +41,7 @@ import { Router } from '@angular/router';
     IconComponent,
   ],
   template: `
-    <ion-tabs>
+    <ion-tabs [class.has-session]="workoutFacade.activeSession() !== null && !isWorkoutRoute()">
       <!-- Barra de sesión en curso — reemplaza al FAB mudo anterior.
            Dice qué se está entrenando y hace cuánto, no solo que "hay algo". -->
       @if (workoutFacade.activeSession(); as session) {
@@ -126,7 +123,7 @@ import { Router } from '@angular/router';
 
         /* Geometría del pie. Todo lo que flota se posiciona contra estas
            dos medidas, así nada se pisa cuando aparece la sesión. */
-        --tabbar-h: calc(58px + var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
+        --tabbar-h: calc(56px + var(--ion-safe-area-bottom, 0px));
         --session-bar-h: 56px;
 
         /* El shell publica cuánto espacio ocupa su cromo inferior y las
@@ -138,7 +135,7 @@ import { Router } from '@angular/router';
         --chrome-bottom: calc(var(--tabbar-h) + var(--space-4));
       }
 
-      :host(.has-session) {
+      ion-tabs.has-session {
         --chrome-bottom: calc(var(--tabbar-h) + var(--session-bar-h) + var(--space-4));
       }
 
@@ -149,8 +146,6 @@ import { Router } from '@angular/router';
       .main-tab-bar {
         --background: var(--bg-surface);
         --border: 1px solid var(--border-default);
-        height: var(--tabbar-h);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
       }
 
       ion-tab-button {

@@ -87,7 +87,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
               (click)="onUpdateClick()"
               [disabled]="isDownloading()"
               class="flex-1 py-3 px-4 rounded-xl text-xs font-bold border-none shadow-lg cursor-pointer transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style="background: var(--gradient-primary); color: var(--color-primary-text);"
+              style="background: var(--gradient-primary); color: #ffffff;"
             >
               @if (isDownloading()) {
                 <span
