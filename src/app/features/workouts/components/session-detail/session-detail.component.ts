@@ -119,7 +119,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
                       <span class="sd-feedback-rating">★ {{ ex.feedback.rating }}/5</span>
                     }
                   </div>
-                  @if (ex.feedback.categories?.length) {
+                  @if (ex.feedback.categories.length) {
                     <div class="sd-feedback-tags">
                       @for (cat of ex.feedback.categories; track cat) {
                         <span class="sd-feedback-tag">{{ translateCategory(cat) }}</span>

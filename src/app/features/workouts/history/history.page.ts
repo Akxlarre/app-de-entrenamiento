@@ -39,7 +39,6 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
   imports: [
     IonContent,
     IonIcon,
-    IonSpinner,
     DatePipe,
     DecimalPipe,
     TitleCasePipe,

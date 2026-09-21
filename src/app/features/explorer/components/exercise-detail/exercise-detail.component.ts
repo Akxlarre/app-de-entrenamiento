@@ -19,7 +19,7 @@ import { TranslateExercisePipe } from '@shared/pipes/translate-exercise.pipe';
 @Component({
   selector: 'app-exercise-detail',
   standalone: true,
-  imports: [IonSpinner, IconComponent, TranslateExercisePipe],
+  imports: [IonSpinner, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="detail">
