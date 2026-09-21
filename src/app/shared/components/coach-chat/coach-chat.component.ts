@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '@shared/components/icon/icon.component';
-import { ChatMessage } from '@core/services/ai/gemini.service';
+import { ChatAttachment, ChatMessage } from '@core/services/ai/gemini.service';
 import { UserMemory } from '@core/services/user-memory.service';
 import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
 
@@ -54,187 +54,209 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
 
     <!-- Capa de Memoria a Largo Plazo -->
     @if (isMemoryOpen()) {
-      <div class="absolute top-[49px] left-0 right-0 bottom-0 z-50 bg-surface flex flex-col animation-fade-in">
-        <div class="px-5 py-4 flex-1 overflow-y-auto">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-base font-semibold text-text-primary m-0 flex items-center gap-2">
-              <app-icon name="brain" [size]="18" /> Memoria del Coach
-            </h3>
+    <div
+      class="absolute top-[49px] left-0 right-0 bottom-0 z-50 bg-surface flex flex-col animation-fade-in"
+    >
+      <div class="px-5 py-4 flex-1 overflow-y-auto">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-base font-semibold text-text-primary m-0 flex items-center gap-2">
+            <app-icon name="brain" [size]="18" /> Memoria del Coach
+          </h3>
+          <button
+            type="button"
+            class="bg-transparent border-none text-text-muted hover:text-text-primary cursor-pointer p-1"
+            (click)="onToggleMemory.emit()"
+            title="Volver al chat"
+            aria-label="Cerrar memoria"
+          >
+            <app-icon name="x" [size]="20" />
+          </button>
+        </div>
+        <p class="text-sm text-text-muted mb-6">
+          Aquí están los datos que la IA ha aprendido sobre ti. Puedes eliminarlos si ya no son
+          relevantes.
+        </p>
+
+        @if (memories().length === 0) {
+        <div class="text-center py-8">
+          <p class="text-sm text-text-muted">Aún no hay recuerdos guardados.</p>
+        </div>
+        } @else {
+        <div class="flex flex-col gap-3">
+          @for (mem of memories(); track mem.id) {
+          <div class="p-3 bg-base border border-subtle rounded-lg flex gap-3 items-start">
+            <div class="mt-0.5 text-brand">
+              <app-icon [name]="getMemoryIcon(mem.category)" [size]="16" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-text-primary m-0">{{ mem.content }}</p>
+              <span class="text-xs text-text-muted mt-1 inline-block">{{
+                getMemoryLabel(mem.category) | uppercase
+              }}</span>
+            </div>
             <button
               type="button"
-              class="bg-transparent border-none text-text-muted hover:text-text-primary cursor-pointer p-1"
-              (click)="onToggleMemory.emit()"
-              title="Volver al chat"
-              aria-label="Cerrar memoria"
+              class="text-text-muted hover:text-[var(--state-error)] shrink-0 bg-transparent border-none p-1 cursor-pointer"
+              (click)="onDeleteMemory.emit(mem.id)"
+              title="Olvidar recuerdo"
             >
-              <app-icon name="x" [size]="20" />
+              <app-icon name="trash-2" [size]="16" />
             </button>
           </div>
-          <p class="text-sm text-text-muted mb-6">
-            Aquí están los datos que la IA ha aprendido sobre ti. Puedes eliminarlos si ya no son relevantes.
-          </p>
-
-          @if (memories().length === 0) {
-            <div class="text-center py-8">
-              <p class="text-sm text-text-muted">Aún no hay recuerdos guardados.</p>
-            </div>
-          } @else {
-            <div class="flex flex-col gap-3">
-              @for (mem of memories(); track mem.id) {
-                <div class="p-3 bg-base border border-subtle rounded-lg flex gap-3 items-start">
-                  <div class="mt-0.5 text-brand">
-                    <app-icon [name]="getMemoryIcon(mem.category)" [size]="16" />
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm text-text-primary m-0">{{ mem.content }}</p>
-                    <span class="text-xs text-text-muted mt-1 inline-block">{{ getMemoryLabel(mem.category) | uppercase }}</span>
-                  </div>
-                  <button 
-                    type="button" 
-                    class="text-text-muted hover:text-[var(--state-error)] shrink-0 bg-transparent border-none p-1 cursor-pointer"
-                    (click)="onDeleteMemory.emit(mem.id)"
-                    title="Olvidar recuerdo"
-                  >
-                    <app-icon name="trash-2" [size]="16" />
-                  </button>
-                </div>
-              }
-            </div>
           }
         </div>
+        }
       </div>
+    </div>
     }
 
     <!-- Chat Body / Message List (Scrollable Area) -->
     <div #scrollContainer class="flex-1 px-5 py-4 overflow-y-auto flex flex-col gap-4">
       @if (messages().length === 0) {
-        <div class="flex flex-col items-center justify-center my-auto py-8 text-center">
-          <div class="chat-empty-icon">
-            <app-icon name="sparkles" [size]="26" [ariaHidden]="true" />
-          </div>
-          <h3 class="text-base font-semibold text-text-primary m-0 mb-1">Coach Virtual IA</h3>
-          <p class="chat-empty-sub">Tu copiloto durante el entrenamiento. ¿Qué deseas consultar?</p>
-          <div class="flex flex-col gap-2 w-full max-w-sm">
-            <button
-              type="button"
-              class="chat-prompt"
-              (click)="sendQuickPrompt('¿Cuánto tiempo he descansado desde la última serie?')"
-            >
-              <app-icon name="timer" [size]="16" [ariaHidden]="true" />
-              <span>¿Cuánto tiempo llevo de descanso?</span>
-            </button>
-            <button
-              type="button"
-              class="chat-prompt"
-              (click)="
-                sendQuickPrompt('¿Qué peso o repeticiones me recomiendas para mi siguiente serie?')
-              "
-            >
-              <app-icon name="trending-up" [size]="16" [ariaHidden]="true" />
-              <span>Recomiéndame peso para la siguiente serie</span>
-            </button>
-            <button
-              type="button"
-              class="chat-prompt"
-              (click)="sendQuickPrompt('Dame un resumen y valoración de mi entrenamiento de hoy.')"
-            >
-              <app-icon name="bar-chart-2" [size]="16" [ariaHidden]="true" />
-              <span>Resumen y análisis de la sesión</span>
-            </button>
-          </div>
+      <div class="flex flex-col items-center justify-center my-auto py-8 text-center">
+        <div class="chat-empty-icon">
+          <app-icon name="sparkles" [size]="26" [ariaHidden]="true" />
         </div>
-      }
-
-      @for (msg of messages(); track msg.id) {
-        @if (msg.text || msg.imageBase64) {
-          <div
-            class="flex flex-col max-w-[85%]"
-            [class.self-end]="msg.sender === 'user'"
-            [class.self-start]="msg.sender === 'assistant'"
+        <h3 class="text-base font-semibold text-text-primary m-0 mb-1">Coach Virtual IA</h3>
+        <p class="chat-empty-sub">Tu copiloto durante el entrenamiento. ¿Qué deseas consultar?</p>
+        <div class="flex flex-col gap-2 w-full max-w-sm">
+          <button
+            type="button"
+            class="chat-prompt"
+            (click)="sendQuickPrompt('¿Cuánto tiempo he descansado desde la última serie?')"
           >
-            <div
-              class="chat-bubble"
-              [class.chat-bubble--user]="msg.sender === 'user'"
-              [class.chat-bubble--assistant]="msg.sender === 'assistant'"
-            >
-              @if (msg.imageBase64) {
-                <img [src]="msg.imageBase64" alt="Adjunto" class="chat-bubble-img" />
-              }
-              @if (msg.text) {
-                @if (msg.sender === 'assistant') {
-                  <div [innerHTML]="msg.text | markdown"></div>
-                } @else {
-                  <p class="m-0 whitespace-pre-wrap">{{ msg.text }}</p>
-                }
-              }
-            </div>
-            <span class="chat-time" [class.text-right]="msg.sender === 'user'">
-              {{ msg.timestamp | date: 'shortTime' }}
-            </span>
-          </div>
-        }
-      }
-
-      @if (isLoading()) {
-        <div class="flex flex-col max-w-[75%] self-start gap-1">
-          <div class="chat-bubble chat-bubble--assistant chat-thinking">
-            <app-icon
-              name="sparkles"
-              [size]="15"
-              [ariaHidden]="true"
-              class="animate-pulse text-brand shrink-0"
-            />
-            <span class="chat-thinking-text">Analizando entrenamiento...</span>
-          </div>
+            <app-icon name="timer" [size]="16" [ariaHidden]="true" />
+            <span>¿Cuánto tiempo llevo de descanso?</span>
+          </button>
+          <button
+            type="button"
+            class="chat-prompt"
+            (click)="
+              sendQuickPrompt('¿Qué peso o repeticiones me recomiendas para mi siguiente serie?')
+            "
+          >
+            <app-icon name="trending-up" [size]="16" [ariaHidden]="true" />
+            <span>Recomiéndame peso para la siguiente serie</span>
+          </button>
+          <button
+            type="button"
+            class="chat-prompt"
+            (click)="sendQuickPrompt('Dame un resumen y valoración de mi entrenamiento de hoy.')"
+          >
+            <app-icon name="bar-chart-2" [size]="16" [ariaHidden]="true" />
+            <span>Resumen y análisis de la sesión</span>
+          </button>
         </div>
+      </div>
+      } @for (msg of messages(); track msg.id) { @if (msg.text || msg.imageBase64) {
+      <div
+        class="flex flex-col max-w-[85%]"
+        [class.self-end]="msg.sender === 'user'"
+        [class.self-start]="msg.sender === 'assistant'"
+      >
+        <div
+          class="chat-bubble"
+          [class.chat-bubble--user]="msg.sender === 'user'"
+          [class.chat-bubble--assistant]="msg.sender === 'assistant'"
+        >
+          @if (msg.imageBase64) {
+          <img [src]="msg.imageBase64" alt="Adjunto" class="chat-bubble-img" />
+          } @if (msg.text) { @if (msg.sender === 'assistant') {
+          <div [innerHTML]="msg.text | markdown"></div>
+          } @else {
+          <p class="m-0 whitespace-pre-wrap">{{ msg.text }}</p>
+          } }
+        </div>
+        <span class="chat-time" [class.text-right]="msg.sender === 'user'">
+          {{ msg.timestamp | date : 'shortTime' }}
+        </span>
+      </div>
+      } } @if (isLoading()) {
+      <div class="flex flex-col max-w-[75%] self-start gap-1">
+        <div class="chat-bubble chat-bubble--assistant chat-thinking">
+          <app-icon
+            name="sparkles"
+            [size]="15"
+            [ariaHidden]="true"
+            class="animate-pulse text-brand shrink-0"
+          />
+          <span class="chat-thinking-text">Analizando entrenamiento...</span>
+        </div>
+      </div>
       }
 
       <!-- Sugerencias después de la conversación -->
       @if (messages().length > 0 && !isLoading()) {
-        <div class="flex flex-wrap gap-2 pt-1 pb-2">
-          <button
-            type="button"
-            class="chat-chip"
-            (click)="sendQuickPrompt('¿Cuánto llevo de descanso?')"
-          >
-            <app-icon name="timer" [size]="14" [ariaHidden]="true" /> Descanso
-          </button>
-          <button
-            type="button"
-            class="chat-chip"
-            (click)="sendQuickPrompt('¿Qué peso me recomiendas para mi siguiente serie?')"
-          >
-            <app-icon name="trending-up" [size]="14" [ariaHidden]="true" /> Sugerir peso
-          </button>
-          <button
-            type="button"
-            class="chat-chip"
-            (click)="sendQuickPrompt('Dame un resumen de lo que llevo hoy.')"
-          >
-            <app-icon name="bar-chart-2" [size]="14" [ariaHidden]="true" /> Resumen
-          </button>
-        </div>
+      <div class="flex flex-wrap gap-2 pt-1 pb-2">
+        <button
+          type="button"
+          class="chat-chip"
+          (click)="sendQuickPrompt('¿Cuánto llevo de descanso?')"
+        >
+          <app-icon name="timer" [size]="14" [ariaHidden]="true" /> Descanso
+        </button>
+        <button
+          type="button"
+          class="chat-chip"
+          (click)="sendQuickPrompt('¿Qué peso me recomiendas para mi siguiente serie?')"
+        >
+          <app-icon name="trending-up" [size]="14" [ariaHidden]="true" /> Sugerir peso
+        </button>
+        <button
+          type="button"
+          class="chat-chip"
+          (click)="sendQuickPrompt('Dame un resumen de lo que llevo hoy.')"
+        >
+          <app-icon name="bar-chart-2" [size]="14" [ariaHidden]="true" /> Resumen
+        </button>
+      </div>
       }
     </div>
 
     <div class="chat-inputbar">
       @if (selectedImageBase64()) {
-        <div class="chat-image-preview">
-          <img [src]="selectedImageBase64()" alt="Imagen adjunta" class="preview-img" />
-          <button type="button" class="preview-remove" (click)="selectedImageBase64.set(null)" aria-label="Eliminar imagen">
-            <app-icon name="x" [size]="14" [ariaHidden]="true" />
-          </button>
-        </div>
+      <div class="chat-image-preview">
+        <img [src]="selectedImageBase64()" alt="Imagen adjunta" class="preview-img" />
+        <button
+          type="button"
+          class="preview-remove"
+          (click)="selectedImageBase64.set(null)"
+          aria-label="Eliminar imagen"
+        >
+          <app-icon name="x" [size]="14" [ariaHidden]="true" />
+        </button>
+      </div>
+      } @if (selectedDocument(); as doc) {
+      <div class="chat-doc-preview">
+        <app-icon name="file-text" [size]="16" [ariaHidden]="true" />
+        <span class="doc-name">{{ doc.name }}</span>
+        <button
+          type="button"
+          class="preview-remove doc-remove"
+          (click)="selectedDocument.set(null)"
+          aria-label="Quitar documento adjunto"
+        >
+          <app-icon name="x" [size]="14" [ariaHidden]="true" />
+        </button>
+      </div>
+      } @if (attachError()) {
+      <p class="chat-attach-error">{{ attachError() }}</p>
       }
       <form (ngSubmit)="send()" class="chat-form">
-        <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)" />
+        <input
+          type="file"
+          #fileInput
+          [accept]="acceptedTypes"
+          hidden
+          (change)="onFileSelected($event)"
+        />
         <button
           type="button"
           (click)="fileInput.click()"
           class="chat-attach"
-          title="Adjuntar imagen"
+          title="Adjuntar imagen o documento"
         >
-          <app-icon name="image" [size]="18" [ariaHidden]="true" />
+          <app-icon name="paperclip" [size]="18" [ariaHidden]="true" />
         </button>
         <input
           type="text"
@@ -270,23 +292,43 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
   styles: [
     `
       /* Utilidades de texto que podrían faltar en Tailwind local */
-      .text-primary { color: var(--text-primary); }
-      .text-muted { color: var(--text-muted); }
-      .text-brand { color: var(--ds-brand); }
-      .bg-surface { background-color: var(--bg-surface); }
-      .bg-base { background-color: var(--bg-base); }
-      .border-subtle { border-color: var(--border-subtle); }
+      .text-primary {
+        color: var(--text-primary);
+      }
+      .text-muted {
+        color: var(--text-muted);
+      }
+      .text-brand {
+        color: var(--ds-brand);
+      }
+      .bg-surface {
+        background-color: var(--bg-surface);
+      }
+      .bg-base {
+        background-color: var(--bg-base);
+      }
+      .border-subtle {
+        border-color: var(--border-subtle);
+      }
 
       /* Soporte para hover explícito */
-      .hover\\:text-primary:hover { color: var(--text-primary); }
-      .hover\\:text-\\[var\\(--state-error\\)\\]:hover { color: var(--state-error); }
+      .hover\\:text-primary:hover {
+        color: var(--text-primary);
+      }
+      .hover\\:text-\\[var\\(--state-error\\)\\]:hover {
+        color: var(--state-error);
+      }
 
       .animation-fade-in {
         animation: fade-in 0.2s ease-out forwards;
       }
       @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       .chat-statusbar {
@@ -381,8 +423,14 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
       }
 
       @keyframes chat-fade-in-up {
-        0% { opacity: 0; transform: translateY(12px); }
-        100% { opacity: 1; transform: translateY(0); }
+        0% {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       /* Sin ember: con varios mensajes en pantalla la marca pasaba de la
@@ -495,7 +543,8 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
         color: var(--text-muted);
       }
 
-      .chat-mic, .chat-attach {
+      .chat-mic,
+      .chat-attach {
         width: var(--target-min);
         height: var(--target-min);
         flex-shrink: 0;
@@ -509,7 +558,8 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
         cursor: pointer;
         transition: color 0.2s ease, transform 0.15s ease;
       }
-      .chat-mic:active, .chat-attach:active {
+      .chat-mic:active,
+      .chat-attach:active {
         transform: scale(0.94);
       }
       .chat-mic.is-recording {
@@ -519,11 +569,51 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
       }
 
       @keyframes pulse-recording {
-        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
-        50% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
-        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+        }
+        50% {
+          transform: scale(1.08);
+          box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
       }
 
+      /* Chip del documento adjunto: el PDF no se puede previsualizar como la
+         imagen, así que se confirma con nombre + icono. */
+      .chat-doc-preview {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        margin-bottom: var(--space-2);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg, 12px);
+        background: var(--bg-elevated);
+        color: var(--text-muted);
+      }
+      .chat-doc-preview .doc-name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--text-sm);
+        color: var(--text-primary);
+      }
+      .chat-doc-preview .doc-remove {
+        position: static;
+        flex-shrink: 0;
+      }
+      .chat-attach-error {
+        margin: 0 0 var(--space-2);
+        font-size: var(--text-sm);
+        color: var(--state-error);
+      }
       .chat-send {
         width: var(--target-min);
         height: var(--target-min);
@@ -551,12 +641,12 @@ export class CoachChatComponent {
   messages = input.required<ChatMessage[]>();
   isLoading = input<boolean>(false);
   toolStatus = input<string | null>(null);
-  
+
   // Memory properties
   memories = input<UserMemory[]>([]);
   isMemoryOpen = input<boolean>(false);
 
-  onSend = output<{text: string; imageBase64?: string}>();
+  onSend = output<{ text: string; imageBase64?: string; document?: ChatAttachment }>();
   onClear = output<void>();
   onToggleMemory = output<void>();
   onDeleteMemory = output<string>();
@@ -564,6 +654,17 @@ export class CoachChatComponent {
   inputText = signal<string>('');
   isRecording = signal<boolean>(false);
   selectedImageBase64 = signal<string | null>(null);
+  selectedDocument = signal<ChatAttachment | null>(null);
+  attachError = signal<string | null>(null);
+
+  /** Tope de 10 MB: el archivo viaja en base64 dentro del cuerpo del request. */
+  static readonly MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
+  /**
+   * Tipos ofrecidos en el selector. El proxy es quien extrae el texto, así que
+   * esta lista debe seguir a la que `gemini-proxy` sabe procesar.
+   */
+  readonly acceptedTypes = 'image/*,.pdf,.txt,.md,.csv,.json';
 
   private scrollContainer = viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
   private recognition: any;
@@ -611,7 +712,8 @@ export class CoachChatComponent {
   }
 
   private initSpeechRecognition(): void {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
       this.recognition.lang = 'es-ES';
@@ -668,22 +770,57 @@ export class CoachChatComponent {
   }
 
   onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => this.selectedImageBase64.set(e.target?.result as string);
-      reader.readAsDataURL(file);
-    }
+    const file = event.target.files?.[0];
     event.target.value = '';
+    this.attachError.set(null);
+    if (!file) return;
+
+    if (file.size > CoachChatComponent.MAX_ATTACHMENT_BYTES) {
+      this.attachError.set(
+        `"${file.name}" pesa más de ${
+          CoachChatComponent.MAX_ATTACHMENT_BYTES / (1024 * 1024)
+        } MB. Probá con un archivo más liviano.`
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+
+    if (file.type.startsWith('image/')) {
+      reader.onload = (e) => {
+        this.selectedDocument.set(null);
+        this.selectedImageBase64.set(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    reader.onload = (e) => {
+      // Sólo un adjunto a la vez: imagen y documento se excluyen.
+      this.selectedImageBase64.set(null);
+      this.selectedDocument.set({
+        name: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        dataUrl: e.target?.result as string,
+      });
+    };
+    reader.readAsDataURL(file);
   }
 
   send(): void {
     const val = this.inputText().trim();
     const img = this.selectedImageBase64();
-    if ((val || img) && !this.isLoading()) {
-      this.onSend.emit({ text: val, imageBase64: img || undefined });
+    const doc = this.selectedDocument();
+    if ((val || img || doc) && !this.isLoading()) {
+      this.onSend.emit({
+        text: val,
+        imageBase64: img || undefined,
+        document: doc || undefined,
+      });
       this.inputText.set('');
       this.selectedImageBase64.set(null);
+      this.selectedDocument.set(null);
+      this.attachError.set(null);
     }
   }
 

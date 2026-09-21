@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { ChatMessage, GeminiService } from './gemini.service';
+import { ChatAttachment, ChatMessage, GeminiService } from './gemini.service';
 import { UserMemoryFacade } from '../user-memory.facade';
 import { RoutineFacade } from '@core/facades/routine.facade';
 
@@ -46,7 +46,7 @@ export class CoachFacade {
   }
 
   toggleMemory(): void {
-    this.isMemoryOpen.update(v => !v);
+    this.isMemoryOpen.update((v) => !v);
   }
 
   deleteMemory(id: string): void {
@@ -56,8 +56,12 @@ export class CoachFacade {
   /**
    * Envía un mensaje del usuario al Coach y procesa la respuesta vía Streaming
    */
-  async sendMessage(prompt: string, imageBase64?: string): Promise<void> {
-    if (!prompt.trim() && !imageBase64) return;
+  async sendMessage(
+    prompt: string,
+    imageBase64?: string,
+    document?: ChatAttachment
+  ): Promise<void> {
+    if (!prompt.trim() && !imageBase64 && !document) return;
 
     // Refrescar memorias silenciosamente por si se modificaron o eliminaron en UI
     this.memoryFacade.loadMemories();
@@ -68,7 +72,7 @@ export class CoachFacade {
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       sender: 'user',
-      text: prompt.trim() || 'Imagen adjunta',
+      text: prompt.trim() || (document ? `Documento adjunto: ${document.name}` : 'Imagen adjunta'),
       imageBase64,
       timestamp: new Date(),
     };
@@ -89,26 +93,38 @@ export class CoachFacade {
     ]);
 
     try {
-      const trimmed = prompt.trim() || 'Analiza la imagen adjunta.';
-      
+      const trimmed =
+        prompt.trim() ||
+        (document
+          ? `Analiza el documento adjunto (${document.name}).`
+          : 'Analiza la imagen adjunta.');
+
       // Formatear memorias en texto plano para el LLM
       const mems = this.memoryFacade.memories();
       let memStr = '';
       if (mems.length > 0) {
-        memStr = mems.map(m => `- [ID: ${m.id}] [Categoría: ${m.category}]: ${m.content}`).join('\n');
+        memStr = mems
+          .map((m) => `- [ID: ${m.id}] [Categoría: ${m.category}]: ${m.content}`)
+          .join('\n');
       }
-      
+
       let routinesModified = false;
       let memoryModified = false;
 
       // Usamos el historial anterior (sin contar el userMessage recién agregado ni el assistant vacío)
       const historyToPass = this.messages().slice(0, -2);
-      const stream = this.geminiService.generateResponseStream(historyToPass, trimmed, imageBase64, memStr);
+      const stream = this.geminiService.generateResponseStream(
+        historyToPass,
+        trimmed,
+        imageBase64,
+        memStr,
+        document
+      );
 
       for await (const event of stream) {
         if (event.type === 'tool_start') {
           this.toolStatus.set(this.getFriendlyToolName(event.toolName));
-          
+
           if (event.toolName === 'crear_rutina' || event.toolName === 'eliminar_rutina') {
             routinesModified = true;
           }

@@ -5,6 +5,18 @@ import { McpClientService, McpToolDefinition } from './mcp-client.service';
 import { SupabaseService } from '@core/services/infrastructure/supabase.service';
 import { environment } from '../../../../environments/environment';
 
+/**
+ * Documento adjunto a un mensaje. El cliente no lo interpreta: lo manda tal
+ * cual y `gemini-proxy` le extrae el texto antes de llegar a Gemini, porque la
+ * capa OpenAI-compat sólo acepta texto, imágenes y audio.
+ */
+export interface ChatAttachment {
+  name: string;
+  mimeType: string;
+  /** Data URL completa (`data:<mime>;base64,<...>`) tal como la da FileReader. */
+  dataUrl: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
@@ -354,7 +366,8 @@ export class GeminiService {
     history: ChatMessage[],
     prompt: string,
     imageBase64?: string,
-    userMemories: string = ''
+    userMemories: string = '',
+    document?: ChatAttachment
   ): AsyncGenerator<ChatStreamEvent, void, unknown> {
     const nowIso = new Date().toISOString();
     const nowTimeStr = new Date().toLocaleTimeString('es-ES', {
@@ -457,6 +470,24 @@ ${memorySection}
         content: [
           { type: 'text', text: prompt },
           { type: 'image_url', image_url: { url: imageBase64 } },
+        ],
+      });
+    } else if (document) {
+      // `input_document` no es parte del estándar OpenAI: es una convención
+      // nuestra que gemini-proxy reconoce y reemplaza por texto extraído antes
+      // de reenviar. Gemini nunca ve esta parte tal cual.
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          {
+            type: 'input_document',
+            input_document: {
+              name: document.name,
+              mime_type: document.mimeType,
+              data: document.dataUrl,
+            },
+          },
         ],
       });
     } else {
@@ -739,6 +770,16 @@ ${memorySection}
 
     if (status === 404) {
       return 'El servicio del Coach no está disponible (404). La Edge Function `gemini-proxy` no está desplegada en este proyecto de Supabase.';
+    }
+
+    if (status === 400) {
+      // El proxy usa 400 para problemas del adjunto (formato no soportado, PDF
+      // escaneado, archivo muy pesado). El mensaje ya viene redactado para el
+      // usuario, así que se muestra tal cual.
+      const detalle = err?.error?.error?.message || err?.error?.message || '';
+      return (
+        detalle || 'No pude procesar el mensaje. Revisá el archivo adjunto e intentá de nuevo.'
+      );
     }
 
     if (status === 500 || status === 502) {

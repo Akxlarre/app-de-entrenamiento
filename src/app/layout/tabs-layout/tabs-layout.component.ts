@@ -86,7 +86,7 @@ import { Router } from '@angular/router';
             [toolStatus]="coachFacade.toolStatus()"
             [memories]="coachFacade.memories()"
             [isMemoryOpen]="coachFacade.isMemoryOpen()"
-            (onSend)="coachFacade.sendMessage($event.text, $event.imageBase64)"
+            (onSend)="coachFacade.sendMessage($event.text, $event.imageBase64, $event.document)"
             (onClear)="coachFacade.clearChat()"
             (onToggleMemory)="coachFacade.toggleMemory()"
             (onDeleteMemory)="coachFacade.deleteMemory($event)"
