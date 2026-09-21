@@ -36,7 +36,7 @@ import { Subscription } from 'rxjs';
       <!-- Backdrop (overlay) -->
       <div
         #backdrop
-        class="absolute inset-0 z-40"
+        class="absolute inset-0 z-40 touch-none"
         style="background: var(--overlay-backdrop); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);"
         (click)="close()"
         aria-hidden="true"
@@ -83,6 +83,7 @@ import { Subscription } from 'rxjs';
         <!-- Body -->
         <div
           class="flex-1 bg-surface"
+          style="overscroll-behavior: none;"
           [class.overflow-y-auto]="!noPadding()"
           [class.overflow-hidden]="noPadding()"
           [class.px-6]="!noPadding()"

@@ -33,7 +33,7 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
   imports: [IconComponent, PressFeedbackDirective],
   template: `
     @if (isOpen()) {
-      <div class="modal__backdrop" (click)="dismissible() && close()" aria-hidden="true"></div>
+      <div class="modal__backdrop touch-none" (click)="dismissible() && close()" aria-hidden="true"></div>
 
       <div
         #dialog
@@ -150,6 +150,7 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
       .modal__body {
         padding: 1.25rem;
         overflow-y: auto;
+        overscroll-behavior: none;
         flex: 1;
         min-height: 0;
       }
