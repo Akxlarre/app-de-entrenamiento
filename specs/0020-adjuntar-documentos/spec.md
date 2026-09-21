@@ -1,5 +1,5 @@
 > id: 0020-adjuntar-documentos
-> status: done
+> status: parcial
 > created: 2026-09-21
 > refs: Pedido del usuario: "el poder enviar documentos como pdf o otros tipos"
 
@@ -33,9 +33,14 @@ streaming, herramientas y manejo de errores siguen exactamente igual.
 - [x] AC2: El usuario ve qué archivo adjuntó y puede quitarlo antes de enviar.
 - [x] AC3: El cliente manda el documento como parte `input_document` con nombre,
       mime type y contenido.
-- [x] AC4: El proxy extrae texto de PDF y de formatos de texto plano
+- [ ] AC4: El proxy extrae texto de PDF y de formatos de texto plano
       (txt, md, csv, json) y lo inyecta como texto.
-- [x] AC5: Un tipo no soportado no rompe el chat: devuelve un mensaje claro.
+      IMPLEMENTADO PERO NO EJECUTADO — es una afirmación sobre comportamiento en
+      runtime y el proxy no está desplegado. No se da por cumplido hasta probarlo
+      contra un PDF real.
+- [ ] AC5: Un tipo no soportado no rompe el chat: devuelve un mensaje claro.
+      El camino de error del proxy tampoco se ejecutó. El lado cliente (que un
+      400 muestre el detalle del servidor) sí está cubierto por tests.
 - [x] AC6: Hay tope de tamaño de archivo y de texto extraído, para no volar el
       presupuesto de tokens.
 - [x] AC7: Las imágenes siguen funcionando igual que antes.
@@ -59,3 +64,17 @@ NO verificado — lo más importante de esta spec:
   camino tampoco se probó.
 - El import dinámico `npm:unpdf` agrega latencia en el primer mensaje con PDF
   (cold start de la función). No está medido.
+
+## Estado de cierre
+
+La spec queda en `parcial`, NO en `done`. AC1-AC3 y AC6-AC8 están cumplidos y
+verificados; AC4 y AC5 describen comportamiento del proxy en runtime y no se
+pueden dar por cumplidos sin desplegarlo.
+
+Para cerrarla:
+1. Desplegar `gemini-proxy` (workflow `deploy-functions.yml`).
+2. Mandar un PDF con texto seleccionable y confirmar que el Coach responde
+   sobre su contenido.
+3. Mandar un archivo de tipo no soportado y confirmar que aparece el mensaje
+   explicativo y el chat sigue usable.
+4. Recién ahí marcar AC4 y AC5 y pasar a `done`.
