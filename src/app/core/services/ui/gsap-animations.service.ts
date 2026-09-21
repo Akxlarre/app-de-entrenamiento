@@ -22,6 +22,15 @@ export class GsapAnimationsService {
   private ngZone = inject(NgZone);
   private prefersReducedMotion = false;
 
+  /**
+   * Determina si el dispositivo es móvil (ancho menor a 768px)
+   * para desactivar animaciones costosas para la GPU como el blur.
+   */
+  private get isMobilePerf(): boolean {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return window.innerWidth < 768;
+  }
+
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.ngZone.runOutsideAngular(() => {
@@ -65,7 +74,7 @@ export class GsapAnimationsService {
    * Animación de entrada para celdas bento — stagger semántico con jerarquía visual.
    *
    * Detecta automáticamente celdas "hero" por clases semánticas (.card-accent, .bento-banner)
-   * y las anima con blur+scale premium. El resto entra en stagger estándar.
+   * y las anima con blur+scale premium (solo en desktop). El resto entra en stagger estándar.
    *
    * Jerarquía:
    *   1. Hero cells (.card-accent, .bento-banner, [data-animate-hero]) → blur+scale+fade, t=0
@@ -89,6 +98,7 @@ export class GsapAnimationsService {
       }
 
       const { skipOpacity = false } = options;
+      const useBlur = !this.isMobilePerf; // Solo aplicar blur en desktop
 
       // Separar en hero vs grid regular usando clases semánticas existentes
       const heroCells = cells.filter(
@@ -100,7 +110,7 @@ export class GsapAnimationsService {
       const gridCells = cells.filter((el) => !heroCells.includes(el));
 
       // Promover layers antes de animar
-      heroCells.forEach((el) => (el.style.willChange = 'transform, filter, opacity'));
+      heroCells.forEach((el) => (el.style.willChange = useBlur ? 'transform, filter, opacity' : 'transform, opacity'));
       gridCells.forEach((el) => (el.style.willChange = 'transform, opacity'));
 
       const tl = gsap.timeline({
@@ -112,24 +122,22 @@ export class GsapAnimationsService {
 
       // ── Hero cells: blur+scale premium ──
       if (heroCells.length > 0) {
-        const fromVars: gsap.TweenVars = { scale: 0.96, filter: 'blur(6px)', y: 12 };
+        const fromVars: gsap.TweenVars = { scale: 0.96, y: 12 };
+        if (useBlur) fromVars.filter = 'blur(6px)';
         if (!skipOpacity) fromVars.opacity = 0;
 
-        tl.fromTo(
-          heroCells,
-          fromVars,
-          {
-            scale: 1,
-            filter: 'blur(0px)',
-            y: 0,
-            opacity: 1,
-            duration: 0.65,
-            ease: 'expo.out',
-            stagger: heroCells.length > 1 ? 0.08 : 0,
-            clearProps: 'filter,transform' + (skipOpacity ? '' : ',opacity'),
-          },
-          0,
-        );
+        const toVars: gsap.TweenVars = {
+          scale: 1,
+          y: 0,
+          opacity: 1,
+          duration: 0.65,
+          ease: 'expo.out',
+          stagger: heroCells.length > 1 ? 0.08 : 0,
+          clearProps: (useBlur ? 'filter,' : '') + 'transform' + (skipOpacity ? '' : ',opacity'),
+        };
+        if (useBlur) toVars.filter = 'blur(0px)';
+
+        tl.fromTo(heroCells, fromVars, toVars, 0);
       }
 
       // ── Grid cells: y+scale + fade ──
@@ -156,7 +164,7 @@ export class GsapAnimationsService {
   }
 
   /**
-   * Animación del hero card — entrada con blur + scale
+   * Animación del hero card — entrada con blur + scale (blur solo en desktop)
    * @param el - Elemento hero
    */
   animateHero(el: HTMLElement | null | undefined): void {
@@ -166,21 +174,24 @@ export class GsapAnimationsService {
       return;
     }
 
-    el.style.willChange = 'transform, filter';
-    gsap.fromTo(
-      el,
-      { scale: 0.95, filter: 'blur(8px)' },
-      {
-        scale: 1,
-        filter: 'blur(0px)',
-        duration: 0.7,
-        ease: 'expo.out',
-        clearProps: 'filter,transform',
-        onComplete: () => {
-          el.style.willChange = '';
-        },
+    const useBlur = !this.isMobilePerf;
+    el.style.willChange = useBlur ? 'transform, filter' : 'transform';
+
+    const fromVars: gsap.TweenVars = { scale: 0.95 };
+    if (useBlur) fromVars.filter = 'blur(8px)';
+
+    const toVars: gsap.TweenVars = {
+      scale: 1,
+      duration: 0.7,
+      ease: 'expo.out',
+      clearProps: useBlur ? 'filter,transform' : 'transform',
+      onComplete: () => {
+        el.style.willChange = '';
       },
-    );
+    };
+    if (useBlur) toVars.filter = 'blur(0px)';
+
+    gsap.fromTo(el, fromVars, toVars);
   }
 
   /**
@@ -460,28 +471,26 @@ export class GsapAnimationsService {
 
     const { useBlur = false, delay = 0 } = options;
     const duration = this.getCssDuration('--duration-page-in', 0.28);
+    const useActualBlur = useBlur && !this.isMobilePerf;
 
-    gsap.fromTo(
-      el,
-      {
-        opacity: 0,
-        y: 8,
-        filter: useBlur ? 'blur(8px)' : 'none',
-      },
-      {
-        opacity: 1,
-        y: 0,
-        filter: useBlur ? 'blur(0px)' : 'none',
-        duration,
-        delay,
-        ease: this.getCssEase('--ease-out', 'power3.out'),
-        clearProps: 'transform,filter',
-      },
-    );
+    const fromVars: gsap.TweenVars = { opacity: 0, y: 8 };
+    if (useActualBlur) fromVars.filter = 'blur(8px)';
+
+    const toVars: gsap.TweenVars = {
+      opacity: 1,
+      y: 0,
+      duration,
+      delay,
+      ease: this.getCssEase('--ease-out', 'power3.out'),
+      clearProps: useActualBlur ? 'transform,filter' : 'transform',
+    };
+    if (useActualBlur) toVars.filter = 'blur(0px)';
+
+    gsap.fromTo(el, fromVars, toVars);
   }
 
   /**
-   * Panel overlay — entrada con feel gooey premium (elastic suave + blur sutil)
+   * Panel overlay — entrada con feel gooey premium (elastic suave + blur sutil en desktop)
    * Duración deliberada, rebote refinado, materialización elegante.
    * @param el - Elemento panel
    */
@@ -491,19 +500,21 @@ export class GsapAnimationsService {
       return;
     }
 
-    gsap.fromTo(
-      el,
-      { opacity: 0, scale: 0.88, y: -10, filter: 'blur(6px)' },
-      {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        filter: 'blur(0px)',
-        duration: 1,
-        ease: 'elastic.out(1, 0.6)',
-        clearProps: 'transform,filter',
-      },
-    );
+    const useBlur = !this.isMobilePerf;
+    const fromVars: gsap.TweenVars = { opacity: 0, scale: 0.88, y: -10 };
+    if (useBlur) fromVars.filter = 'blur(6px)';
+
+    const toVars: gsap.TweenVars = {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      duration: 1,
+      ease: 'elastic.out(1, 0.6)',
+      clearProps: useBlur ? 'transform,filter' : 'transform',
+    };
+    if (useBlur) toVars.filter = 'blur(0px)';
+
+    gsap.fromTo(el, fromVars, toVars);
   }
 
   /**

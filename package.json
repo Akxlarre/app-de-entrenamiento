@@ -76,6 +76,7 @@
     "@angular/cli": "^20.3.3",
     "@angular/compiler-cli": "^20.3.0",
     "@angular/platform-browser-dynamic": "^20.3.31",
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.2",
     "@google/genai": "^2.21.0",
     "@ionic/angular-toolkit": "latest",

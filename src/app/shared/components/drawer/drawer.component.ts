@@ -13,6 +13,8 @@ import { CommonModule } from '@angular/common';
 import { IconComponent } from '../icon/icon.component';
 import { PressFeedbackDirective } from '@core/directives/press-feedback.directive';
 import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service';
+import { Platform } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 
 /**
  * DrawerComponent — Componente de panel lateral premium animado con GSAP.
@@ -143,6 +145,8 @@ export class DrawerComponent {
   private panelEl = viewChild<ElementRef<HTMLElement>>('panel');
 
   private gsapService = inject(GsapAnimationsService);
+  private platform = inject(Platform);
+  private backButtonSub?: Subscription;
 
   // A11y ID
   readonly titleId = `drawer-title-${Math.random().toString(36).substring(2, 9)}`;
@@ -159,6 +163,15 @@ export class DrawerComponent {
         this.gsapService.animateDrawerEnter(backdrop.nativeElement, panel.nativeElement);
         // Prevenir scroll en el body
         document.body.style.overflow = 'hidden';
+        
+        // Manejar el hardware back button en Android
+        this.backButtonSub = this.platform.backButton.subscribeWithPriority(10, () => {
+          this.close();
+        });
+      } else {
+        if (this.backButtonSub) {
+          this.backButtonSub.unsubscribe();
+        }
       }
     });
   }

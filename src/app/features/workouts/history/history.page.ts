@@ -20,6 +20,8 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonRefresher,
+  IonRefresherContent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, closeOutline } from 'ionicons/icons';
@@ -49,6 +51,8 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
     IonHeader,
     IonToolbar,
     IonTitle,
+    IonRefresher,
+    IonRefresherContent,
     IconComponent,
     SessionDetailComponent,
     EmptyStateComponent,
@@ -58,6 +62,10 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
     <ion-content class="history-page tier-trabajo" [fullscreen]="true">
       <app-header title="Historial Completo" [showBack]="true" (backClicked)="goBack()">
       </app-header>
+
+      <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
 
       <div class="page-container">
         <div class="history-section">
@@ -91,41 +99,50 @@ import { SkeletonBlockComponent } from '@shared/components/skeleton-block/skelet
           } @else {
             <div class="feed-list">
               @for (item of workoutFacade.history(); track item.id) {
-                <div class="workout-card history-card" (click)="viewDetails(item.id)">
-                  <div class="card-top">
-                    <div class="card-date-box">
-                      <app-icon name="calendar" [size]="14" />
-                      <span class="card-date">{{
-                        item.start_time | date: 'EEE, d MMM · HH:mm' | titlecase
-                      }}</span>
+                @defer (on viewport) {
+                  <div class="workout-card history-card" (click)="viewDetails(item.id)">
+                    <div class="card-top">
+                      <div class="card-date-box">
+                        <app-icon name="calendar" [size]="14" />
+                        <span class="card-date">{{
+                          item.start_time | date: 'EEE, d MMM · HH:mm' | titlecase
+                        }}</span>
+                      </div>
+                      <span class="card-duration">
+                        <app-icon name="clock" [size]="14" />
+                        {{ item.duration_minutes }} min
+                      </span>
                     </div>
-                    <span class="card-duration">
-                      <app-icon name="clock" [size]="14" />
-                      {{ item.duration_minutes }} min
-                    </span>
-                  </div>
 
-                  <div class="card-stats">
-                    <div class="stat-pill">
-                      <span class="stat-num">{{ item.total_volume | number: '1.0-0' }}</span>
-                      <span class="stat-unit">kg</span>
+                    <div class="card-stats">
+                      <div class="stat-pill">
+                        <span class="stat-num">{{ item.total_volume | number: '1.0-0' }}</span>
+                        <span class="stat-unit">kg</span>
+                      </div>
+                      <div class="stat-pill">
+                        <span class="stat-num">{{ item.total_sets }}</span>
+                        <span class="stat-unit">{{
+                          item.total_sets === 1 ? 'serie' : 'series'
+                        }}</span>
+                      </div>
                     </div>
-                    <div class="stat-pill">
-                      <span class="stat-num">{{ item.total_sets }}</span>
-                      <span class="stat-unit">{{
-                        item.total_sets === 1 ? 'serie' : 'series'
-                      }}</span>
+
+                    @if (item.exercises_summary.length > 0) {
+                      <div class="exercise-tags">
+                        @for (name of item.exercises_summary; track name) {
+                          <span class="ex-tag">{{ name }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @placeholder {
+                  <div class="workout-card history-card" style="pointer-events: none; min-height: 120px;">
+                    <div class="card-top">
+                      <app-skeleton-block variant="text" width="40%" height="16px" />
+                      <app-skeleton-block variant="text" width="22%" height="14px" />
                     </div>
                   </div>
-
-                  @if (item.exercises_summary.length > 0) {
-                    <div class="exercise-tags">
-                      @for (name of item.exercises_summary; track name) {
-                        <span class="ex-tag">{{ name }}</span>
-                      }
-                    </div>
-                  }
-                </div>
+                }
               }
             </div>
           }
@@ -343,6 +360,11 @@ export class HistoryPage implements OnInit, AfterViewInit {
     if (this.workoutFacade.history().length === 0) {
       this.workoutFacade.loadHistory();
     }
+  }
+
+  async doRefresh(event: any) {
+    await this.workoutFacade.loadHistory();
+    event.target.complete();
   }
 
   goBack() {

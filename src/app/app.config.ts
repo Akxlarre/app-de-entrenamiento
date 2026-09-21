@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, LOCALE_ID, provideZoneChangeDetection } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsCl from '@angular/common/locales/es-CL';
 
@@ -107,6 +107,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
  */
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     { provide: LOCALE_ID, useValue: 'es-CL' },
     provideRouter(routes, withComponentInputBinding()),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
