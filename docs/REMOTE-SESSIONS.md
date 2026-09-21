@@ -87,20 +87,22 @@ No toca el repo y corre antes de que la sesión empiece.
 
 ## Secretos de Edge Functions
 
-La API key de Gemini ya no se inyecta en el build: vive como secreto de la Edge
-Function `gemini-proxy`. Antes de que el Coach IA funcione hay que setearla y
-desplegar:
+La API key de Gemini ya no se inyecta en el build: vive como secreto del
+proyecto Supabase y sólo la lee la Edge Function `gemini-proxy`.
+
+**En CI/CD esto es automático.** El job `deploy_edge_functions` de
+`release.yml` despliega `mcp-server` y `gemini-proxy` y publica
+`GEMINI_API_KEY` en Supabase tomándola del secreto de GitHub. El único
+requisito es que ese secreto exista en el repositorio; si falta, el workflow
+falla con un mensaje explícito en vez de desplegar un proxy que devolvería 500
+en cada mensaje.
+
+Para un entorno de desarrollo propio, a mano:
 
 ```bash
 npx supabase secrets set GEMINI_API_KEY=...
 npx supabase functions deploy gemini-proxy
 ```
-
-Si falta el secreto, el proxy responde 500 con un mensaje explícito en vez de
-fallar en silencio.
-
-`GEMINI_API_KEY` en `.github/workflows/release.yml` quedó sin uso para el build
-del frontend (ya no va al bundle). Se puede sacar de ahí cuando quieras.
 
 ## Deuda que queda
 

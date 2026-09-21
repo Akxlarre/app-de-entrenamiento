@@ -81,12 +81,21 @@ van acá.
 | `mcp-server` | Servidor MCP del Coach IA: expone las 14 herramientas contra la BD del usuario. Autentica por JWT y opera con service role. | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
 | `gemini-proxy` | Proxy hacia Gemini para que la API key no viaje al bundle. Verifica el JWT y reenvía, preservando el stream SSE y el status. | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, **`GEMINI_API_KEY`** |
 
-Desplegar y configurar:
+**El despliegue es automático.** El job `deploy_edge_functions` de
+`.github/workflows/release.yml` despliega ambas y publica `GEMINI_API_KEY` como
+secreto del proyecto Supabase, tomándola del secreto homónimo de GitHub. No hay
+paso manual: alcanza con que el secreto exista en el repo (si falta, el workflow
+falla con un mensaje explícito en vez de desplegar un proxy roto).
+
+`mcp-server` se despliega con `--no-verify-jwt` y valida por su cuenta.
+`gemini-proxy` **sin** ese flag: cada llamada gasta cuota de Gemini, así que
+conviene que el gateway rechace los JWT inválidos antes de llegar a la función.
+
+Para desplegar a mano en desarrollo:
 
 ```bash
 npx supabase secrets set GEMINI_API_KEY=...
 npx supabase functions deploy gemini-proxy
-npx supabase functions deploy mcp-server
 ```
 
 Si `gemini-proxy` no está desplegada, el chat falla con 404; si le falta el
