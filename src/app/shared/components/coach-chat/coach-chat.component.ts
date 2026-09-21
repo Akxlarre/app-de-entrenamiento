@@ -57,12 +57,12 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
       <div class="absolute top-[49px] left-0 right-0 bottom-0 z-50 bg-surface flex flex-col animation-fade-in">
         <div class="px-5 py-4 flex-1 overflow-y-auto">
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-base font-semibold text-primary m-0 flex items-center gap-2">
+            <h3 class="text-base font-semibold text-text-primary m-0 flex items-center gap-2">
               <app-icon name="brain" [size]="18" /> Memoria del Coach
             </h3>
             <button
               type="button"
-              class="bg-transparent border-none text-muted hover:text-primary cursor-pointer p-1"
+              class="bg-transparent border-none text-text-muted hover:text-text-primary cursor-pointer p-1"
               (click)="onToggleMemory.emit()"
               title="Volver al chat"
               aria-label="Cerrar memoria"
@@ -70,13 +70,13 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
               <app-icon name="x" [size]="20" />
             </button>
           </div>
-          <p class="text-sm text-muted mb-6">
+          <p class="text-sm text-text-muted mb-6">
             Aquí están los datos que la IA ha aprendido sobre ti. Puedes eliminarlos si ya no son relevantes.
           </p>
 
           @if (memories().length === 0) {
             <div class="text-center py-8">
-              <p class="text-sm text-muted">Aún no hay recuerdos guardados.</p>
+              <p class="text-sm text-text-muted">Aún no hay recuerdos guardados.</p>
             </div>
           } @else {
             <div class="flex flex-col gap-3">
@@ -86,12 +86,12 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
                     <app-icon [name]="getMemoryIcon(mem.category)" [size]="16" />
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm text-primary m-0">{{ mem.content }}</p>
-                    <span class="text-xs text-muted mt-1 inline-block">{{ getMemoryLabel(mem.category) | uppercase }}</span>
+                    <p class="text-sm text-text-primary m-0">{{ mem.content }}</p>
+                    <span class="text-xs text-text-muted mt-1 inline-block">{{ getMemoryLabel(mem.category) | uppercase }}</span>
                   </div>
                   <button 
                     type="button" 
-                    class="text-muted hover:text-[var(--state-error)] shrink-0 bg-transparent border-none p-1 cursor-pointer"
+                    class="text-text-muted hover:text-[var(--state-error)] shrink-0 bg-transparent border-none p-1 cursor-pointer"
                     (click)="onDeleteMemory.emit(mem.id)"
                     title="Olvidar recuerdo"
                   >
@@ -112,7 +112,7 @@ import { MarkdownPipe } from '@shared/pipes/markdown.pipe';
           <div class="chat-empty-icon">
             <app-icon name="sparkles" [size]="26" [ariaHidden]="true" />
           </div>
-          <h3 class="text-base font-semibold text-primary m-0 mb-1">Coach Virtual IA</h3>
+          <h3 class="text-base font-semibold text-text-primary m-0 mb-1">Coach Virtual IA</h3>
           <p class="chat-empty-sub">Tu copiloto durante el entrenamiento. ¿Qué deseas consultar?</p>
           <div class="flex flex-col gap-2 w-full max-w-sm">
             <button
