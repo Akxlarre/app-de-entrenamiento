@@ -81,7 +81,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
           <!-- Paso 1: Configuración -->
           <div class="bento-wide card-accent">
             <h2>Datos Generales</h2>
-            <p class="text-muted">Dale un nombre a tu bloque y define cuánto durará.</p>
+            <p class="text-text-muted">Dale un nombre a tu bloque y define cuánto durará.</p>
 
             <div class="form-group">
               <label>Nombre del Plan</label>
@@ -121,7 +121,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
           <!-- Paso 2: Rutinas -->
           <div class="bento-wide card-accent">
             <h2>Tus Sesiones</h2>
-            <p class="text-muted">Agrega las rutinas que vas a realizar cada semana.</p>
+            <p class="text-text-muted">Agrega las rutinas que vas a realizar cada semana.</p>
 
             @if (routineFacade.routines().length === 0) {
               <div style="padding: 1rem 0;">
@@ -146,9 +146,9 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
                       @if (s.routine_id) {
                          <span>{{ getRoutineName(s.routine_id) }}</span>
                       } @else {
-                         <span class="text-muted" style="font-weight: 500;">Selecciona una rutina...</span>
+                         <span class="text-text-muted" style="font-weight: 500;">Selecciona una rutina...</span>
                       }
-                      <app-icon name="chevron-down" [size]="16" class="text-muted"></app-icon>
+                      <app-icon name="chevron-down" [size]="16" class="text-text-muted"></app-icon>
                     </div>
                   </div>
                 }
@@ -181,7 +181,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
           <!-- Paso 3: Progresión -->
           <div class="bento-wide card-accent">
             <h2>Estrategia de Periodización</h2>
-            <p class="text-muted">
+            <p class="text-text-muted">
               Elige cómo el sistema calculará tus cargas y repeticiones a lo largo de las semanas.
             </p>
 
@@ -281,7 +281,7 @@ import { RoutineEditorPage } from '../../routines/routine-editor.page';
           @for (r of routineFacade.routines(); track r.id) {
             <button class="btn-secondary" style="text-align: left; padding: 1rem; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;" (click)="selectRoutineForActiveSession(r.id)">
               <span style="font-weight: 600; color: var(--text-primary); font-size: var(--text-base);">{{ r.name }}</span>
-              <app-icon name="chevron-right" [size]="16" class="text-muted"></app-icon>
+              <app-icon name="chevron-right" [size]="16" class="text-text-muted"></app-icon>
             </button>
           }
         </div>

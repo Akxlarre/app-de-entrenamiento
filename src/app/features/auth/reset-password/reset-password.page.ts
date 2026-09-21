@@ -38,16 +38,16 @@ const PASSWORD_MIN_LENGTH = 8;
       ></div>
 
       <!-- Brand header -->
-      <div class="mb-8 text-center relative z-10 ">
+      <div class="mb-8 text-center relative z-10">
         <div
           class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[var(--ds-brand)]/20 to-[var(--color-primary-dark)]/5 border border-[var(--ds-brand)]/30 mb-3 shadow-lg shadow-[var(--ds-brand)]/10"
         >
           <app-icon name="dumbbell" [size]="24" [color]="'var(--ds-brand)'" />
         </div>
-        <h1 class="m-0 text-3xl font-normal font-display tracking-tighter text-primary sm:text-4xl">
+        <h1 class="m-0 text-3xl font-normal font-display tracking-tighter text-text-primary sm:text-4xl">
           <span class="text-[var(--ds-brand)]">FIT</span>TRACK
         </h1>
-        <p class="m-0 mt-1 text-[var(--text-floor,13px)] font-medium uppercase tracking-widest text-muted">
+        <p class="m-0 mt-1 text-[var(--text-floor,13px)] font-medium uppercase tracking-widest text-text-muted">
           Tu diario de entrenamiento y fuerza
         </p>
       </div>
@@ -57,8 +57,8 @@ const PASSWORD_MIN_LENGTH = 8;
         class="w-full max-w-[390px] rounded-2xl border border-subtle bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
       >
         <div class="mb-6 text-center">
-          <h2 class="m-0 text-xl tracking-tight text-primary" style="font-family: var(--font-body); font-weight: 800;">Nueva contraseña</h2>
-          <p class="m-0 mt-1.5 text-[var(--text-floor,13px)] text-muted">
+          <h2 class="m-0 text-xl tracking-tight text-text-primary" style="font-family: var(--font-body); font-weight: 800;">Nueva contraseña</h2>
+          <p class="m-0 mt-1.5 text-[var(--text-floor,13px)] text-text-muted">
             Elige una contraseña segura de al menos {{ minLength }} caracteres
           </p>
         </div>
@@ -71,7 +71,7 @@ const PASSWORD_MIN_LENGTH = 8;
           >
             <span>El enlace de recuperación es inválido o ya expiró.</span>
             <button
-              class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-left font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
+              class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-left font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-text-primary"
               (click)="goToLogin()"
             >
               Solicitar un nuevo enlace →
@@ -108,13 +108,13 @@ const PASSWORD_MIN_LENGTH = 8;
             <div class="flex flex-col gap-1.5">
               <label
                 for="password"
-                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-muted"
+                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-text-muted"
                 >Nueva contraseña</label
               >
               <input
                 id="password"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="password"
                 name="password"
@@ -127,13 +127,13 @@ const PASSWORD_MIN_LENGTH = 8;
             <div class="flex flex-col gap-1.5">
               <label
                 for="confirm"
-                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-muted"
+                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-text-muted"
                 >Confirmar contraseña</label
               >
               <input
                 id="confirm"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="confirm"
                 name="confirm"
@@ -145,7 +145,7 @@ const PASSWORD_MIN_LENGTH = 8;
             <!-- Submit -->
             <button
               type="submit"
-              class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] font-bold text-sm tracking-wide text-primary shadow-lg shadow-[var(--ds-brand)]/25 transition-all duration-150 hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
+              class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] font-bold text-sm tracking-wide text-text-primary shadow-lg shadow-[var(--ds-brand)]/25 transition-all duration-150 hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
               [disabled]="loading()"
             >
               @if (loading()) {
@@ -161,7 +161,7 @@ const PASSWORD_MIN_LENGTH = 8;
         <!-- Footer -->
         <div class="mt-6 flex items-center justify-center border-t border-subtle pt-5">
           <button
-            class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-[var(--text-floor,13px)] font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
+            class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-[var(--text-floor,13px)] font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-text-primary"
             (click)="goToLogin()"
           >
             Volver a iniciar sesión

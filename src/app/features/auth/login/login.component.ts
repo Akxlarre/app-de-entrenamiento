@@ -84,16 +84,16 @@ function sanitizeAuthError(rawMessage: string): string {
       ></div>
 
       <!-- Main Brand Header -->
-      <div class="mb-8 text-center relative z-10 ">
+      <div class="mb-8 text-center relative z-10">
         <div
           class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[var(--ds-brand)]/20 to-[var(--color-primary-dark)]/5 border border-[var(--ds-brand)]/30 mb-3 shadow-lg shadow-[var(--ds-brand)]/10"
         >
           <app-icon name="dumbbell" [size]="24" [color]="'var(--ds-brand)'" />
         </div>
-        <h1 class="m-0 text-3xl font-normal font-display tracking-tighter text-primary sm:text-4xl">
+        <h1 class="m-0 text-3xl font-normal font-display tracking-tighter text-text-primary sm:text-4xl">
           <span class="text-[var(--ds-brand)]">FIT</span>TRACK
         </h1>
-        <p class="m-0 mt-1 text-[var(--text-floor,13px)] font-medium uppercase tracking-widest text-muted">
+        <p class="m-0 mt-1 text-[var(--text-floor,13px)] font-medium uppercase tracking-widest text-text-muted">
           Tu diario de entrenamiento y fuerza
         </p>
       </div>
@@ -103,7 +103,7 @@ function sanitizeAuthError(rawMessage: string): string {
         class="w-full max-w-[390px] rounded-2xl border border-subtle bg-surface p-7 shadow-2xl backdrop-blur-xl relative z-10"
       >
         <div class="mb-6 text-center">
-          <h2 class="m-0 text-xl tracking-tight text-primary" style="font-family: var(--font-body); font-weight: 800;">
+          <h2 class="m-0 text-xl tracking-tight text-text-primary" style="font-family: var(--font-body); font-weight: 800;">
             @switch (mode()) {
               @case ('register') {
                 Crear Cuenta
@@ -116,7 +116,7 @@ function sanitizeAuthError(rawMessage: string): string {
               }
             }
           </h2>
-          <p class="m-0 mt-1.5 text-[var(--text-floor,13px)] text-muted">
+          <p class="m-0 mt-1.5 text-[var(--text-floor,13px)] text-text-muted">
             @switch (mode()) {
               @case ('register') {
                 Únete para registrar y monitorear tus progresos
@@ -157,13 +157,13 @@ function sanitizeAuthError(rawMessage: string): string {
         <form class="flex flex-col gap-4" (ngSubmit)="onSubmit()">
           <!-- Email -->
           <div class="flex flex-col gap-1.5">
-            <label for="email" class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-muted"
+            <label for="email" class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-text-muted"
               >Correo electrónico</label
             >
             <input
               id="email"
               type="email"
-              class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+              class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
               placeholder="tu@correo.com"
               [(ngModel)]="email"
               name="email"
@@ -177,13 +177,13 @@ function sanitizeAuthError(rawMessage: string): string {
             <div class="flex flex-col gap-1.5">
               <label
                 for="password"
-                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-muted"
+                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-text-muted"
                 >Contraseña</label
               >
               <input
                 id="password"
                 type="password"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="••••••••"
                 [(ngModel)]="password"
                 name="password"
@@ -198,13 +198,13 @@ function sanitizeAuthError(rawMessage: string): string {
             <div class="flex flex-col gap-1.5">
               <label
                 for="displayName"
-                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-muted"
+                class="text-[var(--text-floor,13px)] font-semibold uppercase tracking-wider text-text-muted"
                 >Nombre</label
               >
               <input
                 id="displayName"
                 type="text"
-                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
+                class="h-12 w-full rounded-xl bg-elevated border border-subtle px-4 text-sm text-text-primary placeholder-zinc-500 outline-none transition-all focus:border-[var(--ds-brand)] focus:bg-[var(--ds-brand)]/[0.02] focus:ring-2 focus:ring-[var(--ds-brand)]/20"
                 placeholder="Tu nombre"
                 [(ngModel)]="displayName"
                 name="displayName"
@@ -216,7 +216,7 @@ function sanitizeAuthError(rawMessage: string): string {
           <!-- Submit button (Clean 48px height with gradient and tactile feedback) -->
           <button
             type="submit"
-            class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] font-bold text-sm tracking-wide text-primary shadow-lg shadow-[var(--ds-brand)]/25 transition-all duration-150 hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
+            class="mt-1 h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-gradient-to-r from-[var(--color-primary-dark)] to-[var(--ds-brand)] font-bold text-sm tracking-wide text-text-primary shadow-lg shadow-[var(--ds-brand)]/25 transition-all duration-150 hover:from-[var(--ds-brand)] hover:to-[var(--color-primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 flex"
             [disabled]="loading()"
           >
             @if (loading()) {
@@ -242,28 +242,28 @@ function sanitizeAuthError(rawMessage: string): string {
 
         <!-- Footer links -->
         <div
-          class="mt-6 flex items-center justify-center gap-2.5 text-[var(--text-floor,13px)] text-muted border-t border-subtle pt-5"
+          class="mt-6 flex items-center justify-center gap-2.5 text-[var(--text-floor,13px)] text-text-muted border-t border-subtle pt-5"
         >
           @switch (mode()) {
             @case ('login') {
               <button
-                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-muted transition-colors hover:text-[var(--color-primary-hover)]"
+                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center text-text-muted transition-colors hover:text-[var(--color-primary-hover)]"
                 (click)="switchMode('reset')"
               >
                 ¿Olvidaste tu contraseña?
               </button>
-              <span class="text-secondary">·</span>
+              <span class="text-text-secondary">·</span>
               <button
-                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
+                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-text-primary"
                 (click)="switchMode('register')"
               >
                 Crear cuenta
               </button>
             }
             @case ('register') {
-              <span class="text-muted">¿Ya tienes cuenta?</span>
+              <span class="text-text-muted">¿Ya tienes cuenta?</span>
               <button
-                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
+                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-text-primary"
                 (click)="switchMode('login')"
               >
                 Inicia sesión
@@ -271,7 +271,7 @@ function sanitizeAuthError(rawMessage: string): string {
             }
             @case ('reset') {
               <button
-                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-primary"
+                class="cursor-pointer border-none bg-transparent p-0 min-h-[44px] inline-flex items-center font-semibold text-[var(--color-primary-hover)] transition-colors hover:text-text-primary"
                 (click)="switchMode('login')"
               >
                 Volver a iniciar sesión

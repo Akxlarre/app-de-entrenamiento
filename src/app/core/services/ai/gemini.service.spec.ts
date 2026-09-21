@@ -260,6 +260,60 @@ describe('GeminiService', () => {
     });
   });
 
+  describe('adjuntar documentos', () => {
+    const doc = {
+      name: 'rutina.pdf',
+      mimeType: 'application/pdf',
+      dataUrl: 'data:application/pdf;base64,QUJD',
+    };
+
+    it('manda el documento como parte input_document', async () => {
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
+
+      const gen = service.generateResponseStream([], 'revisá esto', undefined, '', doc);
+      for await (const _ of gen) {
+        /* consumir */
+      }
+
+      const body = mockHttpClient.post.mock.calls[0][1];
+      const ultimo = body.messages.at(-1);
+      const parte = ultimo.content.find((c: any) => c.type === 'input_document');
+
+      expect(parte.input_document).toEqual({
+        name: 'rutina.pdf',
+        mime_type: 'application/pdf',
+        data: doc.dataUrl,
+      });
+      // El texto del usuario viaja aparte, no embebido en el adjunto.
+      expect(ultimo.content[0]).toEqual({ type: 'text', text: 'revisá esto' });
+    });
+
+    it('sin adjunto el mensaje sigue siendo texto plano', async () => {
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
+
+      const gen = service.generateResponseStream([], 'hola');
+      for await (const _ of gen) {
+        /* consumir */
+      }
+
+      const body = mockHttpClient.post.mock.calls[0][1];
+      expect(body.messages.at(-1)).toEqual({ role: 'user', content: 'hola' });
+    });
+
+    it('la imagen tiene prioridad y no se mezcla con el documento', async () => {
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
+
+      const gen = service.generateResponseStream([], 'mirá', 'data:image/png;base64,AAA', '', doc);
+      for await (const _ of gen) {
+        /* consumir */
+      }
+
+      const contenido = mockHttpClient.post.mock.calls[0][1].messages.at(-1).content;
+      expect(contenido.some((c: any) => c.type === 'image_url')).toBe(true);
+      expect(contenido.some((c: any) => c.type === 'input_document')).toBe(false);
+    });
+  });
+
   describe('tope de iteraciones de herramientas', () => {
     beforeEach(() => {
       vi.useFakeTimers();

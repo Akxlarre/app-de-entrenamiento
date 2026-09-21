@@ -236,4 +236,89 @@ describe('WorkoutFacade', () => {
       expect(workoutsUpsert).toHaveBeenCalledOnce();
     });
   });
+
+  describe('deleteHistoryWorkout() — borrar una sesión del historial', () => {
+    let facade: WorkoutFacade;
+    let toast: any;
+    let workoutsDeleteEq: ReturnType<typeof vi.fn>;
+    let mesoUpdateEq: ReturnType<typeof vi.fn>;
+    let callOrder: string[];
+
+    function setup(opts: { mesoError?: unknown; deleteError?: unknown } = {}) {
+      toast = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
+      callOrder = [];
+
+      mesoUpdateEq = vi.fn().mockImplementation(async () => {
+        callOrder.push('meso');
+        return { error: opts.mesoError ?? null };
+      });
+      workoutsDeleteEq = vi.fn().mockImplementation(async () => {
+        callOrder.push('delete');
+        return { error: opts.deleteError ?? null };
+      });
+
+      const clientMock = createMockClient({
+        mesocycle_sessions: { update: vi.fn(() => ({ eq: mesoUpdateEq })) },
+        workouts: { delete: vi.fn(() => ({ eq: workoutsDeleteEq })) },
+      });
+
+      TestBed.configureTestingModule({
+        providers: [
+          WorkoutFacade,
+          { provide: SupabaseService, useValue: { client: clientMock } },
+          { provide: Router, useValue: mockRouter },
+          { provide: ToastService, useValue: toast },
+        ],
+      });
+
+      facade = TestBed.inject(WorkoutFacade);
+      facade.history.set([
+        { id: 'w-1', total_sets: 3 } as any,
+        { id: 'w-2', total_sets: 5 } as any,
+      ]);
+    }
+
+    it('saca la sesión de la lista y confirma al usuario', async () => {
+      setup();
+
+      const ok = await facade.deleteHistoryWorkout('w-1');
+
+      expect(ok).toBe(true);
+      expect(facade.history().map((w) => w.id)).toEqual(['w-2']);
+      expect(workoutsDeleteEq).toHaveBeenCalledWith('id', 'w-1');
+      expect(toast.success).toHaveBeenCalled();
+    });
+
+    it('libera la sesión del mesociclo ANTES de borrar el workout', async () => {
+      setup();
+
+      await facade.deleteHistoryWorkout('w-1');
+
+      // Si se borrara primero, el FK ON DELETE SET NULL ya habría cortado el
+      // vínculo y la sesión del plan quedaría completada apuntando a nada.
+      expect(callOrder).toEqual(['meso', 'delete']);
+      expect(mesoUpdateEq).toHaveBeenCalledWith('completed_workout_id', 'w-1');
+    });
+
+    it('hace rollback y avisa si falla el borrado', async () => {
+      setup({ deleteError: { message: 'boom' } });
+
+      const ok = await facade.deleteHistoryWorkout('w-1');
+
+      expect(ok).toBe(false);
+      expect(facade.history().map((w) => w.id)).toEqual(['w-1', 'w-2']);
+      expect(toast.error).toHaveBeenCalled();
+      expect(toast.success).not.toHaveBeenCalled();
+    });
+
+    it('no borra el workout si no se pudo liberar la sesión del plan', async () => {
+      setup({ mesoError: { message: 'no anda' } });
+
+      const ok = await facade.deleteHistoryWorkout('w-1');
+
+      expect(ok).toBe(false);
+      expect(workoutsDeleteEq).not.toHaveBeenCalled();
+      expect(facade.history().map((w) => w.id)).toEqual(['w-1', 'w-2']);
+    });
+  });
 });
