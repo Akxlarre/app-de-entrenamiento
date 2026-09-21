@@ -583,9 +583,12 @@ import {
       [isOpen]="coachFacade.isDrawerOpen()"
       title="Coach Virtual IA"
       icon="sparkles"
+      [noPadding]="true"
       (closed)="coachFacade.closeDrawer()"
     >
-      <div class="h-[calc(100vh-110px)] flex flex-col relative">
+      <!-- Mismo envoltorio que el FAB del shell (tabs-layout): sin padding del
+           drawer y sin altura calculada a mano, la geometría la manda el panel. -->
+      <div class="h-full flex flex-col relative">
         <app-coach-chat
           [messages]="coachFacade.messages()"
           [isLoading]="coachFacade.isLoading()"
