@@ -42,12 +42,12 @@ import { Router } from '@angular/router';
   ],
   template: `
     <ion-tabs [class.has-session]="workoutFacade.activeSession() !== null && !isWorkoutRoute()">
-      <!-- Barra de sesión en curso — reemplaza al FAB mudo anterior.
-           Dice qué se está entrenando y hace cuánto, no solo que "hay algo". -->
+      <!-- Barra de sesión en curso — reemplaza al FAB mudo anterior. -->
       @if (workoutFacade.activeSession(); as session) {
         @if (!isWorkoutRoute()) {
           <button
             class="session-bar"
+            slot="bottom"
             [class.is-hidden]="coachFacade.isDrawerOpen()"
             (click)="resumeWorkout()"
           >
@@ -62,7 +62,26 @@ import { Router } from '@angular/router';
         }
       }
 
-      <!-- Coach IA — se eleva cuando la barra de sesión está presente -->
+      @if (!isWorkoutRoute()) {
+        <ion-tab-bar slot="bottom" class="main-tab-bar">
+          <ion-tab-button tab="workouts">
+            <ion-icon name="barbell-outline"></ion-icon>
+            <ion-label>Entrenar</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="explorer">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-label>Ejercicios</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="profile">
+            <ion-icon name="person-outline"></ion-icon>
+            <ion-label>Perfil</ion-label>
+          </ion-tab-button>
+        </ion-tab-bar>
+      }
+
+      <!-- Coach IA — Flota sobre el contenido -->
       <button
         class="coach-fab"
         [class.is-hidden]="coachFacade.isDrawerOpen() || isCoachRoute()"
@@ -94,25 +113,6 @@ import { Router } from '@angular/router';
           />
         </div>
       </app-drawer>
-
-      @if (!isWorkoutRoute()) {
-        <ion-tab-bar slot="bottom" class="main-tab-bar">
-          <ion-tab-button tab="workouts">
-            <ion-icon name="barbell-outline"></ion-icon>
-            <ion-label>Entrenar</ion-label>
-          </ion-tab-button>
-
-          <ion-tab-button tab="explorer">
-            <ion-icon name="search-outline"></ion-icon>
-            <ion-label>Ejercicios</ion-label>
-          </ion-tab-button>
-
-          <ion-tab-button tab="profile">
-            <ion-icon name="person-outline"></ion-icon>
-            <ion-label>Perfil</ion-label>
-          </ion-tab-button>
-        </ion-tab-bar>
-      }
     </ion-tabs>
   `,
   styles: [
@@ -146,8 +146,6 @@ import { Router } from '@angular/router';
       .main-tab-bar {
         --background: var(--bg-surface);
         --border: 1px solid var(--border-default);
-        height: var(--tabbar-h);
-        padding-bottom: var(--ion-safe-area-bottom, 0px);
       }
 
       ion-tab-button {
@@ -183,10 +181,7 @@ import { Router } from '@angular/router';
          Ember, no verde: en este sistema el verde significa
          "logrado" y esto es "está pasando ahora". */
       .session-bar {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: var(--tabbar-h);
+        position: relative;
         z-index: 95;
 
         display: flex;
