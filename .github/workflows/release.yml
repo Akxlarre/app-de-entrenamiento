@@ -39,6 +39,33 @@ jobs:
             --project-ref ${{ steps.extract_ref.outputs.project_ref }} \
             --no-verify-jwt
 
+      # La key de Gemini ya no se inyecta en el bundle del APK: vive como
+      # secreto del proyecto Supabase y sólo la lee gemini-proxy.
+      - name: Publicar GEMINI_API_KEY como secreto de Supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ Falta el secreto GEMINI_API_KEY en el repositorio."
+            echo "   Sin él, gemini-proxy se despliega pero devuelve 500 en cada mensaje del Coach."
+            echo "   Configuralo en Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          supabase secrets set GEMINI_API_KEY="$GEMINI_API_KEY" \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }}
+          echo "✅ GEMINI_API_KEY publicada en el proyecto Supabase."
+
+      # A diferencia de mcp-server, acá NO usamos --no-verify-jwt: cada llamada
+      # gasta cuota de Gemini, así que conviene que el gateway rechace los JWT
+      # inválidos antes de llegar a la función (que igual valida por su cuenta).
+      - name: Deploy Edge Function (gemini-proxy)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy gemini-proxy \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }}
+
   # ── Job 2: Build y Deploy de APK ─────────────────────────────
   build_and_deploy_apk:
     runs-on: ubuntu-latest
@@ -67,7 +94,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Sin GEMINI_API_KEY a propósito: set-env.js ya no la inyecta. La
+          # consume gemini-proxy del lado del servidor, no el bundle.
         run: node scripts/set-env.js
 
       - name: Build Web (Angular)

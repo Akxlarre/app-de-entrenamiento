@@ -65,3 +65,10 @@
   propio scroll; si no, agrega `px-6 py-6` y un segundo contenedor scrolleable.
 - **Altura dentro de un drawer: `h-full`**, nunca `calc(100vh - N)` a ojo: no
   contempla el header del panel ni los safe-area insets.
+- **Un `catch` que colapsa todos los errores en un mensaje genérico hace el
+  fallo indiagnosticable.** El Coach mostraba "Verifica tu API Key" para 401,
+  404, 500, CORS y red por igual, y encima seguía diciéndolo después de que la
+  API key dejara de existir en el cliente. Si un error puede tener causas
+  distintas que se arreglan distinto, cada una necesita su mensaje.
+- **Un mensaje de error que nombra una pieza de la arquitectura envejece con
+  ella.** Al mover una credencial o un endpoint, revisá qué textos lo mencionan.
