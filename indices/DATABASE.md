@@ -71,6 +71,27 @@ cubre el INSERT.
 
 `exercises` es catálogo global con lectura abierta (incluye anon).
 
+## Edge Functions
+
+Ningún índice autogenerado las cubre (el AST sólo escanea `src/app/`), así que
+van acá.
+
+| Función | Qué hace | Secretos que necesita |
+|---|---|---|
+| `mcp-server` | Servidor MCP del Coach IA: expone las 14 herramientas contra la BD del usuario. Autentica por JWT y opera con service role. | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| `gemini-proxy` | Proxy hacia Gemini para que la API key no viaje al bundle. Verifica el JWT y reenvía, preservando el stream SSE y el status. | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, **`GEMINI_API_KEY`** |
+
+Desplegar y configurar:
+
+```bash
+npx supabase secrets set GEMINI_API_KEY=...
+npx supabase functions deploy gemini-proxy
+npx supabase functions deploy mcp-server
+```
+
+Si `gemini-proxy` no está desplegada, el chat falla con 404; si le falta el
+secreto, con 500. Ambos casos tienen mensaje propio en la UI desde fix-042.
+
 ## Trampas conocidas
 
 - **`target_reps` es TEXT, no INT.** Mandar un número pelado funciona, pero se
