@@ -35,7 +35,8 @@ El Architect Guard **bloquea** writes en `features/` y `shared/` si detecta:
   data-llm-action="delete-producto"
   class="btn-ghost"
 >
-  <app-icon name="trash-2" [size]="16" ariaHidden="true" />
+  <!-- ariaHidden es boolean: con ariaHidden="true" el build falla con TS2322. -->
+  <app-icon name="trash-2" [size]="16" [ariaHidden]="true" />
 </button>
 
 <!-- ❌ Incorrecto — bloqueado por LLM-01 / LLM-02 -->

@@ -3,6 +3,7 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { Toast } from 'primeng/toast';
 import { AppUpdateFacade } from './core/facades/app-update.facade';
 import { AppUpdateModalComponent } from './shared/components/app-update-modal/app-update-modal.component';
+import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
 
 /**
  * AppComponent — raíz de la aplicación.
@@ -11,7 +12,7 @@ import { AppUpdateModalComponent } from './shared/components/app-update-modal/ap
   selector: 'app-root',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IonApp, IonRouterOutlet, Toast, AppUpdateModalComponent],
+  imports: [IonApp, IonRouterOutlet, Toast, AppUpdateModalComponent, ConfirmModalComponent],
   template: `
     <ion-app>
       <ion-router-outlet></ion-router-outlet>
@@ -32,6 +33,9 @@ import { AppUpdateModalComponent } from './shared/components/app-update-modal/ap
         (startUpdate)="updateFacade.downloadAndInstall()"
         (dismiss)="updateFacade.dismissUpdate()"
       />
+      <!-- Overlay global de confirmación. Vive acá para que cualquier pantalla
+           pueda pedir confirmación vía ConfirmModalService sin montar nada. -->
+      <app-confirm-modal />
     </ion-app>
   `,
 })
