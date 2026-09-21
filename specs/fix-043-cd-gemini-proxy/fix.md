@@ -52,6 +52,16 @@ ejecutarlo. Verificación: lectura del YAML y validación de sintaxis.
   `SUPABASE_ANON_KEY`.
 - `npm run test:ci`: 155 tests en verde (sin cambios de código de app).
 
-NO verificado: el workflow no se ejecutó. La sintaxis de
-`supabase secrets set --project-ref` y el despliegue real de `gemini-proxy`
-sólo se confirman corriendo el CD.
+- Sintaxis de los comandos verificada contra la documentación oficial del CLI
+  de Supabase (el CLI no está disponible en este entorno y el Bash Guard impide
+  instalarlo):
+  * `supabase secrets set <NAME=VALUE> ... [flags]` acepta `--project-ref`.
+  * `supabase functions deploy` acepta `--project-ref` y `--no-verify-jwt`, y
+    omitir ese flag deja la verificación de JWT ACTIVA — que es exactamente el
+    comportamiento buscado para `gemini-proxy`.
+  * No se usa `--prune`, así que desplegar `gemini-proxy` no borra `mcp-server`.
+
+NO verificado, y no se va a verificar desde acá: **el workflow no se ejecutó**.
+Correrlo desplegaría contra el proyecto Supabase real y publicaría un secreto;
+es una acción sobre infraestructura de producción que le corresponde autorizar
+al dueño del repo, no al agente. La confirmación final es el primer run del CD.
