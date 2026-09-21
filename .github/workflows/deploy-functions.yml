@@ -1,0 +1,79 @@
+name: Deploy Edge Functions
+
+# Desplegar una Edge Function no debería exigir cortar un release de la APK.
+# release.yml acopla las dos cosas y además toma VERSION_TAG de github.ref_name,
+# así que dispararlo a mano publicaría en app_updates una versión llamada como
+# la rama. Este workflow hace sólo la parte de servidor.
+
+on:
+  workflow_dispatch:
+  # También al tocar el código de las functions en main, para que el servidor
+  # no quede atrás del cliente (que fue exactamente lo que rompió el Coach).
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/deploy-functions.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Extraer Project Ref desde SUPABASE_URL
+        id: extract_ref
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "❌ Falta el secreto SUPABASE_URL en el repositorio."
+            exit 1
+          fi
+          REF=$(echo "$SUPABASE_URL" | sed -E 's|https://([^.]+)\.supabase\.co.*|\1|')
+          echo "project_ref=$REF" >> $GITHUB_OUTPUT
+          echo "📦 Project ref extraído: $REF"
+
+      - name: Publicar GEMINI_API_KEY como secreto de Supabase
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ Falta el secreto GEMINI_API_KEY en el repositorio."
+            echo "   Sin él, gemini-proxy se despliega pero devuelve 500 en cada mensaje del Coach."
+            echo "   Configuralo en Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          supabase secrets set GEMINI_API_KEY="$GEMINI_API_KEY" \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }}
+          echo "✅ GEMINI_API_KEY publicada en el proyecto Supabase."
+
+      # Mismos flags que release.yml: mcp-server valida por su cuenta;
+      # gemini-proxy deja activa la verificación del gateway porque cada
+      # llamada gasta cuota de Gemini.
+      - name: Deploy Edge Function (mcp-server)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy mcp-server \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }} \
+            --no-verify-jwt
+
+      - name: Deploy Edge Function (gemini-proxy)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy gemini-proxy \
+            --project-ref ${{ steps.extract_ref.outputs.project_ref }}
+
+      - name: Resumen
+        run: |
+          echo "✅ Edge Functions desplegadas: mcp-server, gemini-proxy"
+          echo "   No se construyó ni publicó ninguna APK."
