@@ -84,9 +84,9 @@ import { GsapAnimationsService } from '@core/services/ui/gsap-animations.service
 
       .modal__dialog {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        inset: 0;
+        margin: auto;
+        height: fit-content;
         z-index: 1200;
         width: calc(100% - 2rem);
         max-width: 480px;

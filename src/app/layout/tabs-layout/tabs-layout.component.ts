@@ -68,7 +68,6 @@ import { Router } from '@angular/router';
       <!-- Coach IA — se eleva cuando la barra de sesión está presente -->
       <button
         class="coach-fab"
-        [class.above-session]="workoutFacade.activeSession() !== null && !isWorkoutRoute()"
         [class.is-hidden]="coachFacade.isDrawerOpen() || isCoachRoute()"
         (click)="coachFacade.toggleDrawer()"
         aria-label="Consultar a tu Coach IA"
@@ -127,7 +126,7 @@ import { Router } from '@angular/router';
 
         /* Geometría del pie. Todo lo que flota se posiciona contra estas
            dos medidas, así nada se pisa cuando aparece la sesión. */
-        --tabbar-h: calc(58px + env(safe-area-inset-bottom, 0px));
+        --tabbar-h: calc(58px + var(--ion-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
         --session-bar-h: 56px;
 
         /* El shell publica cuánto espacio ocupa su cromo inferior y las
@@ -266,7 +265,7 @@ import { Router } from '@angular/router';
       .coach-fab {
         position: absolute;
         right: var(--space-4);
-        bottom: calc(var(--tabbar-h) + var(--space-4));
+        bottom: var(--chrome-bottom);
         z-index: 90;
 
         width: var(--target-min);
@@ -284,11 +283,8 @@ import { Router } from '@angular/router';
         cursor: pointer;
         transition:
           opacity var(--duration-fast) var(--ease-standard),
-          transform var(--duration-fast) var(--ease-standard);
-      }
-
-      .coach-fab.above-session {
-        bottom: calc(var(--tabbar-h) + var(--session-bar-h) + var(--space-4));
+          transform var(--duration-fast) var(--ease-standard),
+          bottom var(--duration-fast) var(--ease-standard);
       }
 
       .coach-fab:active {

@@ -40,7 +40,7 @@ import { IconComponent } from '@shared/components/icon/icon.component';
       .app-top-header {
         position: relative;
         background: transparent;
-        margin: 1rem 1rem 1.5rem 1rem;
+        margin: calc(var(--ion-safe-area-top, 20px) + 1rem) 1rem 1.5rem 1rem;
         padding: 0;
       }
 
