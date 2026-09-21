@@ -26,7 +26,8 @@
  */
 export const environment = {
   production: true,
-  geminiApiKey: '',
+  // Sin geminiApiKey a propósito: la clave vive como secreto de la Edge
+  // Function `gemini-proxy`, no en el bundle.
   supabase: {
     // Reemplazar por el script set-env.js en CI — no usar process.env directamente
     url: '',

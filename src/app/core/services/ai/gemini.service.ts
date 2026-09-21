@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { McpClientService, McpToolDefinition } from './mcp-client.service';
+import { SupabaseService } from '@core/services/infrastructure/supabase.service';
 import { environment } from '../../../../environments/environment';
 
 export interface ChatMessage {
@@ -25,8 +26,20 @@ export class GeminiService {
   private http = inject(HttpClient);
   private mcpClient = inject(McpClientService);
 
-  // API Key de Gemini (Google AI Studio)
-  private apiKey = environment.geminiApiKey || '';
+  private supabase = inject(SupabaseService);
+
+  /**
+   * Edge Function que hace de proxy contra Gemini. La API key vive allá: si
+   * llamáramos a generativelanguage.googleapis.com desde acá, la clave quedaría
+   * en el bundle del navegador y cualquiera la extraería con devtools.
+   */
+  private proxyUrl = `${environment.supabase.url}/functions/v1/gemini-proxy`;
+
+  /** JWT del usuario actual, que es con lo que el proxy autoriza la llamada. */
+  private async getAuthToken(): Promise<string> {
+    const session = await this.supabase.client.auth.getSession();
+    return session.data.session?.access_token ?? '';
+  }
 
   /**
    * Tope de rondas de herramientas por mensaje. Sin él, un modelo que insiste
@@ -450,10 +463,14 @@ ${memorySection}
       messages.push({ role: 'user', content: prompt });
     }
 
-    const url = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    // Ya no llamamos a Gemini directo: pasamos por la Edge Function, que guarda
+    // la API key del lado del servidor. Autenticamos con el JWT de Supabase.
+    const url = this.proxyUrl;
+    const authToken = await this.getAuthToken();
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.apiKey}`,
+      apikey: environment.supabase.anonKey,
+      Authorization: `Bearer ${authToken}`,
     });
 
     try {
@@ -550,7 +567,8 @@ ${memorySection}
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  Authorization: `Bearer ${this.apiKey}`,
+                  apikey: environment.supabase.anonKey,
+                  Authorization: `Bearer ${authToken}`,
                 },
                 body: JSON.stringify(body),
               });

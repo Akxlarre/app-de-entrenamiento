@@ -85,6 +85,23 @@ No toca el repo y corre antes de que la sesión empiece.
 }
 ```
 
+## Secretos de Edge Functions
+
+La API key de Gemini ya no se inyecta en el build: vive como secreto de la Edge
+Function `gemini-proxy`. Antes de que el Coach IA funcione hay que setearla y
+desplegar:
+
+```bash
+npx supabase secrets set GEMINI_API_KEY=...
+npx supabase functions deploy gemini-proxy
+```
+
+Si falta el secreto, el proxy responde 500 con un mensaje explícito en vez de
+fallar en silencio.
+
+`GEMINI_API_KEY` en `.github/workflows/release.yml` quedó sin uso para el build
+del frontend (ya no va al bundle). Se puede sacar de ahí cuando quieras.
+
 ## Deuda que queda
 
 - El **Bash Guard bloquea instalar dependencias** desde el agente. Es correcto

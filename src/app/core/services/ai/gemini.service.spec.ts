@@ -3,9 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { GeminiService } from './gemini.service';
 import { McpClientService } from './mcp-client.service';
+import { SupabaseService } from '@core/services/infrastructure/supabase.service';
 
 let mockHttpClient: any;
 let mockMcpClientService: any;
+let mockSupabaseService: any;
 
 describe('GeminiService', () => {
   let service: GeminiService;
@@ -21,11 +23,22 @@ describe('GeminiService', () => {
       listTools: vi.fn(),
     };
 
+    mockSupabaseService = {
+      client: {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({
+            data: { session: { access_token: 'jwt-de-prueba' } },
+          }),
+        },
+      },
+    };
+
     TestBed.configureTestingModule({
       providers: [
         GeminiService,
         { provide: HttpClient, useValue: mockHttpClient },
         { provide: McpClientService, useValue: mockMcpClientService },
+        { provide: SupabaseService, useValue: mockSupabaseService },
       ],
     });
 
@@ -155,6 +168,29 @@ describe('GeminiService', () => {
       const { missingInServer } = await service.verifyToolContract();
 
       expect(missingInServer).toContain('crear_mesociclo_completo');
+    });
+  });
+
+  describe('proxy de Gemini (la API key no viaja al navegador)', () => {
+    it('llama a la Edge Function, no a googleapis, y autentica con el JWT', async () => {
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
+
+      await service.generateResponse([], 'hola');
+
+      const [url, , options] = mockHttpClient.post.mock.calls[0];
+      expect(url).toContain('/functions/v1/gemini-proxy');
+      expect(url).not.toContain('generativelanguage.googleapis.com');
+      expect(options.headers.get('Authorization')).toBe('Bearer jwt-de-prueba');
+    });
+
+    it('el fetch del stream también va al proxy con el JWT', async () => {
+      mockHttpClient.post.mockReturnValue(of({ choices: [{ message: { content: 'ok' } }] }));
+
+      await service.generateResponse([], 'hola');
+
+      const [fetchUrl, init] = (globalThis.fetch as any).mock.calls.at(-1);
+      expect(fetchUrl).toContain('/functions/v1/gemini-proxy');
+      expect((init.headers as any).Authorization).toBe('Bearer jwt-de-prueba');
     });
   });
 
