@@ -139,6 +139,10 @@ import { Router } from '@angular/router';
       .main-tab-bar {
         --background: var(--bg-surface);
         --border: 1px solid var(--border-default);
+        /* Ionic a veces no inyecta el safe-area en Capacitor Android.
+           Forzamos el padding inferior para que el tab bar no quede
+           detrás de los botones de navegación del sistema. */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
       }
 
       ion-tab-button {
