@@ -5,5 +5,6 @@ export interface AppUpdate {
   release_notes: string;
   force_update: boolean;
   apk_path: string;
+  app_target: string;
   created_at: string;
 }

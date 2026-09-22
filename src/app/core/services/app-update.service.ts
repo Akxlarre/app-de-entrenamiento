@@ -39,6 +39,7 @@ export class AppUpdateService {
     const { data, error } = await this.supabase.client
       .from('app_updates')
       .select('*')
+      .eq('app_target', 'gym')
       .order('build_number', { ascending: false })
       .limit(1)
       .maybeSingle();
