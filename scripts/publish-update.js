@@ -2,6 +2,11 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
+// El proyecto se comparte con app-de-compras (plataforma-db, ADR-001): lo que este script publica y
+// borra en app_updates / releases va filtrado por APP_TARGET. Sin el filtro, la limpieza conservaba los
+// 3 build_number más altos de TODA la tabla y borraba los APK de compras (app_target 'shop').
+const APP_TARGET = 'gym';
+
 let supabaseUrl = process.env.SUPABASE_URL || 'https://ibkyzgxqbxletnwildrm.supabase.co';
 let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 const apkPath = process.env.APK_PATH;
@@ -87,7 +92,8 @@ async function publishUpdate() {
         build_number: nextBuildNumber,
         release_notes: releaseNotes,
         force_update: false, // Por defecto falso, se puede cambiar manual si es crítico
-        apk_path: uploadData.path
+        apk_path: uploadData.path,
+        app_target: APP_TARGET,
       });
 
     if (insertError) {
@@ -102,6 +108,7 @@ async function publishUpdate() {
     const { data: allUpdates, error: listError } = await supabase
       .from('app_updates')
       .select('id, apk_path, build_number')
+      .eq('app_target', APP_TARGET)
       .order('build_number', { ascending: false });
 
     if (!listError && allUpdates && allUpdates.length > MAX_RETAINED_VERSIONS) {
